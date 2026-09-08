@@ -149,6 +149,13 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
 .prow{display:flex;align-items:center;gap:9px}
 .pick{font-family:var(--sans);font-size:13px;padding:6px 10px;color:var(--ink);
   background:var(--ctrl);border:1px solid var(--rule);border-radius:4px;cursor:pointer}
+.netcode{font-family:var(--mono);font-size:22px;letter-spacing:.28em;color:var(--brass);font-weight:600}
+.netin{font-family:var(--mono);font-size:16px;letter-spacing:.22em;text-transform:uppercase;
+  width:130px;padding:7px 10px;color:var(--ink);background:var(--ctrl);
+  border:2px solid var(--rule);border-radius:4px}
+.netmsg{font-size:12.5px;color:var(--ink-2)}
+.netmsg.bad{color:var(--blood)}
+.netmsg.ok{color:var(--heal)}
 .ptokwrap{position:relative;flex:none;line-height:0}
 .ptokbtn{padding:3px 7px;border:2px solid var(--rule);border-radius:4px;background:var(--ctrl);
   cursor:pointer;line-height:0}
@@ -405,6 +412,7 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
       <div class="fieldlbl" id="lblPlayers"></div>
       <div class="choices" id="choices"></div>
       <div class="proster" id="proster"></div>
+      <div class="opts" id="netrow"></div>
       <div class="opts" id="teamrow"></div>
       <div class="opts" id="shaperow"></div>
       <details class="adv"><summary id="advTitle"></summary>
@@ -2058,6 +2066,192 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
+/* สนามทุ่นระเบิด - ชั้นเชื่อมต่อออนไลน์
+   สถาปัตยกรรม: เครื่องที่กดสร้างห้องเป็นกรรมการคนเดียว
+   ผู้เข้าร่วมไม่คำนวณกติกาเองเลย ส่งแค่ความตั้งใจไปแล้วรอสถานะใหม่กลับมาวาด
+   ข้อดีคือไม่มีทางที่สองเครื่องคำนวณต่างกัน และคนเข้ามากลางเกมก็แค่ขอสถานะก้อนล่าสุด
+
+   โมดูลนี้ไม่รู้จักกติกาของเกมเลย รู้แค่ว่าต้องส่งอะไรไปหาใคร */
+(function (root) {
+  'use strict';
+
+  var PEER_SRC = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+  var PREFIX = 'minefield5-';
+
+  var mode = 'off';          /* off | hosting | joined */
+  var peer = null;
+  var conns = [];            /* ฝั่งเจ้าของห้อง: การเชื่อมต่อของผู้เข้าร่วมทุกคน */
+  var conn = null;           /* ฝั่งผู้เข้าร่วม: ช่องทางไปหาเจ้าของห้อง */
+  var roomCode = '';
+  var mySeat = 0;
+  var hooks = {};            /* onState onStatus onJoin onAct */
+  var loaded = false;
+
+  function say(kind, text, extra) {
+    if (hooks.onStatus) hooks.onStatus(kind, text, extra || {});
+  }
+
+  function loadLib() {
+    if (loaded || root.Peer) { loaded = true; return Promise.resolve(); }
+    return new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = PEER_SRC;
+      s.onload = function () { loaded = true; res(); };
+      s.onerror = function () { rej(new Error('LIB')); };
+      document.head.appendChild(s);
+      setTimeout(function () { if (!root.Peer) rej(new Error('LIB')); }, 12000);
+    });
+  }
+
+  function code6(rng) {
+    var abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', out = '';
+    var r = rng || Math.random;
+    for (var i = 0; i < 6; i++) out += abc[Math.floor(r() * abc.length)];
+    return out;
+  }
+
+  function makePeer(id) {
+    return new Promise(function (res, rej) {
+      var p = new root.Peer(id, { debug: 0 });
+      var done = false;
+      p.on('open', function () { done = true; res(p); });
+      p.on('error', function (e) {
+        /* ชนกับห้องที่มีอยู่แล้ว หรือต่อเซิร์ฟเวอร์นัดพบไม่ได้ */
+        if (!done) { done = true; rej(e); }
+        else say('warn', 'peer_error', { detail: e && e.type });
+      });
+      setTimeout(function () { if (!done) { done = true; rej(new Error('SIGNAL')); } }, 15000);
+    });
+  }
+
+  /* ---------- ฝั่งเจ้าของห้อง ---------- */
+
+  function host(opts) {
+    opts = opts || {};
+    hooks = opts;
+    mySeat = opts.seat === undefined ? 0 : opts.seat;
+    say('busy', 'loading');
+    return loadLib().then(function () {
+      roomCode = code6(opts.rng);
+      say('busy', 'signalling');
+      return makePeer(PREFIX + roomCode);
+    }).then(function (p) {
+      peer = p; mode = 'hosting';
+      say('ok', 'hosting', { code: roomCode });
+      p.on('connection', function (c) {
+        conns.push(c);
+        c.on('open', function () { say('info', 'guest_open'); });
+        c.on('data', function (msg) { onHostMessage(c, msg); });
+        c.on('close', function () {
+          conns = conns.filter(function (x) { return x !== c; });
+          if (hooks.onLeave) hooks.onLeave(c.metadata && c.metadata.seat);
+          say('warn', 'guest_left');
+        });
+      });
+      return roomCode;
+    }).catch(function (e) { fail(e); throw e; });
+  }
+
+  function onHostMessage(c, msg) {
+    if (!msg || !msg.k) return;
+    if (msg.k === 'hello') {
+      /* ให้ที่นั่งว่างที่ใกล้ที่สุด ถ้าเต็มก็ปฏิเสธไป */
+      var seat = hooks.onJoin ? hooks.onJoin(msg.name || '') : -1;
+      c.metadata = { seat: seat };
+      c.send({ k: 'seat', seat: seat });
+      if (seat >= 0 && hooks.onState) c.send({ k: 'state', s: hooks.onState() });
+      return;
+    }
+    if (msg.k === 'act') {
+      var seat = c.metadata ? c.metadata.seat : -1;
+      if (seat < 0) return;
+      if (hooks.onAct) hooks.onAct(seat, msg.a);   /* ให้ชั้นบนตรวจว่าถึงตาเขาจริงไหม */
+    }
+  }
+
+  /* กระจายสถานะให้ทุกคน เรียกทุกครั้งที่สถานะเปลี่ยน */
+  function broadcast(state) {
+    if (mode !== 'hosting') return;
+    var payload = { k: 'state', s: state };
+    conns.forEach(function (c) {
+      if (c.open) { try { c.send(payload); } catch (e) { /* ปล่อยผ่าน */ } }
+    });
+  }
+
+  /* ---------- ฝั่งผู้เข้าร่วม ---------- */
+
+  function join(codeText, opts) {
+    opts = opts || {};
+    hooks = opts;
+    var wanted = String(codeText || '').trim().toUpperCase();
+    say('busy', 'loading');
+    return loadLib().then(function () {
+      say('busy', 'signalling');
+      return makePeer(null);
+    }).then(function (p) {
+      peer = p;
+      return new Promise(function (res, rej) {
+        var c = p.connect(PREFIX + wanted, { reliable: true });
+        var opened = false;
+        c.on('open', function () {
+          opened = true; conn = c; mode = 'joined'; roomCode = wanted;
+          c.send({ k: 'hello', name: opts.name || '' });
+          say('ok', 'joined', { code: wanted });
+          res(wanted);
+        });
+        c.on('data', function (msg) {
+          if (!msg || !msg.k) return;
+          if (msg.k === 'seat') {
+            mySeat = msg.seat;
+            if (msg.seat < 0) say('warn', 'room_full');
+            else say('ok', 'seated', { seat: msg.seat });
+          } else if (msg.k === 'state' && hooks.onRemoteState) {
+            hooks.onRemoteState(msg.s);
+          }
+        });
+        c.on('close', function () { mode = 'off'; conn = null; say('warn', 'host_left'); });
+        c.on('error', function (e) { if (!opened) rej(e); });
+        setTimeout(function () { if (!opened) rej(new Error('CONNECT')); }, 15000);
+      });
+    }).catch(function (e) { fail(e); throw e; });
+  }
+
+  /* ผู้เข้าร่วมส่งความตั้งใจไปให้กรรมการ ไม่แตะสถานะของตัวเองเลย */
+  function send(action) {
+    if (mode !== 'joined' || !conn || !conn.open) return false;
+    conn.send({ k: 'act', a: action });
+    return true;
+  }
+
+  function fail(e) {
+    var why = (e && e.message) === 'LIB' ? 'no_lib'
+            : (e && e.message) === 'SIGNAL' ? 'no_signal'
+            : (e && e.type === 'peer-unavailable') ? 'no_room'
+            : (e && e.type === 'unavailable-id') ? 'code_taken'
+            : 'failed';
+    say('bad', why, { detail: (e && (e.type || e.message)) || '' });
+  }
+
+  function leave() {
+    try { conns.forEach(function (c) { c.close(); }); } catch (e) {}
+    try { if (conn) conn.close(); } catch (e) {}
+    try { if (peer) peer.destroy(); } catch (e) {}
+    conns = []; conn = null; peer = null; mode = 'off'; roomCode = ''; mySeat = 0;
+  }
+
+  root.Net = {
+    host: host, join: join, send: send, broadcast: broadcast, leave: leave,
+    mode: function () { return mode; },
+    isHost: function () { return mode === 'hosting'; },
+    isGuest: function () { return mode === 'joined'; },
+    online: function () { return mode !== 'off'; },
+    seat: function () { return mySeat; },
+    code: function () { return roomCode; },
+    guests: function () { return conns.filter(function (c) { return c.open; }).length; }
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = root.Net;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
 </script>
 
 <script>
@@ -2096,6 +2290,14 @@ th:{
   tip_ban:'วางทุ่นระเบิดไม่ได้จนกว่าเทิร์นจะวนกลับไปถึงคนที่ใช้ไอเท็ม',
   tip_slow:'การทอยอีก {n} ครั้งถัดไปจะได้แต้มหารสองปัดขึ้นทั้งสองลูก',
   tip_lift:'การทอยอีก {n} ครั้งถัดไปจะถูกบวก 1 ที่แต้มน้อยที่สุด ช่วงเดินจึงแคบลงจากด้านล่าง', btn_items:'ดูไอเท็มทั้งหมด', items_title:'ไอเท็มทั้งหมด', btn_close:'ปิด', opt_view:'มุมมอง', view_flat:'มองจากบน', view_tilt:'มองเอียง', btn_look:'ภาพ', look_title:'การแสดงผล',
+  opt_online:'เล่นออนไลน์', net_host:'สร้างห้อง', net_join:'เข้าร่วมห้อง', net_leave:'ออกจากห้อง',
+  net_code:'รหัสห้อง', net_seat:'คุณคือ {name}', net_wait:'รอเพื่อนเข้าห้อง มีแล้ว {n} คน',
+  net_loading:'กำลังโหลดตัวเชื่อมต่อ', net_signal:'กำลังต่อเซิร์ฟเวอร์นัดพบ',
+  net_hosting:'เปิดห้องแล้ว รหัส {code}', net_joined:'เข้าห้อง {code} แล้ว',
+  net_full:'ห้องเต็ม', net_hostleft:'เจ้าของห้องออกไปแล้ว', net_guestleft:'ผู้เล่นคนหนึ่งออกไป',
+  net_nolib:'โหลดตัวเชื่อมต่อไม่ได้ ต้องเปิดหน้านี้ผ่าน https', net_nosignal:'ต่อเซิร์ฟเวอร์นัดพบไม่ได้',
+  net_noroom:'ไม่พบห้องนี้', net_taken:'รหัสห้องชนกัน ลองใหม่', net_failed:'เชื่อมต่อไม่สำเร็จ',
+  net_notyou:'รอตาของคุณ',
   opt_theme:'ธีมกระดาน', th_wood:'ไม้วอลนัท', th_steel:'เหล็กกล้า', th_jungle:'ป่ากลางคืน', th_slate:'หินชนวน', th_paper:'กระดาษสำรวจ', info_title:'รายละเอียดไอเท็ม',
   item_kind_now:'ทันที', item_kind_turn:'ติดตัวรอบนี้',
   kind_now:'ผลทันที', kind_turn:'ติดตัวรอบนี้', items_close:'ปิด', act_roll:'ทอยลูกเต๋า', act_cancel:'ยกเลิก', act_confirm:'ใช้เลย',
@@ -2219,6 +2421,15 @@ en:{
   tip_ban:'Cannot lay mines until the turn comes back round to whoever used the item',
   tip_slow:'For your next {n} roll(s) both dice are halved, rounded up',
   tip_lift:'For your next {n} roll(s) the lower die counts one more, shrinking your range from below', btn_items:'See all items', items_title:'All items', btn_close:'Close', opt_view:'View', view_flat:'Top down', view_tilt:'Tilted', btn_look:'View', look_title:'Display',
+  opt_online:'Play online', net_host:'Create room', net_join:'Join room', net_leave:'Leave room',
+  net_code:'Room code', net_seat:'You are {name}', net_wait:'Waiting for friends, {n} joined',
+  net_loading:'Loading the connector', net_signal:'Contacting the matchmaking server',
+  net_hosting:'Room open, code {code}', net_joined:'Joined room {code}',
+  net_full:'Room is full', net_hostleft:'The host left', net_guestleft:'A player left',
+  net_nolib:'Could not load the connector, this page must be served over https',
+  net_nosignal:'Could not reach the matchmaking server',
+  net_noroom:'No such room', net_taken:'Code collision, try again', net_failed:'Connection failed',
+  net_notyou:'Wait for your turn',
   opt_theme:'Board theme', th_wood:'Walnut', th_steel:'Steel', th_jungle:'Night jungle', th_slate:'Slate', th_paper:'Survey paper', info_title:'Item details',
   item_kind_now:'instant', item_kind_turn:'this turn',
   kind_now:'instant', kind_turn:'this turn', items_close:'Close', act_roll:'Roll the dice', act_cancel:'Cancel', act_confirm:'Use it',
@@ -2342,6 +2553,15 @@ de:{
   tip_ban:'Kann keine Minen legen, bis der Zug wieder bei dem ist, der den Gegenstand eingesetzt hat',
   tip_slow:'Bei den nächsten {n} Würfen zählen beide Würfel halb, aufgerundet',
   tip_lift:'Bei den nächsten {n} Würfen zählt die niedrigere Augenzahl eins mehr, die Spanne schrumpft von unten', btn_items:'Alle Gegenstände', items_title:'Alle Gegenstände', btn_close:'Schließen', opt_view:'Ansicht', view_flat:'Von oben', view_tilt:'Schräg', btn_look:'Optik', look_title:'Darstellung',
+  opt_online:'Online spielen', net_host:'Raum öffnen', net_join:'Raum betreten', net_leave:'Raum verlassen',
+  net_code:'Raumcode', net_seat:'Du bist {name}', net_wait:'Warte auf Mitspieler, {n} da',
+  net_loading:'Verbindungsmodul wird geladen', net_signal:'Verbinde mit dem Vermittlungsserver',
+  net_hosting:'Raum offen, Code {code}', net_joined:'Raum {code} betreten',
+  net_full:'Raum ist voll', net_hostleft:'Der Gastgeber hat den Raum verlassen', net_guestleft:'Ein Spieler ist gegangen',
+  net_nolib:'Verbindungsmodul nicht ladbar, die Seite muss über https laufen',
+  net_nosignal:'Vermittlungsserver nicht erreichbar',
+  net_noroom:'Raum nicht gefunden', net_taken:'Code doppelt, bitte erneut', net_failed:'Verbindung fehlgeschlagen',
+  net_notyou:'Warte, bis du dran bist',
   opt_theme:'Brett-Thema', th_wood:'Nussbaum', th_steel:'Stahl', th_jungle:'Nachtdschungel', th_slate:'Schiefer', th_paper:'Messtischblatt', info_title:'Details zum Gegenstand',
   item_kind_now:'sofort', item_kind_turn:'dieser Zug',
   kind_now:'sofort', kind_turn:'dieser Zug', items_close:'Schließen', act_roll:'Würfeln', act_cancel:'Abbrechen', act_confirm:'Einsetzen',
@@ -2465,6 +2685,15 @@ nl:{
   tip_ban:'Kan geen mijnen leggen tot de beurt weer bij degene is die het voorwerp inzette',
   tip_slow:'Bij je volgende {n} worp(en) tellen beide stenen half, naar boven afgerond',
   tip_lift:'Bij je volgende {n} worp(en) telt je laagste steen één meer, je bereik krimpt van onderen', btn_items:'Alle voorwerpen', items_title:'Alle voorwerpen', btn_close:'Sluiten', opt_view:'Aanzicht', view_flat:'Bovenaanzicht', view_tilt:'Schuin', btn_look:'Beeld', look_title:'Weergave',
+  opt_online:'Online spelen', net_host:'Kamer maken', net_join:'Kamer binnengaan', net_leave:'Kamer verlaten',
+  net_code:'Kamercode', net_seat:'Jij bent {name}', net_wait:'Wachten op vrienden, {n} binnen',
+  net_loading:'Verbindingsmodule laden', net_signal:'Verbinden met de matchmakingserver',
+  net_hosting:'Kamer open, code {code}', net_joined:'Kamer {code} binnengegaan',
+  net_full:'Kamer is vol', net_hostleft:'De host is vertrokken', net_guestleft:'Een speler is vertrokken',
+  net_nolib:'Verbindingsmodule niet geladen, deze pagina moet via https draaien',
+  net_nosignal:'Matchmakingserver niet bereikbaar',
+  net_noroom:'Kamer niet gevonden', net_taken:'Code botst, probeer opnieuw', net_failed:'Verbinden mislukt',
+  net_notyou:'Wacht op je beurt',
   opt_theme:'Bordthema', th_wood:'Notenhout', th_steel:'Staal', th_jungle:'Nachtjungle', th_slate:'Leisteen', th_paper:'Kaartpapier', info_title:'Details van het voorwerp',
   item_kind_now:'direct', item_kind_turn:'deze beurt',
   kind_now:'direct', kind_turn:'deze beurt', items_close:'Sluiten', act_roll:'Gooien', act_cancel:'Annuleren', act_confirm:'Inzetten',
@@ -2564,6 +2793,66 @@ var cfg={hpStart:Game.C.HP_START, mineStart:Game.C.MINE_START, mineMax:Game.C.MI
          spacing:Game.C.SPACING, caches:Game.C.CACHES};
 var pnames=['','','','','',''], pbots=[false,false,false,false,false,false];
 var botLevel='normal', boardShape='ring', teamMode=false, runId=0;
+/* ---------- ออนไลน์ ----------
+   เจ้าของห้องเป็นกรรมการคนเดียว ผู้เข้าร่วมส่งความตั้งใจแล้วรอสถานะกลับมา
+   ถ้าไม่ได้กดสร้างห้องหรือเข้าห้อง ทุกอย่างทำงานเหมือนเล่นเครื่องเดียวทุกประการ */
+var netMsg='', netMsgKind='';
+function online(){ return typeof Net!=='undefined' && Net.online() }
+function isGuest(){ return typeof Net!=='undefined' && Net.isGuest() }
+function isHost(){ return typeof Net!=='undefined' && Net.isHost() }
+/* ที่นั่งของเราในเกม ใช้ตัดสินว่ากดปุ่มได้ไหม */
+function mySeat(){ return online() ? Net.seat() : (S?S.currentIdx:0) }
+function myTurn(){ return !online() || (S && S.currentIdx===mySeat()) }
+
+function netStatus(kind,key,extra){
+  var map={loading:'net_loading',signalling:'net_signal',hosting:'net_hosting',
+    joined:'net_joined',seated:'net_seated',room_full:'net_full',host_left:'net_hostleft',
+    guest_left:'net_guestleft',guest_open:'net_guestleft',no_lib:'net_nolib',
+    no_signal:'net_nosignal',no_room:'net_noroom',code_taken:'net_taken',failed:'net_failed'};
+  var k=map[key];
+  netMsgKind=(kind==='bad')?'bad':(kind==='ok'?'ok':'');
+  if(key==='guest_open'){ netMsg=t('net_wait',{n:Net.guests()}); }
+  else if(k&&k!=='net_seated'){ netMsg=t(k,extra||{}); }
+  buildNetRow();
+  if(S) sync();
+}
+
+/* เจ้าของห้องแจกที่นั่ง ให้ที่นั่งของคนจริงที่ยังว่างอยู่ */
+var seatTaken={};
+function assignSeat(name){
+  for(var i=0;i<playerCount;i++){
+    if(pbots[i]) continue;
+    if(i===0) continue;                      /* ที่นั่งแรกเป็นของเจ้าของห้อง */
+    if(seatTaken[i]) continue;
+    seatTaken[i]=true;
+    if(name) pnames[i]=name.slice(0,14);
+    buildRoster();
+    netMsg=t('net_wait',{n:Net.guests()});
+    buildNetRow();
+    return i;
+  }
+  return -1;
+}
+
+/* กรรมการรับคำสั่งจากผู้เข้าร่วม ตรวจว่าถึงตาเขาจริงก่อนเสมอ */
+function onRemoteAct(seat,a){
+  if(!S||S.phase==='GAME_OVER') return;
+  if(S.currentIdx!==seat) return;            /* ไม่ใช่ตาเขา ทิ้งไปเงียบ ๆ */
+  if(a.k==='roll') $('btnRoll').onclick();
+  else if(a.k==='move') pickStep(a.steps);
+  else if(a.k==='place') doPlace();
+  else if(a.k==='skipmine') doSkipMine();
+  else if(a.k==='useitem') doUseItem();
+}
+
+var lastSent=null;
+function netPush(){
+  if(!isHost()||!S) return;
+  if(S===lastSent) return;
+  lastSent=S;
+  Net.broadcast(S);
+}
+
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
@@ -2701,7 +2990,7 @@ function applyLang(){
   $('footer').textContent=t('footer');
   $('board').setAttribute('aria-label',t('board_title'));
   paintSound();
-  buildRoster(); buildTeamRow(); buildThemeRow(); buildViewRow(); buildCountState(); buildShapeRow(); buildBotRow(); renderOpts();
+  buildRoster(); buildNetRow(); buildTeamRow(); buildThemeRow(); buildViewRow(); buildCountState(); buildShapeRow(); buildBotRow(); renderOpts();
   if(S){ buildBoard(); sync(); } else { $('meta').textContent=t('meta_none'); }
 }
 
@@ -2812,6 +3101,54 @@ function buildRoster(){
       box.appendChild(row);
     })(i);
   }
+}
+
+function buildNetRow(){
+  var box=$('netrow');
+  var st=online()?(isHost()?'host':'guest'):'off';
+  var html='<div class="opt"><span>'+esc(t('opt_online'))+'</span>';
+  if(st==='off'){
+    html+='<button type="button" id="btnHost">'+esc(t('net_host'))+'</button>'+
+          '<input class="netin" id="joinCode" maxlength="6" placeholder="ABC123">'+
+          '<button type="button" id="btnJoin">'+esc(t('net_join'))+'</button>';
+  } else if(st==='host'){
+    html+='<span class="netcode">'+esc(Net.code())+'</span>'+
+          '<button type="button" id="btnLeave">'+esc(t('net_leave'))+'</button>';
+  } else {
+    html+='<span class="netcode">'+esc(Net.code())+'</span>'+
+          '<button type="button" id="btnLeave">'+esc(t('net_leave'))+'</button>';
+  }
+  if(netMsg) html+='<span class="netmsg '+netMsgKind+'">'+esc(netMsg)+'</span>';
+  box.innerHTML=html+'</div>';
+
+  if($('btnHost')) $('btnHost').onclick=function(){
+    Sfx.play('click');
+    Net.host({ onJoin:assignSeat, onAct:onRemoteAct, onStatus:netStatus,
+               onState:function(){ return S } });
+  };
+  if($('btnJoin')) $('btnJoin').onclick=function(){
+    Sfx.play('click');
+    var code=($('joinCode').value||'').trim();
+    if(code.length<4){ netMsg=t('net_noroom'); netMsgKind='bad'; buildNetRow(); return; }
+    Net.join(code,{ onStatus:netStatus, onRemoteState:onRemoteState, name:pnames[0]||'' });
+  };
+  if($('btnLeave')) $('btnLeave').onclick=function(){
+    Sfx.play('click'); Net.leave(); seatTaken={}; netMsg=''; buildNetRow(); if(S) sync();
+  };
+}
+
+/* ผู้เข้าร่วมได้สถานะใหม่มา วาดใหม่ทั้งกระดานเมื่อโครงเปลี่ยน ไม่งั้นแค่รีเฟรช */
+function onRemoteState(st){
+  var needBoard = !S || S.boardSize!==st.boardSize || S.players.length!==st.players.length
+    || S.rules.shape!==st.rules.shape || S.rules.teams!==st.rules.teams;
+  S=st;
+  if(needBoard){
+    $('setup').classList.add('hidden');
+    $('game').classList.remove('hidden');
+    geo=geometry();
+    buildBoard();
+  }
+  sync();
 }
 
 function buildTeamRow(){
@@ -3572,6 +3909,7 @@ function drawLog(){
 }
 
 function sync(){
+  netPush();
   drawCaches(); drawMines(); drawTokens(); drawPicks(); drawUnits(); drawLog();
   var p=S.players[S.currentIdx], over=S.phase==='GAME_OVER', err=Game.placementError(S);
   var isBot=!over&&!!p.bot;
@@ -3598,13 +3936,13 @@ function sync(){
       : '<b>'+t('st_ask',{tile:p.pos})+'</b><span class="why">'+(err?t(err):t('st_left',{mines:p.mines}))+'</span>';
   }
 
-  var canAct=(!over&&!isBot&&!busy);
+  var canAct=(!over&&!isBot&&!busy&&myTurn());
   $('btnUseItem').classList.toggle('hidden',!(canAct&&S.phase==='AWAIT_ACTION'));
   /* เตือนซ้ำที่แถบสถานะด้วย เพราะเป็นข้อมูลที่เปลี่ยนการตัดสินใจของเทิร์นนี้โดยตรง */
   var note=over?'':stateNote(p);
   if(note) st.innerHTML+='<span class="why warn">'+esc(note)+'</span>';
 
-  $('btnRoll').disabled=!(!over&&(S.phase==='AWAIT_ROLL'||S.phase==='AWAIT_ACTION')&&!busy&&!isBot);
+  $('btnRoll').disabled=!(!over&&(S.phase==='AWAIT_ROLL'||S.phase==='AWAIT_ACTION')&&!busy&&!isBot&&myTurn());
   $('btnRoll').classList.toggle('hidden',
     isBot||(S.phase!=='AWAIT_ROLL'&&S.phase!=='AWAIT_ACTION'));
 
@@ -3641,7 +3979,7 @@ function sync(){
     });
   }
   $('btnPlace').classList.toggle('hidden',S.phase!=='AWAIT_MINE'||isBot);
-  $('btnPlace').disabled=!!err;
+  $('btnPlace').disabled=!!err||!myTurn();
   $('btnSkip').classList.toggle('hidden',S.phase!=='AWAIT_MINE'||S.forced||isBot);
 
   if(over){
@@ -3714,15 +4052,12 @@ $('btnItemNo').onclick=function(){ Sfx.play('click'); closeItemCard(); };
 $('btnItemYes').onclick=function(){
   if(!S||S.phase!=='AWAIT_ACTION') return;
   closeItemCard();
-  var key=S.players[S.currentIdx].item;
-  S=Game.useItem(S);
-  Sfx.play(key==='skipTurn'?'death':'pickup');
-  sync();
-  maybeBot();
+  act({k:'useitem'},doUseItem);
 };
 
 $('btnRoll').onclick=async function(){
   if(busy||!S||S.players[S.currentIdx].bot) return;
+  if(isGuest()){ if(myTurn()) Net.send({k:'roll'}); return; }
   if(S.phase==='AWAIT_ACTION') S=Game.skipItem(S);   /* เลือกไม่ใช้ ไปทอยเลย */
   if(S.phase!=='AWAIT_ROLL') return;
   busy=true; sync();
@@ -3738,18 +4073,37 @@ $('btnRoll').onclick=async function(){
 
 function pickStep(steps){
   if(busy||!S||S.phase!=='AWAIT_MOVE'||S.players[S.currentIdx].bot) return;
+  if(isGuest()){ if(myTurn()) Net.send({k:'move',steps:steps}); return; }
   Sfx.play('click');
   busy=true; sync();
   doMove(steps).then(function(){ busy=false; sync(); maybeBot(); });
 }
 
-$('btnPlace').onclick=function(){ if(busy||!S) return; S=Game.placeMine(S); sync(); maybeBot(); };
-$('btnSkip').onclick=function(){ if(busy||!S) return; S=Game.skipMine(S); sync(); maybeBot(); };
+function doPlace(){ if(busy||!S) return; S=Game.placeMine(S); sync(); maybeBot(); }
+function doSkipMine(){ if(busy||!S) return; S=Game.skipMine(S); sync(); maybeBot(); }
+function doUseItem(){
+  if(!S||S.phase!=='AWAIT_ACTION') return;
+  var key=S.players[S.currentIdx].item;
+  S=Game.useItem(S);
+  Sfx.play(key==='skipTurn'?'death':'pickup');
+  sync(); maybeBot();
+}
+
+/* ผู้เข้าร่วมไม่แตะสถานะเอง ส่งความตั้งใจไปให้กรรมการแล้วรอสถานะใหม่ */
+function act(a,localFn){
+  if(!myTurn()) return;
+  if(isGuest()){ Net.send(a); return; }
+  localFn();
+}
+
+$('btnPlace').onclick=function(){ act({k:'place'},doPlace) };
+$('btnSkip').onclick=function(){ act({k:'skipmine'},doSkipMine) };
 
 /* ลูกโซ่เทิร์นของคอมพิวเตอร์
    ทุกขั้นเทียบ runId กับตอนที่เริ่ม ถ้าผู้ใช้กดเริ่มใหม่ระหว่างทาง คิวที่ค้างอยู่จะหยุดเงียบ ๆ
    ไม่ไปแตะ state ของเกมรอบใหม่ */
 function maybeBot(){
+  if(isGuest()) return;                      /* กรรมการรันบอทคนเดียว */
   if(!S||S.phase==='GAME_OVER'||!S.players[S.currentIdx].bot) return;
   if(S.phase!=='AWAIT_ROLL'&&S.phase!=='AWAIT_ACTION') return;
   var my=runId;
