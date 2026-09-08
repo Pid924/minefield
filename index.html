@@ -226,6 +226,79 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
 .game{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}
 @media(max-width:880px){.game{grid-template-columns:1fr}}
 
+/* ---------- จอมือถือ ----------
+   หลักคิด: กระดานต้องได้พื้นที่มากที่สุด ปุ่มต้องกดด้วยนิ้วได้ และไม่มีอะไรล้นขอบจอ
+   ทุกอย่างเรียงเป็นแถวเดียวจากบนลงล่าง ตามลำดับที่ต้องใช้จริงระหว่างเล่น */
+@media(max-width:640px){
+  body{padding:12px 10px 32px}
+  h1{font-size:19px;letter-spacing:.16em}
+  .tagline{font-size:12.5px}
+  .meta{font-size:10px}
+  header{padding-bottom:8px;margin-bottom:14px}
+  .top{gap:10px}
+  .tools{justify-content:flex-start;width:100%}
+
+  .setup{margin:4px auto}
+  .setup .body{padding:14px}
+  .setup p{font-size:14px;margin-bottom:12px}
+  .card h2{padding:8px 12px}
+
+  /* ปุ่มจำนวนผู้เล่นเรียงเต็มแถว นิ้วกดง่าย */
+  .choices{gap:6px}
+  .choice{padding:14px 2px;font-size:18px}
+
+  /* แถวตั้งค่าที่มีป้ายกับตัวเลือก ให้ป้ายขึ้นบรรทัดของตัวเอง ไม่งั้นบีบจนอ่านไม่ออก */
+  .opt{flex-wrap:wrap;gap:8px;padding:9px 10px}
+  .opt > span:first-child{flex:1 0 100%}
+  .seg{flex-wrap:wrap}
+  .seg button{padding:9px 12px}
+  .pick,.netin{flex:1;min-width:0}
+
+  /* แถวผู้เล่น ชื่อกินพื้นที่ที่เหลือ ปุ่มคนกับคอมไปอยู่บรรทัดล่างเมื่อที่ไม่พอ */
+  .prow{flex-wrap:wrap;gap:8px}
+  .pname{flex:1 1 120px;font-size:16px}
+  .ptokbtn{padding:5px 9px}
+
+  /* พื้นที่กระดาน ตัดขอบในให้เหลือน้อยที่สุดเพื่อให้ช่องใหญ่ที่สุดเท่าที่ทำได้ */
+  .game{gap:12px}
+  .stage{padding:8px}
+  svg#board{max-width:100%}
+  .console{padding:12px 10px}
+  .readout{gap:10px}
+  .die{width:42px;height:42px}
+
+  /* ปุ่มสั่งการต้องสูงพอสำหรับนิ้ว */
+  button{padding:11px 16px;font-size:15px}
+  .actions{gap:10px}
+  .actions button{flex:1 1 auto;min-height:46px}
+  .steps{gap:8px}
+  .stepbtn{min-width:52px;min-height:50px;font-size:17px;padding:9px 12px}
+  .stepbtn{padding-bottom:17px}
+
+  /* แผงหน่วยกับบันทึกอยู่ใต้กระดาน ย่อความสูงลงไม่ให้ต้องเลื่อนยาว */
+  .log{max-height:180px}
+  .unit{padding:7px 10px}
+  .modal{padding:10px}
+  .modal .sheet{max-height:88vh}
+  .infobody{padding:14px}
+  .irow{padding:10px 12px}
+
+  /* หน้าต่างยืนยันไอเท็มเต็มจอมากขึ้น */
+  .itemcard{inset:8px}
+  .itemcard .body{padding:16px 18px}
+
+  /* แถบเลือกรูปทรงตัวละครมีหกตัว บนจอแคบต้องพับบรรทัดไม่ให้ล้นออกนอกจอ */
+  .tokpop{max-width:calc(100vw - 40px);flex-wrap:wrap;left:auto;right:0}
+}
+
+/* จอแคบมาก เช่นมือถือรุ่นเล็กหรือแนวนอนแคบ */
+@media(max-width:380px){
+  h1{font-size:17px}
+  .choice{font-size:16px;padding:12px 2px}
+  .stepbtn{min-width:46px;font-size:16px}
+  .netcode{font-size:18px;letter-spacing:.2em}
+}
+
 .stage{position:relative;padding:14px;display:flex;justify-content:center;
   background:var(--stage);
   background-image:var(--stage),
@@ -3378,7 +3451,10 @@ function buildBoard(){
   var svg=$('board');
   /* หมุดผู้เล่นชี้ออกนอกรางไปราว 1.8 เท่าของรัศมีช่อง และป้ายชื่อฐานอยู่ไกลกว่านั้นอีก
      กรอบเดิมเผื่อไว้แค่รัศมีช่อง หัวหมุดของช่องริมนอกจึงโดนตัด ต้องขยายกรอบออกทุกด้าน */
-  var pad=Math.round(geo.tileR*1.9+34);
+  /* จอแคบมีพื้นที่จำกัด ลดขอบเผื่อรอบกระดานลงเพื่อให้ช่องใหญ่ที่สุดเท่าที่ทำได้
+     ยังเหลือพอสำหรับหัวตัวละครที่สูงราว 2 เท่าของรัศมีช่อง */
+  var narrow=(window.innerWidth||1024)<640;
+  var pad=Math.round(geo.tileR*(narrow?1.35:1.9)+(narrow?16:34));
   /* มุมมองเอียงบีบระนาบตามแนวตั้ง กรอบมองภาพจึงเตี้ยลงตามไปด้วย ไม่งั้นจะเหลือที่ว่างเปล่า */
   var vh=tilted() ? geo.boxH*TILT_K : geo.boxH;
   var vy=tilted() ? geo.cy - vh/2 : 0;
