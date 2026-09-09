@@ -3011,35 +3011,27 @@ function onLobby(seats,teams){ lobbySeats=seats; lobbyTeams=teams; buildNetRow()
 
 /* ปิดตัวควบคุมทั้งหมดในหน้าตั้งค่าเมื่อเราไปเข้าห้องคนอื่น
    เรียกท้ายสุดของทุกการวาดใหม่ เพราะตัววาดแต่ละตัวตั้งค่า disabled ของตัวเอง */
-function applyGuestLock(){
-  var lock=isGuest(), box=$('setup');
-  if(!box) return;
-  box.classList.toggle('guestlock',lock);
-  var nodes=box.querySelectorAll('button,input,select');
-  Array.prototype.forEach.call(nodes,function(el){
-    var inNet=el.closest?el.closest('#netrow'):null;
-    if(inNet) return;                       /* ห้องรอยังกดได้ */
-    if(el.id==='btnItems') { el.disabled=false; return; }   /* ดูรายการไอเท็มได้เสมอ */
-    if(lock) el.disabled=true;
-  });
-}
-
-/* เข้าห้องคนอื่นแล้วปิดทุกปุ่มที่ไม่ใช่เรื่องของเรา เพราะการตั้งค่าเป็นของเจ้าของห้อง
-   ถ้าปล่อยให้กดได้จะเข้าใจผิดว่าเปลี่ยนได้ ทั้งที่ค่าจริงมาจากอีกเครื่อง */
+/* ปิดตัวควบคุมในหน้าตั้งค่าเมื่อเราไปเข้าห้องคนอื่น เพราะการตั้งค่าเป็นสิทธิ์ของเจ้าของห้อง
+   ตั้งเป็นปิดอย่างเดียว ไม่เปิดคืนเอง เพราะตัววาดแต่ละตัวมีกฎของตัวเองอยู่แล้ว
+   เช่นโหมดทีมที่ปิดปุ่มจำนวนคนบางปุ่มไว้ ถ้าเปิดคืนตรงนี้จะไปลบกฎนั้นทิ้ง
+   การปลดล็อกจึงทำด้วยการวาดใหม่ทั้งหมดตอนกดออกจากห้อง */
 function applyGuestLock(){
   var root=$('setup'); if(!root) return;
   var lock=isGuest();
   root.classList.toggle('guestlock',lock);
+  if(!lock) return;
   var keep=$('netrow');
   Array.prototype.forEach.call(root.querySelectorAll('button,input,select'),function(e){
     if(keep&&keep.contains(e)) return;          /* เลือกที่นั่งและออกจากห้องยังกดได้ */
     if(e.id==='btnItems') return;               /* ดูรายการไอเท็มได้ตลอด */
-    e.disabled=lock;
+    e.disabled=true;
   });
   var det=root.querySelector('details.adv');
-  if(det&&lock) det.open=false;
-  if(!lock) buildCountState();                  /* ปลดล็อกแล้วคืนกฎเดิมของโหมดทีม */
+  if(det) det.open=false;
 }
+
+/* เข้าห้องคนอื่นแล้วปิดทุกปุ่มที่ไม่ใช่เรื่องของเรา เพราะการตั้งค่าเป็นของเจ้าของห้อง
+   ถ้าปล่อยให้กดได้จะเข้าใจผิดว่าเปลี่ยนได้ ทั้งที่ค่าจริงมาจากอีกเครื่อง */
 
 function buildLobby(){
   if(!online()) return '';
