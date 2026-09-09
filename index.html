@@ -149,6 +149,15 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
 .prow{display:flex;align-items:center;gap:9px}
 .pick{font-family:var(--sans);font-size:13px;padding:6px 10px;color:var(--ink);
   background:var(--ctrl);border:1px solid var(--rule);border-radius:4px;cursor:pointer}
+.lobby{display:grid;gap:6px;margin-top:10px}
+.seatrow{display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--rule);
+  border-radius:4px;background:var(--ctrl-b)}
+.seatrow .who{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seatrow .tm{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;padding:1px 6px;
+  border-radius:2px;border:1px solid currentColor;white-space:nowrap}
+.seatrow .tag2{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--ink-3)}
+.seatrow.mine{border-color:var(--brass);background:rgba(216,167,43,.12)}
+.seatrow button{padding:5px 12px;font-size:12px}
 .netcode{font-family:var(--mono);font-size:22px;letter-spacing:.28em;color:var(--brass);font-weight:600}
 .netin{font-family:var(--mono);font-size:16px;letter-spacing:.22em;text-transform:uppercase;
   width:130px;padding:7px 10px;color:var(--ink);background:var(--ctrl);
@@ -2216,8 +2225,9 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
         c.on('open', function () { say('info', 'guest_open'); });
         c.on('data', function (msg) { onHostMessage(c, msg); });
         c.on('close', function () {
+          var seat = seatOf(c);
           conns = conns.filter(function (x) { return x !== c; });
-          if (hooks.onLeave) hooks.onLeave(c.metadata && c.metadata.seat);
+          if (hooks.onLeave) hooks.onLeave(seat);
           say('warn', 'guest_left');
         });
       });
@@ -2228,11 +2238,20 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
   function onHostMessage(c, msg) {
     if (!msg || !msg.k) return;
     if (msg.k === 'hello') {
-      /* ให้ที่นั่งว่างที่ใกล้ที่สุด ถ้าเต็มก็ปฏิเสธไป */
-      var seat = hooks.onJoin ? hooks.onJoin(msg.name || '') : -1;
-      c.metadata = { seat: seat };
-      c.send({ k: 'seat', seat: seat });
-      if (seat >= 0 && hooks.onState) c.send({ k: 'state', s: hooks.onState() });
+      /* ยังไม่แจกที่นั่ง ส่งรายการที่นั่งไปให้เลือกเองก่อน */
+      c.metadata = { seat: -1, name: msg.name || '' };
+      if (hooks.onHello) hooks.onHello(c);
+      return;
+    }
+    if (msg.k === 'pick') {
+      /* กรรมการเป็นคนตัดสิน ใครส่งมาก่อนได้ก่อน คนที่ช้ากว่าจะถูกปฏิเสธ */
+      var got = hooks.onPick ? hooks.onPick(msg.seat, c) : -1;
+      c.metadata.seat = got;
+      c.send({ k: 'seat', seat: got });
+      if (got >= 0 && hooks.onState) {
+        var st = hooks.onState();
+        if (st) c.send({ k: 'state', s: st });
+      }
       return;
     }
     if (msg.k === 'act') {
@@ -2241,6 +2260,22 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
       if (hooks.onAct) hooks.onAct(seat, msg.a);   /* ให้ชั้นบนตรวจว่าถึงตาเขาจริงไหม */
     }
   }
+
+  /* ส่งรายการที่นั่งให้ทุกคนที่ต่ออยู่ เรียกทุกครั้งที่ผังที่นั่งเปลี่ยน */
+  function sendLobby(seats, teams) {
+    if (mode !== 'hosting') return;
+    var payload = { k: 'lobby', seats: seats, teams: !!teams };
+    conns.forEach(function (c) {
+      if (c.open) { try { c.send(payload); } catch (e) {} }
+    });
+  }
+
+  function seatOf(c) { return c && c.metadata ? c.metadata.seat : -1; }
+  function takenSeats() {
+    return conns.filter(function (c) { return c.open && seatOf(c) >= 0; })
+                .map(function (c) { return seatOf(c); });
+  }
+  function releaseSeat(c) { if (c && c.metadata) c.metadata.seat = -1; }
 
   /* กระจายสถานะให้ทุกคน เรียกทุกครั้งที่สถานะเปลี่ยน */
   function broadcast(state) {
@@ -2278,6 +2313,8 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
             mySeat = msg.seat;
             if (msg.seat < 0) say('warn', 'room_full');
             else say('ok', 'seated', { seat: msg.seat });
+          } else if (msg.k === 'lobby' && hooks.onLobby) {
+            hooks.onLobby(msg.seats, msg.teams);
           } else if (msg.k === 'state' && hooks.onRemoteState) {
             hooks.onRemoteState(msg.s);
           }
@@ -2287,6 +2324,13 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
         setTimeout(function () { if (!opened) rej(new Error('CONNECT')); }, 15000);
       });
     }).catch(function (e) { fail(e); throw e; });
+  }
+
+  /* ผู้เข้าร่วมขอจองที่นั่ง */
+  function pick(seat) {
+    if (mode !== 'joined' || !conn || !conn.open) return false;
+    conn.send({ k: 'pick', seat: seat });
+    return true;
   }
 
   /* ผู้เข้าร่วมส่งความตั้งใจไปให้กรรมการ ไม่แตะสถานะของตัวเองเลย */
@@ -2314,6 +2358,8 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
 
   root.Net = {
     host: host, join: join, send: send, broadcast: broadcast, leave: leave,
+    pick: pick, sendLobby: sendLobby, takenSeats: takenSeats,
+    seatOf: seatOf, releaseSeat: releaseSeat,
     mode: function () { return mode; },
     isHost: function () { return mode === 'hosting'; },
     isGuest: function () { return mode === 'joined'; },
@@ -2364,6 +2410,8 @@ th:{
   tip_slow:'การทอยอีก {n} ครั้งถัดไปจะได้แต้มหารสองปัดขึ้นทั้งสองลูก',
   tip_lift:'การทอยอีก {n} ครั้งถัดไปจะถูกบวก 1 ที่แต้มน้อยที่สุด ช่วงเดินจึงแคบลงจากด้านล่าง', btn_items:'ดูไอเท็มทั้งหมด', items_title:'ไอเท็มทั้งหมด', btn_close:'ปิด', opt_view:'มุมมอง', view_flat:'มองจากบน', view_tilt:'มองเอียง', btn_look:'ภาพ', look_title:'การแสดงผล',
   opt_online:'เล่นออนไลน์', net_host:'สร้างห้อง', net_join:'เข้าร่วมห้อง', net_leave:'ออกจากห้อง',
+  lobby_title:'ที่นั่งในห้อง', seat_free:'ว่าง', seat_you:'คุณ', seat_bot:'คอมพิวเตอร์',
+  seat_host:'เจ้าของห้อง', seat_take:'เลือก', lobby_hint:'กดที่นั่งที่ว่างเพื่อย้ายไปนั่ง',
   net_code:'รหัสห้อง', net_seat:'คุณคือ {name}', net_wait:'รอเพื่อนเข้าห้อง มีแล้ว {n} คน',
   net_loading:'กำลังโหลดตัวเชื่อมต่อ', net_signal:'กำลังต่อเซิร์ฟเวอร์นัดพบ',
   net_hosting:'เปิดห้องแล้ว รหัส {code}', net_joined:'เข้าห้อง {code} แล้ว',
@@ -2495,6 +2543,8 @@ en:{
   tip_slow:'For your next {n} roll(s) both dice are halved, rounded up',
   tip_lift:'For your next {n} roll(s) the lower die counts one more, shrinking your range from below', btn_items:'See all items', items_title:'All items', btn_close:'Close', opt_view:'View', view_flat:'Top down', view_tilt:'Tilted', btn_look:'View', look_title:'Display',
   opt_online:'Play online', net_host:'Create room', net_join:'Join room', net_leave:'Leave room',
+  lobby_title:'Seats in the room', seat_free:'open', seat_you:'you', seat_bot:'computer',
+  seat_host:'host', seat_take:'take', lobby_hint:'Tap an open seat to move there',
   net_code:'Room code', net_seat:'You are {name}', net_wait:'Waiting for friends, {n} joined',
   net_loading:'Loading the connector', net_signal:'Contacting the matchmaking server',
   net_hosting:'Room open, code {code}', net_joined:'Joined room {code}',
@@ -2627,6 +2677,8 @@ de:{
   tip_slow:'Bei den nächsten {n} Würfen zählen beide Würfel halb, aufgerundet',
   tip_lift:'Bei den nächsten {n} Würfen zählt die niedrigere Augenzahl eins mehr, die Spanne schrumpft von unten', btn_items:'Alle Gegenstände', items_title:'Alle Gegenstände', btn_close:'Schließen', opt_view:'Ansicht', view_flat:'Von oben', view_tilt:'Schräg', btn_look:'Optik', look_title:'Darstellung',
   opt_online:'Online spielen', net_host:'Raum öffnen', net_join:'Raum betreten', net_leave:'Raum verlassen',
+  lobby_title:'Plätze im Raum', seat_free:'frei', seat_you:'du', seat_bot:'Computer',
+  seat_host:'Gastgeber', seat_take:'wählen', lobby_hint:'Freien Platz antippen, um dorthin zu wechseln',
   net_code:'Raumcode', net_seat:'Du bist {name}', net_wait:'Warte auf Mitspieler, {n} da',
   net_loading:'Verbindungsmodul wird geladen', net_signal:'Verbinde mit dem Vermittlungsserver',
   net_hosting:'Raum offen, Code {code}', net_joined:'Raum {code} betreten',
@@ -2759,6 +2811,8 @@ nl:{
   tip_slow:'Bij je volgende {n} worp(en) tellen beide stenen half, naar boven afgerond',
   tip_lift:'Bij je volgende {n} worp(en) telt je laagste steen één meer, je bereik krimpt van onderen', btn_items:'Alle voorwerpen', items_title:'Alle voorwerpen', btn_close:'Sluiten', opt_view:'Aanzicht', view_flat:'Bovenaanzicht', view_tilt:'Schuin', btn_look:'Beeld', look_title:'Weergave',
   opt_online:'Online spelen', net_host:'Kamer maken', net_join:'Kamer binnengaan', net_leave:'Kamer verlaten',
+  lobby_title:'Plaatsen in de kamer', seat_free:'vrij', seat_you:'jij', seat_bot:'computer',
+  seat_host:'host', seat_take:'kiezen', lobby_hint:'Tik op een vrije plaats om daarheen te gaan',
   net_code:'Kamercode', net_seat:'Jij bent {name}', net_wait:'Wachten op vrienden, {n} binnen',
   net_loading:'Verbindingsmodule laden', net_signal:'Verbinden met de matchmakingserver',
   net_hosting:'Kamer open, code {code}', net_joined:'Kamer {code} binnengegaan',
@@ -2890,21 +2944,78 @@ function netStatus(kind,key,extra){
   if(S) sync();
 }
 
-/* เจ้าของห้องแจกที่นั่ง ให้ที่นั่งของคนจริงที่ยังว่างอยู่ */
-var seatTaken={};
-function assignSeat(name){
+/* ---------- ห้องรอ ----------
+   เจ้าของห้องถือความจริงเรื่องที่นั่ง ผู้เข้าร่วมเห็นรายการเดียวกันและกดเลือกเองได้
+   ในโหมดทีม การเลือกที่นั่งคือการเลือกทีมไปในตัว เพราะทีมผูกกับตำแหน่งฐานสลับกัน */
+var hostSeat=0;                 /* ที่นั่งของเจ้าของห้องเอง */
+var lobbySeats=null;            /* ฝั่งผู้เข้าร่วม เก็บรายการที่ได้รับมา */
+var lobbyTeams=false;
+
+function seatFree(i){
+  if(i<0||i>=playerCount) return false;
+  if(pbots[i]) return false;                        /* ที่นั่งของคอมพิวเตอร์เลือกไม่ได้ */
+  if(i===hostSeat) return false;
+  return Net.takenSeats().indexOf(i)<0;
+}
+
+/* คนเพิ่งเข้ามา ยังไม่ให้ที่นั่ง ส่งรายการไปให้เลือกเอง */
+function onHello(){ pushLobby(); }
+
+/* ตัดสินคำขอย้ายที่นั่ง ใครส่งมาก่อนได้ก่อน */
+function onPickSeat(seat,c){
+  var cur=Net.seatOf(c);
+  if(seat===cur) return cur;
+  if(!seatFree(seat)) return cur;
+  return seat;
+}
+function onSeatLeave(){ pushLobby(); if(S) sync(); }
+
+function seatList(){
+  var taken=Net.isHost()?Net.takenSeats():[];
+  var out=[];
   for(var i=0;i<playerCount;i++){
-    if(pbots[i]) continue;
-    if(i===0) continue;                      /* ที่นั่งแรกเป็นของเจ้าของห้อง */
-    if(seatTaken[i]) continue;
-    seatTaken[i]=true;
-    if(name) pnames[i]=name.slice(0,14);
-    buildRoster();
-    netMsg=t('net_wait',{n:Net.guests()});
-    buildNetRow();
-    return i;
+    out.push({
+      i:i,
+      team: teamMode ? (i%2) : -1,
+      name: pnames[i]||defaultName(i),
+      bot: !!pbots[i],
+      host: i===hostSeat,
+      taken: taken.indexOf(i)>=0
+    });
   }
-  return -1;
+  return out;
+}
+function pushLobby(){
+  if(!Net.isHost()) return;
+  Net.sendLobby(seatList(), teamMode);
+  buildNetRow();
+}
+function onLobby(seats,teams){ lobbySeats=seats; lobbyTeams=teams; buildNetRow(); }
+
+function buildLobby(){
+  if(!online()) return '';
+  var list = Net.isHost() ? seatList() : lobbySeats;
+  if(!list) return '';
+  var me = Net.isHost() ? hostSeat : Net.seat();
+  var html='<div class="lobby">';
+  list.forEach(function(r){
+    var mine=(r.i===me);
+    var who = r.bot ? t('seat_bot')
+            : r.host ? (r.name+' \u00b7 '+t('seat_host'))
+            : mine ? (r.name+' \u00b7 '+t('seat_you'))
+            : r.taken ? r.name
+            : t('seat_free');
+    var tint = r.team===0?'#F2A0D4':(r.team===1?'#9FE4DC':'');
+    html+='<div class="seatrow'+(mine?' mine':'')+'">'+
+      (r.team>=0?'<span class="tm" style="color:'+tint+'">'+esc(t('team_name',{n:r.team+1}))+'</span>':'')+
+      '<span class="who">'+esc(who)+'</span>';
+    /* กดเลือกได้เฉพาะที่นั่งว่างของคนจริง และเฉพาะฝั่งผู้เข้าร่วม */
+    var canPick = isGuest() && !mine && !r.bot && !r.host && !r.taken;
+    if(canPick) html+='<button type="button" data-seat="'+r.i+'">'+esc(t('seat_take'))+'</button>';
+    else if(r.bot||r.host) html+='<span class="tag2">'+esc(r.bot?t('seat_bot'):t('seat_host'))+'</span>';
+    html+='</div>';
+  });
+  return html+'</div>'+(isGuest()?'<p class="netmsg">'+esc(t('lobby_hint'))+'</p>':'');
 }
 
 /* กรรมการรับคำสั่งจากผู้เข้าร่วม ตรวจว่าถึงตาเขาจริงก่อนเสมอ */
@@ -3075,7 +3186,7 @@ COUNTS.forEach(function(n){
   b.setAttribute('aria-pressed',n===playerCount);
   b.onclick=function(){ playerCount=n;
     buildCountState();
-    buildRoster(); buildShapeRow();
+    buildRoster(); buildShapeRow(); pushLobby();
   };
   $('choices').appendChild(b);
 });
@@ -3167,7 +3278,7 @@ function buildRoster(){
         var b=document.createElement('button'); b.type='button';
         b.textContent=t(isBot?'seg_bot':'seg_human');
         b.setAttribute('aria-pressed',pbots[i]===isBot);
-        b.onclick=function(){ pbots[i]=isBot; buildRoster(); buildBotRow(); };
+        b.onclick=function(){ pbots[i]=isBot; buildRoster(); buildBotRow(); pushLobby(); };
         seg.appendChild(b);
       });
       row.appendChild(wrap); row.appendChild(inp); row.appendChild(seg);
@@ -3192,18 +3303,27 @@ function buildNetRow(){
           '<button type="button" id="btnLeave">'+esc(t('net_leave'))+'</button>';
   }
   if(netMsg) html+='<span class="netmsg '+netMsgKind+'">'+esc(netMsg)+'</span>';
-  box.innerHTML=html+'</div>';
+  html+='</div>';
+  if(online()) html+=buildLobby();
+  box.innerHTML=html;
+
+  /* ปุ่มเลือกที่นั่ง ส่งคำขอไปให้กรรมการตัดสิน */
+  Array.prototype.forEach.call(box.querySelectorAll('[data-seat]'),function(b){
+    b.onclick=function(){ Sfx.play('click'); Net.pick(parseInt(b.getAttribute('data-seat'),10)); };
+  });
 
   if($('btnHost')) $('btnHost').onclick=function(){
     Sfx.play('click');
-    Net.host({ onJoin:assignSeat, onAct:onRemoteAct, onStatus:netStatus,
-               onState:function(){ return S } });
+    Net.host({ onHello:onHello, onPick:onPickSeat, onLeave:onSeatLeave,
+               onAct:onRemoteAct, onStatus:netStatus,
+               onState:function(){ return S }, seat:hostSeat });
   };
   if($('btnJoin')) $('btnJoin').onclick=function(){
     Sfx.play('click');
     var code=($('joinCode').value||'').trim();
     if(code.length<4){ netMsg=t('net_noroom'); netMsgKind='bad'; buildNetRow(); return; }
-    Net.join(code,{ onStatus:netStatus, onRemoteState:onRemoteState, name:pnames[0]||'' });
+    Net.join(code,{ onStatus:netStatus, onRemoteState:onRemoteState, onLobby:onLobby,
+                    name:pnames[0]||defaultName(0) });
   };
   if($('btnLeave')) $('btnLeave').onclick=function(){
     Sfx.play('click'); Net.leave(); seatTaken={}; netMsg=''; buildNetRow(); if(S) sync();
