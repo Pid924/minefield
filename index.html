@@ -3056,19 +3056,27 @@ function onLobby(seats,teams){ lobbySeats=seats; lobbyTeams=teams; buildNetRow()
    ตั้งเป็นปิดอย่างเดียว ไม่เปิดคืนเอง เพราะตัววาดแต่ละตัวมีกฎของตัวเองอยู่แล้ว
    เช่นโหมดทีมที่ปิดปุ่มจำนวนคนบางปุ่มไว้ ถ้าเปิดคืนตรงนี้จะไปลบกฎนั้นทิ้ง
    การปลดล็อกจึงทำด้วยการวาดใหม่ทั้งหมดตอนกดออกจากห้อง */
+var lockBusy=false;
 function applyGuestLock(){
-  var root=$('setup'); if(!root) return;
+  var root=$('setup'); if(!root||lockBusy) return;
   var lock=isGuest();
   root.classList.toggle('guestlock',lock);
-  if(!lock) return;
   var keep=$('netrow');
-  Array.prototype.forEach.call(root.querySelectorAll('button,input,select'),function(e){
+  var nodes=root.querySelectorAll('button,input,select');
+  Array.prototype.forEach.call(nodes,function(e){
     if(keep&&keep.contains(e)) return;          /* เลือกที่นั่งและออกจากห้องยังกดได้ */
     if(e.id==='btnItems') return;               /* ดูรายการไอเท็มได้ตลอด */
-    e.disabled=true;
+    e.disabled=lock;
   });
   var det=root.querySelector('details.adv');
-  if(det) det.open=false;
+  if(det&&lock) det.open=false;
+  if(!lock){
+    /* ปลดล็อกแล้วต้องคืนกฎเฉพาะทางที่การเปิดคืนไปลบทิ้ง เช่นโหมดทีมที่ปิดปุ่มจำนวนคนบางปุ่มไว้
+       ตัวกันวนจำเป็น เพราะ buildCountState เรียกฟังก์ชันนี้กลับมาอีกที */
+    lockBusy=true;
+    buildCountState();
+    lockBusy=false;
+  }
 }
 
 /* เข้าห้องคนอื่นแล้วปิดทุกปุ่มที่ไม่ใช่เรื่องของเรา เพราะการตั้งค่าเป็นของเจ้าของห้อง
@@ -3122,7 +3130,7 @@ function netPush(){
   Net.broadcast(S);
 }
 
-var VERSION='5.1';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
+var VERSION='5.2';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
@@ -4205,6 +4213,12 @@ function drawLog(){
 
 function sync(){
   netPush();
+  /* ยังไม่ถึงตาเรา ปิดทุกปุ่มที่เปลี่ยนสถานะเกม เหลือไว้แค่ปุ่มเริ่มใหม่กับปุ่มดูข้อมูล
+     ตัวจริงที่บังคับคือชั้นกติกาอยู่แล้ว ตรงนี้ทำให้หน้าจอบอกความจริงตรงกัน */
+  var lockTurn = S && S.phase!=='GAME_OVER' && !myTurn();
+  ['btnRoll','btnPlace','btnSkip','btnUseItem'].forEach(function(id){
+    var b=$(id); if(b&&lockTurn) b.disabled=true;
+  });
   drawCaches(); drawMines(); drawTokens(); drawPicks(); drawUnits(); drawLog();
   var p=S.players[S.currentIdx], over=S.phase==='GAME_OVER', err=Game.placementError(S);
   var isBot=!over&&!!p.bot;
@@ -4245,7 +4259,7 @@ function sync(){
   $('hudHp').innerHTML = over ? '' : hpPips(p.hp);
 
   var sb=$('steps'); sb.innerHTML='';
-  if(!over&&!isBot&&!busy&&S.phase==='AWAIT_MOVE'){
+  if(!over&&!isBot&&!busy&&myTurn()&&S.phase==='AWAIT_MOVE'){
     Game.moveOptions(S).forEach(function(o){
       var b=document.createElement('button');
       b.type='button'; b.className='stepbtn'; b.textContent=o.steps;
