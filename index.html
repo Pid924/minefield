@@ -162,6 +162,10 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
 .setup.guestlock .body > #netrow{opacity:1;pointer-events:auto}
 .setup.guestlock .body > .actions{opacity:1;pointer-events:auto}
 .setup.guestlock .body > .actions #btnStart{opacity:.45;pointer-events:none}
+/* ยกเว้นตอนที่ปุ่มนี้ทำหน้าที่กลับเข้าเกม ต้องกดได้จริง ไม่ใช่แค่ไม่ถูก disabled
+   เพราะการปิดด้วย pointer-events บล็อกคลิกได้แม้ปุ่มจะเปิดอยู่ */
+.setup.guestlock.canrejoin .body > .actions #btnStart{opacity:1;pointer-events:auto}
+.guestlock.canrejoin #btnStart{opacity:1}
 .lockmsg{font-size:12.5px;color:var(--ink-2);margin:10px 0 0}
 .lobby{display:grid;gap:6px;margin-top:10px}
 .seatrow{display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--rule);
@@ -3131,7 +3135,7 @@ function netPush(){
   Net.broadcast(S);
 }
 
-var VERSION='5.4.1';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
+var VERSION='5.4.2';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
@@ -3637,9 +3641,12 @@ function stepBackIntoGame(){
 /* ปุ่มสองตัวนี้เปลี่ยนความหมายตามว่าเราเป็นผู้เข้าร่วมและมีเกมค้างอยู่หรือไม่ */
 function refreshRoomButtons(){
   var inRoomGame = isGuest() && !!S;
+  var canRejoin = inRoomGame && steppedOut;
   $('btnReset').textContent = isGuest() ? t('btn_quitgame') : t('btn_reset');
-  $('btnStart').textContent = (inRoomGame && steppedOut) ? t('btn_rejoin') : t('btn_start');
-  if(inRoomGame && steppedOut) $('btnStart').disabled=false;
+  $('btnStart').textContent = canRejoin ? t('btn_rejoin') : t('btn_start');
+  /* ต้องปลดทั้งสองชั้น คือ disabled ที่กันแป้นพิมพ์ และ pointer-events ที่กันเมาส์ */
+  if(canRejoin) $('btnStart').disabled=false;
+  var box=$('setup'); if(box) box.classList.toggle('canrejoin',canRejoin);
 }
 
 function start(n){
