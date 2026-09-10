@@ -3130,7 +3130,7 @@ function netPush(){
   Net.broadcast(S);
 }
 
-var VERSION='5.3';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
+var VERSION='5.4';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
@@ -3435,10 +3435,21 @@ function buildNetRow(){
 
 /* ผู้เข้าร่วมได้สถานะใหม่มา วาดใหม่ทั้งกระดานเมื่อโครงเปลี่ยน ไม่งั้นแค่รีเฟรช */
 var remoteRolling=false;
+
+/* ลายเซ็นของสิ่งที่ถูกวาดครั้งเดียวตอนสร้างกระดาน แล้วไม่ถูกวาดซ้ำระหว่างเล่น
+   ได้แก่ผังช่อง ตำแหน่งฐาน จุดเก็บทุ่นระเบิด และการพลิกผัง
+   ถ้าอย่างใดอย่างหนึ่งเปลี่ยน ต้องสร้างกระดานใหม่ ไม่งั้นภาพสองฝั่งจะไม่ตรงกัน
+   กรณีที่เจอคือเจ้าของห้องกดเริ่มใหม่ด้วยค่าเดิม แต่จุดเก็บถูกสุ่มใหม่ */
+function boardSig(st){
+  if(!st) return '';
+  return [st.boardSize, st.players.length, st.rules.shape, st.rules.teams,
+          JSON.stringify(st.flip||{}), (st.startTiles||[]).join(','),
+          Object.keys(st.caches||{}).sort(function(a,b){return a-b}).join(',')].join('|');
+}
+
 function onRemoteState(st){
   var prev=S;
-  var needBoard = !S || S.boardSize!==st.boardSize || S.players.length!==st.players.length
-    || S.rules.shape!==st.rules.shape || S.rules.teams!==st.rules.teams;
+  var needBoard = !S || boardSig(S)!==boardSig(st);
 
   /* จับจังหวะที่มีคนเพิ่งทอย โดยดูการเปลี่ยนเข้าสู่ช่วงเลือกก้าว
      วิธีนี้แม่นกว่าการเทียบแต้ม เพราะทอยได้แต้มเดิมซ้ำกันสองครั้งก็ยังจับได้ */
@@ -3457,7 +3468,11 @@ function onRemoteState(st){
   /* หมุนลูกเต๋าให้ดูหลังวาดเสร็จ จะได้เห็นว่าคนที่กำลังเล่นทอยได้เท่าไร */
   if(justRolled && !remoteRolling){
     remoteRolling=true;
-    tumbleDice(st.lastRoll).then(function(){ remoteRolling=false; });
+    sync();                                   /* ซ่อนปุ่มเลือกก้าวไว้ก่อนระหว่างลูกเต๋ายังหมุน */
+    tumbleDice(st.lastRoll).then(function(){
+      remoteRolling=false;
+      sync();                                 /* หมุนจบแล้วค่อยให้กดเลือกก้าว */
+    });
   }
 }
 
@@ -4275,7 +4290,7 @@ function sync(){
   $('hudHp').innerHTML = over ? '' : hpPips(p.hp);
 
   var sb=$('steps'); sb.innerHTML='';
-  if(!over&&!isBot&&!busy&&myTurn()&&S.phase==='AWAIT_MOVE'){
+  if(!over&&!isBot&&!busy&&!remoteRolling&&myTurn()&&S.phase==='AWAIT_MOVE'){
     Game.moveOptions(S).forEach(function(o){
       var b=document.createElement('button');
       b.type='button'; b.className='stepbtn'; b.textContent=o.steps;
