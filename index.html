@@ -2254,6 +2254,7 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
       /* ยังไม่แจกที่นั่ง ส่งรายการที่นั่งไปให้เลือกเองก่อน */
       c.metadata = { seat: -1, name: msg.name || '' };
       if (hooks.onHello) hooks.onHello(c);
+      if (hooks.onSeats) hooks.onSeats(-1, c.metadata.name || '');
       return;
     }
     if (msg.k === 'pick') {
@@ -2265,6 +2266,8 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
         var st = hooks.onState();
         if (st) c.send({ k: 'state', s: st });
       }
+      /* แจ้งชั้นบนว่าที่นั่งเปลี่ยนแล้ว เพื่อให้เจ้าของห้องวาดใหม่และส่งรายการใหม่ให้ทุกคน */
+      if (hooks.onSeats) hooks.onSeats(got, c.metadata.name || '');
       return;
     }
     if (msg.k === 'act') {
@@ -2284,6 +2287,13 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
   }
 
   function seatOf(c) { return c && c.metadata ? c.metadata.seat : -1; }
+  /* รายชื่อพร้อมที่นั่งของผู้เข้าร่วมทุกคนที่ยังอยู่ ใช้เป็นความจริงชุดเดียว
+     ชั้นบนจะได้สร้างรายชื่อใหม่ทั้งชุดแทนการไล่แก้ทีละเหตุการณ์ */
+  function seatNames() {
+    return conns.filter(function (c) { return c.open && c.metadata; })
+      .map(function (c) { return { seat: c.metadata.seat, name: c.metadata.name || '' }; });
+  }
+
   function takenSeats() {
     return conns.filter(function (c) { return c.open && seatOf(c) >= 0; })
                 .map(function (c) { return seatOf(c); });
@@ -2371,7 +2381,7 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
 
   root.Net = {
     host: host, join: join, send: send, broadcast: broadcast, leave: leave,
-    pick: pick, sendLobby: sendLobby, takenSeats: takenSeats,
+    pick: pick, sendLobby: sendLobby, takenSeats: takenSeats, seatNames: seatNames,
     seatOf: seatOf, releaseSeat: releaseSeat,
     mode: function () { return mode; },
     isHost: function () { return mode === 'hosting'; },
@@ -2985,7 +2995,34 @@ function onPickSeat(seat,c){
   if(!seatFree(seat)) return cur;
   return seat;
 }
-function onSeatLeave(){ pushLobby(); if(S) sync(); }
+
+/* สร้างรายชื่อผู้เล่นใหม่ทั้งชุดจากความจริงที่ชั้นเชื่อมต่อถืออยู่
+   ทำแบบนี้แทนการไล่แก้ทีละเหตุการณ์ เพราะการย้ายที่นั่งคือการออกจากที่เก่าและเข้าที่ใหม่พร้อมกัน
+   ถ้าแก้ทีละจุดจะลืมล้างที่เดิมเสมอ */
+function refreshSeatNames(){
+  var byName={};
+  Net.seatNames().forEach(function(g){ if(g.seat>=0) byName[g.seat]=g.name; });
+  for(var i=0;i<playerCount;i++){
+    if(i===hostSeat||pbots[i]) continue;
+    pnames[i]= byName[i] ? String(byName[i]).slice(0,14) : '';
+  }
+}
+
+/* ที่นั่งเปลี่ยนแล้ว เจ้าของห้องเห็นทั้งในรายชื่อผู้เล่นและในรายการที่นั่งพร้อมกัน */
+function onSeatsChanged(){
+  refreshSeatNames();
+  buildRoster();
+  netMsg=t('net_wait',{n:Net.guests()});
+  netMsgKind='';
+  pushLobby();
+}
+function onSeatLeave(){
+  refreshSeatNames();
+  buildRoster();
+  netMsg=t('net_wait',{n:Net.guests()});
+  pushLobby();
+  if(S) sync();
+}
 
 function seatList(){
   var taken=Net.isHost()?Net.takenSeats():[];
@@ -3360,7 +3397,7 @@ function buildNetRow(){
   if($('btnHost')) $('btnHost').onclick=function(){
     Sfx.play('click');
     Net.host({ onHello:onHello, onPick:onPickSeat, onLeave:onSeatLeave,
-               onAct:onRemoteAct, onStatus:netStatus,
+               onSeats:onSeatsChanged, onAct:onRemoteAct, onStatus:netStatus,
                onState:function(){ return S }, seat:hostSeat });
   };
   if($('btnJoin')) $('btnJoin').onclick=function(){
