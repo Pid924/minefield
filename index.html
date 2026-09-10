@@ -106,6 +106,7 @@ header{border-bottom:2px solid var(--brass-dark);padding-bottom:10px;margin-bott
 .brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
 h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;margin:0;text-transform:uppercase}
 .tagline{font-size:14px;color:var(--ink-2)}
+.ver{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--ink-3);margin-top:3px}
 .meta{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;margin-top:4px}
 .langs{display:flex;border:1px solid var(--rule);border-radius:3px;overflow:hidden;flex:none}
 .langs button{font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:6px 11px;border:0;border-radius:0;
@@ -170,6 +171,8 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
   border-radius:2px;border:1px solid currentColor;white-space:nowrap}
 .seatrow .tag2{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--ink-3)}
 .seatrow.mine{border-color:var(--brass);background:rgba(216,167,43,.12)}
+.seatrow.live{border-color:var(--heal)}
+.seatrow .tag2.live{color:var(--heal)}
 .seatrow button{padding:5px 12px;font-size:12px}
 .netcode{font-family:var(--mono);font-size:22px;letter-spacing:.28em;color:var(--brass);font-weight:600}
 .netin{font-family:var(--mono);font-size:16px;letter-spacing:.22em;text-transform:uppercase;
@@ -491,6 +494,7 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
           <span class="tagline" id="tagline"></span>
         </div>
         <div class="meta" id="meta"></div>
+        <div class="ver" id="ver"></div>
       </div>
       <div class="tools">
         <div class="langs"><button id="btnLook" type="button"></button></div>
@@ -2433,7 +2437,7 @@ th:{
   tip_slow:'การทอยอีก {n} ครั้งถัดไปจะได้แต้มหารสองปัดขึ้นทั้งสองลูก',
   tip_lift:'การทอยอีก {n} ครั้งถัดไปจะถูกบวก 1 ที่แต้มน้อยที่สุด ช่วงเดินจึงแคบลงจากด้านล่าง', btn_items:'ดูไอเท็มทั้งหมด', items_title:'ไอเท็มทั้งหมด', btn_close:'ปิด', opt_view:'มุมมอง', view_flat:'มองจากบน', view_tilt:'มองเอียง', btn_look:'ภาพ', look_title:'การแสดงผล',
   opt_online:'เล่นออนไลน์', net_host:'สร้างห้อง', net_join:'เข้าร่วมห้อง', net_leave:'ออกจากห้อง',
-  lobby_title:'ที่นั่งในห้อง', guest_locked:'เจ้าของห้องเป็นคนตั้งค่าเกม คุณเลือกได้แค่ที่นั่ง', seat_free:'ว่าง', seat_you:'คุณ', seat_bot:'คอมพิวเตอร์',
+  lobby_title:'ที่นั่งในห้อง', seat_online:'เข้าห้องแล้ว', guest_locked:'เจ้าของห้องเป็นคนตั้งค่าเกม คุณเลือกได้แค่ที่นั่ง', seat_free:'ว่าง', seat_you:'คุณ', seat_bot:'คอมพิวเตอร์',
   lock_hint:'เจ้าของห้องเป็นคนตั้งค่าและกดเริ่มเกม คุณเลือกได้แค่ที่นั่ง',
   seat_host:'เจ้าของห้อง', seat_take:'เลือก', lobby_hint:'กดที่นั่งที่ว่างเพื่อย้ายไปนั่ง',
   net_code:'รหัสห้อง', net_seat:'คุณคือ {name}', net_wait:'รอเพื่อนเข้าห้อง มีแล้ว {n} คน',
@@ -2567,7 +2571,7 @@ en:{
   tip_slow:'For your next {n} roll(s) both dice are halved, rounded up',
   tip_lift:'For your next {n} roll(s) the lower die counts one more, shrinking your range from below', btn_items:'See all items', items_title:'All items', btn_close:'Close', opt_view:'View', view_flat:'Top down', view_tilt:'Tilted', btn_look:'View', look_title:'Display',
   opt_online:'Play online', net_host:'Create room', net_join:'Join room', net_leave:'Leave room',
-  lobby_title:'Seats in the room', guest_locked:'The host sets up the game, you only choose a seat', seat_free:'open', seat_you:'you', seat_bot:'computer',
+  lobby_title:'Seats in the room', seat_online:'online', guest_locked:'The host sets up the game, you only choose a seat', seat_free:'open', seat_you:'you', seat_bot:'computer',
   lock_hint:'The host sets everything up and starts the game, you only pick a seat',
   seat_host:'host', seat_take:'take', lobby_hint:'Tap an open seat to move there',
   net_code:'Room code', net_seat:'You are {name}', net_wait:'Waiting for friends, {n} joined',
@@ -2702,7 +2706,7 @@ de:{
   tip_slow:'Bei den nächsten {n} Würfen zählen beide Würfel halb, aufgerundet',
   tip_lift:'Bei den nächsten {n} Würfen zählt die niedrigere Augenzahl eins mehr, die Spanne schrumpft von unten', btn_items:'Alle Gegenstände', items_title:'Alle Gegenstände', btn_close:'Schließen', opt_view:'Ansicht', view_flat:'Von oben', view_tilt:'Schräg', btn_look:'Optik', look_title:'Darstellung',
   opt_online:'Online spielen', net_host:'Raum öffnen', net_join:'Raum betreten', net_leave:'Raum verlassen',
-  lobby_title:'Plätze im Raum', guest_locked:'Der Gastgeber stellt das Spiel ein, du wählst nur den Platz', seat_free:'frei', seat_you:'du', seat_bot:'Computer',
+  lobby_title:'Plätze im Raum', seat_online:'online', guest_locked:'Der Gastgeber stellt das Spiel ein, du wählst nur den Platz', seat_free:'frei', seat_you:'du', seat_bot:'Computer',
   lock_hint:'Der Gastgeber stellt alles ein und startet, du wählst nur den Platz',
   seat_host:'Gastgeber', seat_take:'wählen', lobby_hint:'Freien Platz antippen, um dorthin zu wechseln',
   net_code:'Raumcode', net_seat:'Du bist {name}', net_wait:'Warte auf Mitspieler, {n} da',
@@ -2837,7 +2841,7 @@ nl:{
   tip_slow:'Bij je volgende {n} worp(en) tellen beide stenen half, naar boven afgerond',
   tip_lift:'Bij je volgende {n} worp(en) telt je laagste steen één meer, je bereik krimpt van onderen', btn_items:'Alle voorwerpen', items_title:'Alle voorwerpen', btn_close:'Sluiten', opt_view:'Aanzicht', view_flat:'Bovenaanzicht', view_tilt:'Schuin', btn_look:'Beeld', look_title:'Weergave',
   opt_online:'Online spelen', net_host:'Kamer maken', net_join:'Kamer binnengaan', net_leave:'Kamer verlaten',
-  lobby_title:'Plaatsen in de kamer', guest_locked:'De host stelt het spel in, jij kiest alleen een plaats', seat_free:'vrij', seat_you:'jij', seat_bot:'computer',
+  lobby_title:'Plaatsen in de kamer', seat_online:'online', guest_locked:'De host stelt het spel in, jij kiest alleen een plaats', seat_free:'vrij', seat_you:'jij', seat_bot:'computer',
   lock_hint:'De host stelt alles in en start het spel, jij kiest alleen een plaats',
   seat_host:'host', seat_take:'kiezen', lobby_hint:'Tik op een vrije plaats om daarheen te gaan',
   net_code:'Kamercode', net_seat:'Jij bent {name}', net_wait:'Wachten op vrienden, {n} binnen',
@@ -3078,18 +3082,20 @@ function buildLobby(){
   var html='<div class="lobby">';
   list.forEach(function(r){
     var mine=(r.i===me);
+    var live=(r.taken&&!r.host);
     var who = r.bot ? t('seat_bot')
             : r.host ? (r.name+' \u00b7 '+t('seat_host'))
             : mine ? (r.name+' \u00b7 '+t('seat_you'))
             : r.taken ? r.name
             : t('seat_free');
     var tint = r.team===0?'#F2A0D4':(r.team===1?'#9FE4DC':'');
-    html+='<div class="seatrow'+(mine?' mine':'')+'">'+
+    html+='<div class="seatrow'+(mine?' mine':'')+(live?' live':'')+'">'+
       (r.team>=0?'<span class="tm" style="color:'+tint+'">'+esc(t('team_name',{n:r.team+1}))+'</span>':'')+
       '<span class="who">'+esc(who)+'</span>';
     /* กดเลือกได้เฉพาะที่นั่งว่างของคนจริง และเฉพาะฝั่งผู้เข้าร่วม */
     var canPick = isGuest() && !mine && !r.bot && !r.host && !r.taken;
     if(canPick) html+='<button type="button" data-seat="'+r.i+'">'+esc(t('seat_take'))+'</button>';
+    else if(r.taken&&!r.host) html+='<span class="tag2 live">'+esc(t('seat_online'))+'</span>';
     else if(r.bot||r.host) html+='<span class="tag2">'+esc(r.bot?t('seat_bot'):t('seat_host'))+'</span>';
     html+='</div>';
   });
@@ -3116,6 +3122,7 @@ function netPush(){
   Net.broadcast(S);
 }
 
+var VERSION='5.1';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
@@ -3237,6 +3244,7 @@ function applyLang(){
   $('itemsTitle').textContent=t('items_title');
   $('btnItemsClose').textContent=t('btn_close');
   $('btnInfoClose').textContent=t('btn_close');
+  $('ver').textContent='v'+VERSION;
   $('btnLook').textContent=t('btn_look');
   $('btnLookClose').textContent=t('btn_close');
   $('lookKicker').textContent=t('look_title');
