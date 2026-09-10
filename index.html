@@ -3130,7 +3130,7 @@ function netPush(){
   Net.broadcast(S);
 }
 
-var VERSION='5.2';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
+var VERSION='5.3';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
@@ -3434,9 +3434,17 @@ function buildNetRow(){
 }
 
 /* ผู้เข้าร่วมได้สถานะใหม่มา วาดใหม่ทั้งกระดานเมื่อโครงเปลี่ยน ไม่งั้นแค่รีเฟรช */
+var remoteRolling=false;
 function onRemoteState(st){
+  var prev=S;
   var needBoard = !S || S.boardSize!==st.boardSize || S.players.length!==st.players.length
     || S.rules.shape!==st.rules.shape || S.rules.teams!==st.rules.teams;
+
+  /* จับจังหวะที่มีคนเพิ่งทอย โดยดูการเปลี่ยนเข้าสู่ช่วงเลือกก้าว
+     วิธีนี้แม่นกว่าการเทียบแต้ม เพราะทอยได้แต้มเดิมซ้ำกันสองครั้งก็ยังจับได้ */
+  var justRolled = st.phase==='AWAIT_MOVE' && st.lastRoll && prev &&
+    (prev.phase!=='AWAIT_MOVE' || prev.currentIdx!==st.currentIdx || prev.turnCount!==st.turnCount);
+
   S=st;
   if(needBoard){
     $('setup').classList.add('hidden');
@@ -3445,6 +3453,12 @@ function onRemoteState(st){
     buildBoard();
   }
   sync();
+
+  /* หมุนลูกเต๋าให้ดูหลังวาดเสร็จ จะได้เห็นว่าคนที่กำลังเล่นทอยได้เท่าไร */
+  if(justRolled && !remoteRolling){
+    remoteRolling=true;
+    tumbleDice(st.lastRoll).then(function(){ remoteRolling=false; });
+  }
 }
 
 function buildTeamRow(){
@@ -4215,9 +4229,11 @@ function sync(){
   netPush();
   /* ยังไม่ถึงตาเรา ปิดทุกปุ่มที่เปลี่ยนสถานะเกม เหลือไว้แค่ปุ่มเริ่มใหม่กับปุ่มดูข้อมูล
      ตัวจริงที่บังคับคือชั้นกติกาอยู่แล้ว ตรงนี้ทำให้หน้าจอบอกความจริงตรงกัน */
-  var lockTurn = S && S.phase!=='GAME_OVER' && !myTurn();
+  /* ต้องตั้งทั้งสองทาง ไม่ใช่ปิดอย่างเดียว ไม่งั้นพอถึงตาเราแล้วปุ่มจะค้างปิดอยู่
+     ปุ่มทอยกับปุ่มวางมีกฎละเอียดของตัวเองอยู่ข้างล่าง ซึ่งจะเขียนทับค่าตรงนี้อีกที */
+  var lockTurn = !!(S && S.phase!=='GAME_OVER' && !myTurn());
   ['btnRoll','btnPlace','btnSkip','btnUseItem'].forEach(function(id){
-    var b=$(id); if(b&&lockTurn) b.disabled=true;
+    var b=$(id); if(b) b.disabled=lockTurn;
   });
   drawCaches(); drawMines(); drawTokens(); drawPicks(); drawUnits(); drawLog();
   var p=S.players[S.currentIdx], over=S.phase==='GAME_OVER', err=Game.placementError(S);
