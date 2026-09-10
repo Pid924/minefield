@@ -2531,6 +2531,7 @@ th:{
   log_lifted:'{name} โดนยกพื้น แต้มน้อยที่สุดถูกบวก 1 ในเทิร์นนี้',
   log_giveAll:'{name} ได้ทุ่นระเบิดฟรี 1 ลูก และมีผู้เล่นที่ยืนบนจุดเก็บได้เพิ่มอีก {n} คน',
   log_teammine:'{name} หยุดทับทุ่นระเบิดของ{owner} ซึ่งเป็นเพื่อนร่วมทีม จึงปลอดภัย',
+  log_netLeave:'{name} ออกจากห้องไปแล้ว', log_netJoin:'{name} เข้าร่วมห้อง',
   log_winTeam:'ทีม {team} ชนะ เหลือผู้รอดชีวิต {n} คน',
   log_healTeam:'ทั้งทีมได้หัวใจเพิ่มคนละ 1 ดวง รวม {n} คน',
   log_supplyTeam:'ทั้งทีมได้ทุ่นระเบิดเพิ่มคนละ 1 ลูก รวม {n} คน',
@@ -2666,6 +2667,7 @@ en:{
   log_lifted:'{name} is raised, the lower die counts one more this turn',
   log_giveAll:'{name} gained a free mine, and {n} player(s) on a depot gained one too',
   log_teammine:'{name} stopped on a mine of {owner}, a team-mate, so nothing happened',
+  log_netLeave:'{name} left the room', log_netJoin:'{name} joined the room',
   log_winTeam:'Team {team} wins with {n} survivor(s)',
   log_healTeam:'The whole team gained a heart each, {n} in all',
   log_supplyTeam:'The whole team gained a mine each, {n} in all',
@@ -2801,6 +2803,7 @@ de:{
   log_lifted:'{name} ist angehoben, die niedrigere Augenzahl zählt diesen Zug eins mehr',
   log_giveAll:'{name} erhält gratis eine Mine, und {n} Spieler auf einem Depot ebenfalls',
   log_teammine:'{name} hält auf einer Mine von {owner} aus dem eigenen Team, nichts passiert',
+  log_netLeave:'{name} hat den Raum verlassen', log_netJoin:'{name} ist dem Raum beigetreten',
   log_winTeam:'Team {team} gewinnt mit {n} Überlebenden',
   log_healTeam:'Das ganze Team erhält je ein Herz, insgesamt {n}',
   log_supplyTeam:'Das ganze Team erhält je eine Mine, insgesamt {n}',
@@ -2936,6 +2939,7 @@ nl:{
   log_lifted:'{name} is opgetild, de laagste steen telt deze beurt één meer',
   log_giveAll:'{name} krijgt gratis een mijn, en {n} speler(s) op een depot ook',
   log_teammine:'{name} stopt op een mijn van teamgenoot {owner}, er gebeurt niets',
+  log_netLeave:'{name} heeft de kamer verlaten', log_netJoin:'{name} is de kamer binnengekomen',
   log_winTeam:'Team {team} wint met {n} overlevende(n)',
   log_healTeam:'Het hele team krijgt elk een hart, {n} in totaal',
   log_supplyTeam:'Het hele team krijgt elk een mijn, {n} in totaal',
@@ -3021,14 +3025,29 @@ function refreshSeatNames(){
 }
 
 /* ที่นั่งเปลี่ยนแล้ว เจ้าของห้องเห็นทั้งในรายชื่อผู้เล่นและในรายการที่นั่งพร้อมกัน */
-function onSeatsChanged(){
+var seenSeats={};
+function onSeatsChanged(seat){
+  /* เขียนบันทึกเฉพาะตอนที่เพิ่งได้ที่นั่งครั้งแรก ไม่ใช่ทุกครั้งที่ย้ายที่ */
+  if(seat>=0 && !seenSeats[seat]){ seenSeats[seat]=true; netLog('netJoin',seat); }
   refreshSeatNames();
   buildRoster();
   netMsg=t('net_wait',{n:Net.guests()});
   netMsgKind='';
   pushLobby();
 }
-function onSeatLeave(){
+/* เติมบรรทัดลงบันทึกของเกม ต้องสร้างสถานะใหม่ ไม่ใช่แก้ตัวเดิม
+   เพราะระบบดูการเปลี่ยนแปลงจากตัวตนของวัตถุก่อนจะส่งต่อให้ผู้เข้าร่วม */
+function netLog(key,seat){
+  if(!S) return;
+  var next=JSON.parse(JSON.stringify(S));
+  /* ใช้เลขเทิร์นเดียวกับบรรทัดล่าสุด จะได้เรียงต่อกันสนิทไม่กระโดดกลับไปศูนย์ */
+  var turn = next.log.length ? next.log[0].turn : (next.turnCount||1);
+  next.log.unshift({ turn:turn, kind:'out', key:key, p:{ p:seat } });
+  S=next;
+}
+
+function onSeatLeave(seat){
+  if(seat>=0) netLog('netLeave',seat);
   refreshSeatNames();
   buildRoster();
   netMsg=t('net_wait',{n:Net.guests()});
@@ -3139,7 +3158,7 @@ function netPush(){
   Net.broadcast(S);
 }
 
-var VERSION='5.4.3';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
+var VERSION='5.4.4';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
@@ -3438,6 +3457,7 @@ function buildNetRow(){
     lobbySeats=null; netMsg=''; netMsgKind='';
     /* ตัดขาดจากเกมของห้องนั้นจริง ปุ่มจึงกลับเป็นเริ่มเกมของตัวเอง */
     if(steppedOut){ steppedOut=false; S=null; $('meta').textContent=t('meta_none'); }
+    seenSeats={};
     refreshRoomButtons();
     /* วาดใหม่ทุกส่วนเพื่อปลดล็อกตัวควบคุมที่ถูกปิดไว้ */
     buildNetRow(); buildRoster(); buildCountState(); buildTeamRow(); buildShapeRow(); buildBotRow();
