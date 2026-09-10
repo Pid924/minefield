@@ -2488,7 +2488,7 @@ th:{
   opt_shape:'รูปทรงบอร์ด', shp_ring:'วงกลม', shp_poly:'{n} เหลี่ยม', shp_snake:'รถไฟ',
   shp_poly_off:'ต้องมีผู้เล่น 3 คนขึ้นไป', adv_title:'ติดตั้งเพิ่มเติม', board_title:'แผนผังสนาม', units_title:'หน่วยในสนาม', log_title:'บันทึกสนาม',
   btn_roll:'ทอยลูกเต๋า', btn_place:'วางระเบิด', btn_skip:'ไม่วาง จบเทิร์น',
-  btn_reset:'เริ่มใหม่', btn_again:'เปิดสนามใหม่',
+  btn_reset:'เริ่มใหม่', btn_again:'เปิดสนามใหม่', btn_quitgame:'ออกเกม', btn_rejoin:'กลับเข้าเกม',
   over_kicker:'จบภารกิจ', over_win:'{name} เคลียร์สนามได้', over_none:'ไม่มีผู้รอด',
   st_over:'จบภารกิจ', st_turn:'ถึงเทิร์น {name}', st_sub:'หัวใจ {hp} · ทุ่นระเบิดในมือ {mines} ลูก',
   st_forced:'แต้มซ้ำ ต้องวางทุ่นระเบิดที่ช่อง {tile}', st_forced_sub:'แต้มซ้ำบังคับวาง ข้ามไม่ได้',
@@ -2623,7 +2623,7 @@ en:{
   opt_shape:'Board shape', shp_ring:'Ring', shp_poly:'{n}-gon', shp_snake:'Railway',
   shp_poly_off:'needs 3 or more players', adv_title:'Advanced settings', board_title:'Field map', units_title:'Units in play', log_title:'Field log',
   btn_roll:'Roll the die', btn_place:'Lay mine', btn_skip:'Skip, end turn',
-  btn_reset:'Restart', btn_again:'Open a new field',
+  btn_reset:'Restart', btn_again:'Open a new field', btn_quitgame:'Leave game', btn_rejoin:'Back to game',
   over_kicker:'Mission over', over_win:'{name} cleared the field', over_none:'No survivors',
   st_over:'Mission over', st_turn:'{name} to roll', st_sub:'HP {hp} · {mines} mines in hand',
   st_forced:'Doubles — lay a mine on tile {tile}', st_forced_sub:'Doubles force placement, skipping is not allowed',
@@ -2758,7 +2758,7 @@ de:{
   opt_shape:'Brettform', shp_ring:'Ring', shp_poly:'{n}-Eck', shp_snake:'Bahnstrecke',
   shp_poly_off:'ab 3 Spielern möglich', adv_title:'Weitere Einstellungen', board_title:'Feldkarte', units_title:'Einheiten im Feld', log_title:'Feldprotokoll',
   btn_roll:'Würfeln', btn_place:'Mine legen', btn_skip:'Nicht legen, Zug beenden',
-  btn_reset:'Neu starten', btn_again:'Neues Feld eröffnen',
+  btn_reset:'Neu starten', btn_again:'Neues Feld eröffnen', btn_quitgame:'Spiel verlassen', btn_rejoin:'Zurück ins Spiel',
   over_kicker:'Einsatz beendet', over_win:'{name} hat das Feld geräumt', over_none:'Keine Überlebenden',
   st_over:'Einsatz beendet', st_turn:'{name} ist am Zug', st_sub:'HP {hp} · {mines} Minen in der Hand',
   st_forced:'Pasch — Mine auf Feld {tile} legen', st_forced_sub:'Bei einem Pasch ist das Legen Pflicht',
@@ -2893,7 +2893,7 @@ nl:{
   opt_shape:'Bordvorm', shp_ring:'Ring', shp_poly:'{n}-hoek', shp_snake:'Spoorlijn',
   shp_poly_off:'vanaf 3 spelers', adv_title:'Extra instellingen', board_title:'Veldkaart', units_title:'Eenheden in het veld', log_title:'Veldlogboek',
   btn_roll:'Gooien', btn_place:'Mijn leggen', btn_skip:'Niet leggen, beurt beëindigen',
-  btn_reset:'Opnieuw', btn_again:'Nieuw veld openen',
+  btn_reset:'Opnieuw', btn_again:'Nieuw veld openen', btn_quitgame:'Spel verlaten', btn_rejoin:'Terug naar het spel',
   over_kicker:'Missie voorbij', over_win:'{name} heeft het veld geruimd', over_none:'Geen overlevenden',
   st_over:'Missie voorbij', st_turn:'{name} is aan zet', st_sub:'HP {hp} · {mines} mijnen in de hand',
   st_forced:'Dubbel — leg een mijn op veld {tile}', st_forced_sub:'Bij dubbel is leggen verplicht',
@@ -3066,6 +3066,7 @@ function applyGuestLock(){
   Array.prototype.forEach.call(nodes,function(e){
     if(keep&&keep.contains(e)) return;          /* เลือกที่นั่งและออกจากห้องยังกดได้ */
     if(e.id==='btnItems') return;               /* ดูรายการไอเท็มได้ตลอด */
+    if(e.id==='btnStart'&&isGuest()&&S&&steppedOut) return;   /* ปุ่มกลับเข้าเกมต้องกดได้ */
     e.disabled=lock;
   });
   var det=root.querySelector('details.adv');
@@ -3130,7 +3131,7 @@ function netPush(){
   Net.broadcast(S);
 }
 
-var VERSION='5.4';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
+var VERSION='5.4.1';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
@@ -3253,6 +3254,7 @@ function applyLang(){
   $('btnItemsClose').textContent=t('btn_close');
   $('btnInfoClose').textContent=t('btn_close');
   $('ver').textContent='v'+VERSION;
+  refreshRoomButtons();
   $('btnLook').textContent=t('btn_look');
   $('btnLookClose').textContent=t('btn_close');
   $('lookKicker').textContent=t('look_title');
@@ -3426,6 +3428,9 @@ function buildNetRow(){
   if($('btnLeave')) $('btnLeave').onclick=function(){
     Sfx.play('click'); Net.leave();
     lobbySeats=null; netMsg=''; netMsgKind='';
+    /* ตัดขาดจากเกมของห้องนั้นจริง ปุ่มจึงกลับเป็นเริ่มเกมของตัวเอง */
+    if(steppedOut){ steppedOut=false; S=null; $('meta').textContent=t('meta_none'); }
+    refreshRoomButtons();
     /* วาดใหม่ทุกส่วนเพื่อปลดล็อกตัวควบคุมที่ถูกปิดไว้ */
     buildNetRow(); buildRoster(); buildCountState(); buildTeamRow(); buildShapeRow(); buildBotRow();
     if(S) sync();
@@ -3457,6 +3462,11 @@ function onRemoteState(st){
     (prev.phase!=='AWAIT_MOVE' || prev.currentIdx!==st.currentIdx || prev.turnCount!==st.turnCount);
 
   S=st;
+  if(steppedOut){
+    /* ยังดูอยู่ที่หน้าตั้งค่า เก็บสถานะไว้เฉย ๆ ไม่ดึงกลับเข้าเกมเอง */
+    refreshRoomButtons();
+    return;
+  }
   if(needBoard){
     $('setup').classList.add('hidden');
     $('game').classList.remove('hidden');
@@ -3567,7 +3577,7 @@ function buildBotRow(){
 document.addEventListener('click',function(){
   Array.prototype.forEach.call(document.querySelectorAll('.tokpop'),function(x){ x.classList.add('hidden') });
 });
-$('btnStart').onclick=function(){ start(playerCount) };
+$('btnStart').onclick=function(){ if(isGuest()&&S&&steppedOut) stepBackIntoGame(); else start(playerCount) };
 $('btnItems').onclick=function(){ Sfx.play('click'); $('itemList').classList.remove('hidden') };
 $('btnInfoClose').onclick=function(){ Sfx.play('click'); $('itemInfo').classList.add('hidden') };
 $('btnLook').onclick=function(){ Sfx.play('click'); $('lookBox').classList.remove('hidden') };
@@ -3580,7 +3590,8 @@ $('units').addEventListener('click',function(e){
 });
 $('btnItemsClose').onclick=function(){ Sfx.play('click'); $('itemList').classList.add('hidden') };
 $('itemList').onclick=function(e){ if(e.target===$('itemList')) $('itemList').classList.add('hidden') };
-$('btnAgain').onclick=reset; $('btnReset').onclick=reset;
+$('btnAgain').onclick=reset;
+$('btnReset').onclick=function(){ if(isGuest()) stepOutOfGame(); else reset(); };
 
 function paintSound(){
   var b=$('btnSound');
@@ -3595,10 +3606,40 @@ $('btnSound').onclick=function(){
   if(Sfx.isOn()) Sfx.play('click');
 };
 
+/* ผู้เข้าร่วมออกจากหน้าเกมชั่วคราวโดยยังอยู่ในห้อง สถานะเกมยังอัปเดตอยู่เบื้องหลัง
+   จึงกลับเข้าไปดูต่อได้ทุกเมื่อ ต่างจากการกดออกจากห้องซึ่งตัดขาดจริง */
+var steppedOut=false;
+
 function reset(){
   runId++; busy=false; animTok=null; S=null;
+  steppedOut=false;
   $('game').classList.add('hidden'); $('setup').classList.remove('hidden');
   $('meta').textContent=t('meta_none');
+  refreshRoomButtons();
+}
+
+function stepOutOfGame(){
+  Sfx.play('click');
+  steppedOut=true;
+  $('game').classList.add('hidden'); $('setup').classList.remove('hidden');
+  refreshRoomButtons();
+  buildNetRow();
+}
+
+function stepBackIntoGame(){
+  Sfx.play('click');
+  steppedOut=false;
+  $('setup').classList.add('hidden'); $('game').classList.remove('hidden');
+  geo=geometry(); buildBoard(); sync();
+  refreshRoomButtons();
+}
+
+/* ปุ่มสองตัวนี้เปลี่ยนความหมายตามว่าเราเป็นผู้เข้าร่วมและมีเกมค้างอยู่หรือไม่ */
+function refreshRoomButtons(){
+  var inRoomGame = isGuest() && !!S;
+  $('btnReset').textContent = isGuest() ? t('btn_quitgame') : t('btn_reset');
+  $('btnStart').textContent = (inRoomGame && steppedOut) ? t('btn_rejoin') : t('btn_start');
+  if(inRoomGame && steppedOut) $('btnStart').disabled=false;
 }
 
 function start(n){
@@ -4242,6 +4283,7 @@ function drawLog(){
 
 function sync(){
   netPush();
+  refreshRoomButtons();      /* ป้ายปุ่มเปลี่ยนตามบทบาท ต้องปรับทุกครั้งที่หน้าจอรีเฟรช */
   /* ยังไม่ถึงตาเรา ปิดทุกปุ่มที่เปลี่ยนสถานะเกม เหลือไว้แค่ปุ่มเริ่มใหม่กับปุ่มดูข้อมูล
      ตัวจริงที่บังคับคือชั้นกติกาอยู่แล้ว ตรงนี้ทำให้หน้าจอบอกความจริงตรงกัน */
   /* ต้องตั้งทั้งสองทาง ไม่ใช่ปิดอย่างเดียว ไม่งั้นพอถึงตาเราแล้วปุ่มจะค้างปิดอยู่
