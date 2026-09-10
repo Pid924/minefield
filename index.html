@@ -158,14 +158,18 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
 .lockmsg{font-size:12.5px;color:var(--brass);margin:10px 0 0}
 /* เข้าห้องคนอื่นแล้ว การตั้งค่าเป็นสิทธิ์ของเจ้าของห้อง
    หรี่และปิดทุกอย่างยกเว้นแถวห้องรอ ปุ่มดูไอเท็ม และปุ่มออกจากห้อง */
-.setup.guestlock .body > *{opacity:.45;pointer-events:none}
-.setup.guestlock .body > #netrow{opacity:1;pointer-events:auto}
-.setup.guestlock .body > .actions{opacity:1;pointer-events:auto}
-.setup.guestlock .body > .actions #btnStart{opacity:.45;pointer-events:none}
-/* ยกเว้นตอนที่ปุ่มนี้ทำหน้าที่กลับเข้าเกม ต้องกดได้จริง ไม่ใช่แค่ไม่ถูก disabled
-   เพราะการปิดด้วย pointer-events บล็อกคลิกได้แม้ปุ่มจะเปิดอยู่ */
-.setup.guestlock.canrejoin .body > .actions #btnStart{opacity:1;pointer-events:auto}
+/* หรี่ให้รู้ว่าแตะไม่ได้ แต่ไม่บล็อกคลิกแบบเหมารวมอีกแล้ว
+   ตัวที่กันจริงคือ disabled บนปุ่มแต่ละตัว ซึ่งเบราว์เซอร์กันคลิกให้อยู่แล้ว
+   การใช้ pointer-events คลุมทั้งกล่องเคยทำให้ปุ่มที่ตั้งใจเปิดไว้กดไม่ได้มาแล้วสองรอบ */
+.setup.guestlock .body > *{opacity:.45}
+.setup.guestlock .body > #netrow,
+.setup.guestlock .body > .actions{opacity:1}
+.setup.guestlock .body > .actions #btnStart{opacity:.45}
+.setup.guestlock.canrejoin .body > .actions #btnStart{opacity:1}
 .guestlock.canrejoin #btnStart{opacity:1}
+/* ส่วนที่กดได้โดยไม่มี disabled ต้องกันด้วยวิธีนี้ เพราะ summary ปิดไม่ได้ */
+.setup.guestlock .adv{pointer-events:none}
+.setup.guestlock.canrejoin .adv{pointer-events:none}
 .lockmsg{font-size:12.5px;color:var(--ink-2);margin:10px 0 0}
 .lobby{display:grid;gap:6px;margin-top:10px}
 .seatrow{display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--rule);
@@ -3135,7 +3139,7 @@ function netPush(){
   Net.broadcast(S);
 }
 
-var VERSION='5.4.2';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
+var VERSION='5.4.3';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
@@ -3581,7 +3585,13 @@ function buildBotRow(){
 document.addEventListener('click',function(){
   Array.prototype.forEach.call(document.querySelectorAll('.tokpop'),function(x){ x.classList.add('hidden') });
 });
-$('btnStart').onclick=function(){ if(isGuest()&&S&&steppedOut) stepBackIntoGame(); else start(playerCount) };
+$('btnStart').onclick=function(){
+  /* เกณฑ์ตัดสินคือมีเกมของห้องอยู่จริงและตอนนี้ไม่ได้อยู่ในหน้าเกม
+     ไม่พึ่งธงภายในอย่างเดียว เผื่อธงหลุดจากเส้นทางที่คาดไม่ถึง */
+  var away = $('game').classList.contains('hidden');
+  if(isGuest() && S && away) stepBackIntoGame();
+  else start(playerCount);
+};
 $('btnItems').onclick=function(){ Sfx.play('click'); $('itemList').classList.remove('hidden') };
 $('btnInfoClose').onclick=function(){ Sfx.play('click'); $('itemInfo').classList.add('hidden') };
 $('btnLook').onclick=function(){ Sfx.play('click'); $('lookBox').classList.remove('hidden') };
