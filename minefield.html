@@ -109,6 +109,8 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
 .ver{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--ink-3);margin-top:3px}
 .meta{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;margin-top:4px}
 .langs{display:flex;border:1px solid var(--rule);border-radius:3px;overflow:hidden;flex:none}
+/* กล่องที่มีเมนูโผล่ลงมาต้องไม่ตัดส่วนที่ล้น ไม่งั้นเมนูจะหายไปทั้งที่เปิดอยู่จริง */
+.langs.langwrap{overflow:visible}
 .langs button{font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:6px 11px;border:0;border-radius:0;
   border-left:1px solid var(--rule);background:var(--ctrl-b);color:var(--ink-2);cursor:pointer}
 .langs button:first-child{border-left:0}
@@ -3187,7 +3189,7 @@ function netPush(){
   Net.broadcast(S);
 }
 
-var VERSION='5.5.0';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
+var VERSION='5.5.1';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
