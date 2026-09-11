@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สนามทุ่นระเบิด</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#2A1B0E; --paper-2:#43301B; --paper-3:#523B21;
+  --ink:#F2E7D2; --ink-2:#C6B08B; --ink-3:#9A8460;
+  --rule:#6D5130; --hazard:#D8A72B; --blood:#D9503F; --heal:#78C97C; --cache:#5C4620;
+  --brass:#D8A72B; --brass-dark:#8A6512; --wood:#5A3E22; --wood-dark:#1F1409;
+  --sans:'IBM Plex Sans Thai',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--sans); color:var(--ink); background-color:var(--paper);
+  background-image:
+    repeating-linear-gradient(93deg,rgba(255,255,255,.022) 0 2px,transparent 2px 7px),
+    repeating-linear-gradient(89deg,rgba(0,0,0,.16) 0 1px,transparent 1px 23px),
+    linear-gradient(160deg,#33210F 0%,#241708 60%,#2E1D0D 100%);
+  padding:20px 16px 48px; line-height:1.6;
+}
+.app{max-width:1120px;margin:0 auto}
+
+header{border-bottom:2px solid var(--brass-dark);padding-bottom:10px;margin-bottom:22px}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;margin:0;text-transform:uppercase}
+.tagline{font-size:14px;color:var(--ink-2)}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;margin-top:4px}
+.langs{display:flex;border:1px solid var(--rule);border-radius:3px;overflow:hidden;flex:none}
+.langs button{font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:6px 11px;border:0;border-radius:0;
+  border-left:1px solid var(--rule);background:#3B2913;color:var(--ink-2);cursor:pointer}
+.langs button:first-child{border-left:0}
+.langs button[aria-pressed="true"]{background:linear-gradient(180deg,#E4B63C,#B7871A);color:#2A1B0E}
+
+.card{background:var(--paper-2);border:1px solid var(--rule);border-radius:6px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07), 0 2px 0 rgba(0,0,0,.35);
+  background-image:repeating-linear-gradient(91deg,rgba(255,255,255,.018) 0 2px,transparent 2px 8px)}
+.card h2{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  margin:0;padding:9px 14px;border-bottom:1px solid var(--rule);color:var(--ink-2)}
+
+.setup{max-width:540px;margin:8px auto}
+.setup .body{padding:20px}
+.setup p{margin:0 0 16px;color:var(--ink-2);font-size:15px}
+.choices{display:flex;gap:8px;margin-bottom:20px}
+.choice{flex:1;padding:12px 4px;background:linear-gradient(180deg,#4C3618,#33230F);border:1px solid var(--rule);border-radius:4px;
+  cursor:pointer;text-align:center;font-family:var(--mono);font-size:19px;font-weight:600;color:var(--ink);line-height:1.2}
+.choice[aria-pressed="true"]{background:linear-gradient(180deg,#E4B63C,#B7871A);color:#2A1B0E;border-color:var(--brass-dark)}
+.opts{display:grid;gap:8px;margin-bottom:18px}
+.opt{display:flex;align-items:center;gap:10px;padding:7px 12px;background:#33230F;border:1px solid var(--rule);border-radius:4px}
+.opt span{flex:1;font-size:13px;color:var(--ink-2)}
+.step{display:flex;align-items:stretch;border:1px solid var(--rule);border-radius:4px;overflow:hidden;background:#3B2913}
+.step button{border:0;border-radius:0;padding:3px 12px;font-family:var(--mono);font-size:16px;background:transparent;color:var(--ink)}
+.step button:disabled{opacity:.3}
+.step b{font-family:var(--mono);font-size:14px;min-width:32px;text-align:center;padding:4px 0;
+  border-left:1px solid var(--rule);border-right:1px solid var(--rule)}
+.fieldlbl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-2);margin-bottom:7px}
+.adv{border:1px solid var(--rule);border-radius:4px;background:#33230F;margin-bottom:18px}
+.adv summary{cursor:pointer;padding:9px 13px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-2);list-style:none;display:flex;justify-content:space-between;align-items:center}
+.adv summary::-webkit-details-marker{display:none}
+.adv summary::after{content:'+';font-size:15px;line-height:1}
+.adv[open] summary::after{content:'\2212'}
+.adv .advbody{padding:2px 13px 6px}
+.adv .opts{margin-bottom:6px}
+.proster{display:grid;gap:7px;margin-bottom:18px}
+.prow{display:flex;align-items:center;gap:9px}
+.pname{flex:1;min-width:0;font-family:var(--sans);font-size:13px;padding:7px 10px;color:var(--ink);
+  background:#2E1F0E;border:1px solid var(--rule);border-radius:4px}
+.pname:focus-visible{outline:2px solid var(--hazard);outline-offset:1px}
+.seg{display:flex;border:1px solid var(--rule);border-radius:3px;overflow:hidden;flex:none}
+.seg button{border:0;border-radius:0;padding:6px 12px;font-size:12px;background:#3B2913;
+  color:var(--ink-2);border-left:1px solid var(--rule)}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:linear-gradient(180deg,#E4B63C,#B7871A);color:#2A1B0E}
+.tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;padding:1px 5px;margin-left:2px;
+  border:1px solid var(--rule);border-radius:2px;color:var(--ink-3)}
+.rules{font-size:13px;color:var(--ink-2);border-top:1px dashed var(--rule);padding-top:14px}
+.rules b{font-weight:600;color:var(--ink)}
+.rules div{margin-bottom:5px}
+
+.game{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}
+@media(max-width:880px){.game{grid-template-columns:1fr}}
+
+.stage{position:relative;padding:14px;display:flex;justify-content:center;
+  background:radial-gradient(ellipse at 38% 28%,#6B4A28 0%,#4A3218 55%,#33220F 100%);
+  background-image:radial-gradient(ellipse at 38% 28%,#6B4A28 0%,#4A3218 55%,#33220F 100%),
+    repeating-linear-gradient(88deg,rgba(0,0,0,.13) 0 1px,transparent 1px 19px);
+  border-bottom:1px solid var(--rule)}
+svg#board{width:100%;height:auto;max-width:560px;display:block}
+.tile{fill:#523A1E;stroke:#8A6B41;stroke-width:1}
+.tile.start{stroke-width:2.5}
+.tile.cache{fill:#6A5322;stroke:var(--brass);stroke-dasharray:3 2.5}
+.basebox{fill:none;stroke-width:1.6;stroke-dasharray:3.5 2.5;opacity:.9}
+.cglyph{font-family:var(--mono);font-weight:600;fill:var(--brass);text-anchor:middle;dominant-baseline:central}
+.tnum{font-family:var(--mono);fill:var(--ink-3);text-anchor:middle;dominant-baseline:central}
+.slabel{font-family:var(--mono);font-size:10px;letter-spacing:.04em;dominant-baseline:central}
+.guide{fill:none;stroke:#8A6B41;stroke-width:1;stroke-dasharray:2 6;opacity:.5}
+.platform{fill:#6B4E2A;stroke:#8A6B41;stroke-width:1;opacity:.85}
+.tie line{stroke:#7A5A32;stroke-width:2.4;opacity:.75}
+.rail{fill:none;stroke:#9AA3AB;stroke-width:1.8;opacity:.85}
+.token{stroke:#1F1409;stroke-width:1.5}
+.sheen{fill:#fff;opacity:.3;pointer-events:none}
+.token.moving{stroke-width:2.5}
+.shadow{fill:var(--ink);opacity:.16}
+.tletter{font-family:var(--mono);font-size:11px;font-weight:600;fill:#1F1409;text-anchor:middle;dominant-baseline:central}
+.mine{stroke:var(--brass);stroke-width:1.8}
+.mlabel{font-family:var(--mono);font-weight:600;fill:#1F1409;text-anchor:middle;dominant-baseline:central}
+.blast{animation:blast .7s ease-out}
+@keyframes blast{0%{fill:var(--blood)}60%{fill:var(--hazard)}100%{fill:var(--paper)}}
+@media(prefers-reduced-motion:reduce){.blast{animation:none}}
+
+.console{padding:14px;border-top:1px solid var(--rule);margin-top:10px}
+.readout{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.die{width:48px;height:48px;flex:none;background:linear-gradient(160deg,#F0E6D2,#C9B896);border:1.5px solid #1F1409;border-radius:8px;box-shadow:0 2px 0 rgba(0,0,0,.4);
+  display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:7px;gap:2px}
+.die i{border-radius:50%;background:transparent}
+.die i.on{background:#1F1409}
+.dice{display:flex;gap:8px;flex:none}
+.hudslot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.hud{display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center}
+/* แบบรถไฟกลางกระดานมีช่องอยู่ ลูกเต๋าจึงย้ายลงมาอยู่แถวเดียวกับสถานะแทน */
+.hud.bar{flex-direction:row;align-items:center;gap:12px;text-align:left}
+.hud.bar .hudname{max-width:170px}
+.hudname{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--ink-2);
+  max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hudhp{font-size:14px}
+.floater{font-family:var(--mono);font-weight:600;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.die{transition:box-shadow .2s}
+.die.rolling{animation:tumble .3s linear infinite}
+@keyframes tumble{
+  0%{transform:rotate(0) scale(1) translateY(0)}
+  25%{transform:rotate(-15deg) scale(1.07) translateY(-4px)}
+  50%{transform:rotate(7deg) scale(.95) translateY(3px)}
+  75%{transform:rotate(16deg) scale(1.05) translateY(-2px)}
+  100%{transform:rotate(0) scale(1) translateY(0)}
+}
+.die.settle{animation:settle .4s cubic-bezier(.2,1.5,.4,1)}
+@keyframes settle{0%{transform:scale(1.24)}55%{transform:scale(.95)}100%{transform:scale(1)}}
+.stage.shake{animation:bshake .42s ease-out}
+@keyframes bshake{
+  0%,100%{transform:translate(0,0)}
+  15%{transform:translate(-5px,2px)}35%{transform:translate(4px,-3px)}
+  55%{transform:translate(-3px,-1px)}75%{transform:translate(2px,2px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .die.rolling,.die.settle,.stage.shake{animation:none}
+}
+.status{flex:1;min-width:200px;font-size:14px}
+.status b{font-weight:600}
+.status .why{display:block;font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.stepbtn{font-family:var(--mono);font-size:16px;font-weight:600;padding:7px 14px;min-width:42px}
+#btnReset{margin-left:auto;font-size:13px;padding:7px 14px;border-color:var(--rule);color:var(--ink-2)}
+#btnReset:hover{border-color:var(--ink);color:var(--ink)}
+.stepbtn.danger{border-color:var(--blood);color:var(--blood);border-width:2px}
+.stepbtn.danger2{background:var(--blood);color:#1F1409;border-color:var(--blood)}
+.pick{fill:none;stroke-width:2.5;animation:pickpulse 1.4s ease-in-out infinite}
+@keyframes pickpulse{0%,100%{opacity:1}50%{opacity:.4}}
+.badge{stroke:var(--paper-2);stroke-width:1.5}
+.btxt{font-family:var(--mono);font-size:11px;font-weight:600;fill:var(--paper-2);text-anchor:middle;dominant-baseline:central}
+.hit{cursor:pointer}
+@media(prefers-reduced-motion:reduce){.pick{animation:none}}
+button{font-family:var(--sans);font-size:14px;font-weight:500;padding:9px 18px;border-radius:4px;cursor:pointer;
+  border:1px solid var(--rule);color:var(--ink);
+  background:linear-gradient(180deg,#5B411F,#3B2913);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+button:hover{border-color:var(--brass)}
+button.primary{background:linear-gradient(180deg,#E4B63C,#B7871A);border-color:var(--brass-dark);color:#2A1B0E}
+button.hazard{background:linear-gradient(180deg,#E4B63C,#B7871A);border-color:var(--brass-dark);color:#2A1B0E}
+button:disabled{opacity:.34;cursor:not-allowed}
+button:focus-visible{outline:2px solid var(--hazard);outline-offset:2px}
+
+.units{padding:6px 0}
+.unit{display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px dashed var(--rule)}
+.unit:last-child{border-bottom:0}
+.unit.turn{background:rgba(216,167,43,.12)}
+.chip{width:19px;height:19px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.45);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.35);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:10px;font-weight:600;color:var(--paper-2)}
+.uname{font-size:13px;font-weight:500;flex:1;min-width:0}
+.uname em{font-family:var(--mono);font-style:normal;font-size:10px;color:var(--ink-3);letter-spacing:.06em;display:block}
+.pips{font-family:var(--mono);font-size:13px;letter-spacing:1px;white-space:nowrap}
+.pips i{font-style:normal}
+.pips i.off{opacity:.22}
+.pips.hp{color:var(--blood);font-size:12px;letter-spacing:.5px}
+.pips.mn{color:var(--ink-2);font-size:12px;display:inline-flex;align-items:center;gap:1px}
+.mglyph{vertical-align:-2px}
+.mglyph.off{opacity:.22}
+.mx{font-family:var(--mono);font-size:12px;margin-left:2px}
+.nm{display:flex;align-items:center;gap:7px}
+.unit.out{opacity:.45}
+.unit.out .uname{text-decoration:line-through}
+
+.log{list-style:none;margin:0;padding:6px 0;max-height:280px;overflow-y:auto}
+.log li{font-size:12.5px;padding:5px 14px;border-bottom:1px dashed var(--rule);display:flex;gap:9px}
+.log li:last-child{border-bottom:0}
+.log .t{font-family:var(--mono);font-size:10px;color:var(--ink-3);flex:none;padding-top:2px}
+.log .k-boom{background:rgba(217,80,63,.14);color:var(--blood);font-weight:500}
+.log .k-heal{color:var(--heal)}
+.log .k-mine{color:var(--brass)}
+.log .k-out{background:rgba(0,0,0,.25);font-weight:600}
+.log .k-win{background:linear-gradient(180deg,#E4B63C,#B7871A);color:#2A1B0E;font-weight:600}
+.log .k-restock{color:var(--brass);font-weight:500}
+
+.over{position:absolute;inset:14px;display:flex;align-items:center;justify-content:center;
+  background:rgba(31,20,9,.82);border-radius:4px}
+.over div{text-align:center;border:2px solid var(--brass);background:linear-gradient(180deg,#59401F,#3A2712);
+  padding:22px 30px;border-radius:6px;transform:rotate(-2deg);box-shadow:0 6px 0 rgba(0,0,0,.4)}
+.over h3{font-family:var(--mono);margin:0 0 4px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2)}
+.over p{margin:0 0 16px;font-size:21px;font-weight:600}
+.hidden{display:none !important}
+footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--ink-3);text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="top">
+      <div>
+        <div class="brand">
+          <h1>Minefield</h1>
+          <span class="tagline" id="tagline"></span>
+        </div>
+        <div class="meta" id="meta"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <div class="langs" id="langs"></div>
+        <div class="langs"><button id="btnSound" type="button"></button></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="card setup" id="setup">
+    <h2 id="setupTitle"></h2>
+    <div class="body">
+      <p id="setupIntro"></p>
+      <div class="fieldlbl" id="lblPlayers"></div>
+      <div class="choices" id="choices"></div>
+      <div class="proster" id="proster"></div>
+      <div class="opts" id="shaperow"></div>
+      <div class="opts" id="botrow"></div>
+      <details class="adv"><summary id="advTitle"></summary>
+        <div class="advbody"><div class="opts" id="opts"></div></div>
+      </details>
+      <div class="rules" id="rules"></div>
+      <div class="actions"><button class="primary" id="btnStart"></button></div>
+    </div>
+  </section>
+
+  <section class="game hidden" id="game">
+    <div class="card">
+      <h2 id="boardTitle"></h2>
+      <div class="stage">
+        <svg id="board" role="img"></svg>
+        <div class="hudslot" id="hudBoard">
+          <div class="hud" id="hud" aria-hidden="true">
+            <div class="dice"><div class="die" id="dieA"></div><div class="die" id="dieB"></div></div>
+            <div class="hudname" id="hudName"></div>
+            <div class="hudhp pips hp" id="hudHp"></div>
+          </div>
+        </div>
+        <div class="over hidden" id="over">
+          <div>
+            <h3 id="overKicker"></h3>
+            <p id="overText"></p>
+            <button class="primary" id="btnAgain"></button>
+          </div>
+        </div>
+      </div>
+      <div class="console">
+        <div class="readout">
+          <div id="hudBar"></div>
+          <div class="status" id="status" aria-live="polite"></div>
+        </div>
+        <div class="actions">
+          <button class="primary" id="btnRoll"></button>
+          <div class="steps" id="steps"></div>
+          <button class="hazard hidden" id="btnPlace"></button>
+          <button class="hidden" id="btnSkip"></button>
+          <button id="btnReset"></button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:18px">
+        <h2 id="unitsTitle"></h2>
+        <div class="units" id="units"></div>
+      </div>
+      <div class="card">
+        <h2 id="logTitle"></h2>
+        <ul class="log" id="log"></ul>
+      </div>
+    </div>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* สนามทุ่นระเบิด - รูปทรงบอร์ด
+   ทุกรูปทรงถูกแทนด้วยแนวคิดเดียวกัน: เส้นทางปิดหนึ่งเส้น แล้ววางช่องตามระยะทางบนเส้นให้เท่ากัน
+   คณิตศาสตร์ล้วน ไม่แตะ DOM และไม่ใช้ getPointAtLength ของเบราว์เซอร์ จึงเทสต์ใน node ได้ */
+(function (root) {
+  'use strict';
+
+  var TAU = Math.PI * 2;
+  var ROW_GAP = 3.6;    /* ระยะห่างแถวขั้นต่ำ คิดเป็นกี่เท่าของรัศมีช่อง */
+  var MIN_CLEAR = 2.4;  /* ช่องที่ไม่ได้ติดกันตามลำดับต้องห่างกันอย่างน้อยกี่เท่าของรัศมี */
+
+  /* ---------- เส้นทางประกอบจากท่อนตรงและท่อนโค้ง ---------- */
+
+  function line(ax, ay, bx, by) {
+    return { t: 'line', ax: ax, ay: ay, bx: bx, by: by,
+             len: Math.hypot(bx - ax, by - ay) };
+  }
+  function arc(cx, cy, r, a0, a1) {
+    return { t: 'arc', cx: cx, cy: cy, r: r, a0: a0, a1: a1,
+             len: r * Math.abs(a1 - a0) };
+  }
+  function total(segs) {
+    return segs.reduce(function (s, x) { return s + x.len; }, 0);
+  }
+
+  /* คืนพิกัดและเวกเตอร์ทิศทางที่ระยะทาง t บนเส้นทาง */
+  function pointAt(segs, P, t) {
+    var d = ((t % P) + P) % P;
+    for (var i = 0; i < segs.length; i++) {
+      var s = segs[i];
+      if (d <= s.len || i === segs.length - 1) {
+        if (s.t === 'line') {
+          var u = s.len ? d / s.len : 0;
+          var tx = (s.bx - s.ax) / (s.len || 1), ty = (s.by - s.ay) / (s.len || 1);
+          return { x: s.ax + (s.bx - s.ax) * u, y: s.ay + (s.by - s.ay) * u, tx: tx, ty: ty };
+        }
+        var dir = s.a1 >= s.a0 ? 1 : -1;
+        var a = s.a0 + (s.a1 - s.a0) * (s.len ? d / s.len : 0);
+        return {
+          x: s.cx + s.r * Math.cos(a), y: s.cy + s.r * Math.sin(a),
+          tx: -Math.sin(a) * dir, ty: Math.cos(a) * dir
+        };
+      }
+      d -= s.len;
+    }
+    return { x: 0, y: 0, tx: 1, ty: 0 };
+  }
+
+  /* ---------- รูปทรงแต่ละแบบ ---------- */
+
+  function ringSegs(W, H) {
+    var R = Math.min(W, H) / 2;
+    return [arc(W / 2, H / 2, R, -Math.PI / 2, -Math.PI / 2 + TAU)];
+  }
+
+  /* n เหลี่ยมปกติ มุมคม ด้านเท่ากันทุกด้าน
+     เพราะจำนวนช่อง = n x ระยะฐาน และรูปมี n ด้าน ฐานของผู้เล่นจึงไปตกที่มุมพอดีเองทุกคน */
+  function polySegs(n, W, H) {
+    var bestRot = 0, bestScale = 0, deg, i;
+    for (deg = 0; deg < 360 / n; deg += 0.5) {
+      var rot = -Math.PI / 2 + deg * Math.PI / 180;
+      var xs = [], ys = [];
+      for (i = 0; i < n; i++) {
+        var a = rot + i * TAU / n;
+        xs.push(Math.cos(a)); ys.push(Math.sin(a));
+      }
+      var bw = Math.max.apply(null, xs) - Math.min.apply(null, xs);
+      var bh = Math.max.apply(null, ys) - Math.min.apply(null, ys);
+      var sc = Math.min(W / bw, H / bh);
+      if (sc > bestScale) { bestScale = sc; bestRot = rot; }
+    }
+    var pts = [], minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (i = 0; i < n; i++) {
+      var an = bestRot + i * TAU / n;
+      var px = Math.cos(an) * bestScale, py = Math.sin(an) * bestScale;
+      pts.push([px, py]);
+      minX = Math.min(minX, px); maxX = Math.max(maxX, px);
+      minY = Math.min(minY, py); maxY = Math.max(maxY, py);
+    }
+    var ox = (W - (maxX - minX)) / 2 - minX;
+    var oy = (H - (maxY - minY)) / 2 - minY;
+    var segs = [];
+    for (i = 0; i < n; i++) {
+      var a1 = pts[i], b1 = pts[(i + 1) % n];
+      segs.push(line(a1[0] + ox, a1[1] + oy, b1[0] + ox, b1[1] + oy));
+    }
+    return segs;
+  }
+
+  /* รถไฟสลับไปมา: แถวนอนสลับทิศ ปลายแถวมีโค้งกลับหัว แล้ววนกลับด้วยรางด้านซ้าย
+     จำนวนแถวต้องเป็นเลขคู่ ไม่งั้นเส้นทางจะจบคนละฝั่งกับจุดเริ่มแล้วรางกลับต้องพาดข้ามกระดาน */
+  /* สร้างเส้นทางรถไฟสำหรับจำนวนแถว k และความกว้างช่องทางวนกลับ lane
+     ระยะสำคัญคือโค้งกลับหัวฝั่งซ้ายโป่งออกไปทางซ้ายเท่ารัศมีของมัน
+     ถ้าไม่เผื่อ lane ไว้ มันจะไปทับรางวนกลับที่ขอบซ้ายพอดี */
+  function snakeBuild(k, W, H, lane) {
+    var d = H / (k - 1);
+    var rU = d / 2;
+    var xL = rU + lane, xR = W - rU;
+    if (xR - xL < rU * 4) return null;
+    if (xL - lane < 0) return null;
+
+    var segs = [], i, y;
+    for (i = 0; i < k; i++) {
+      y = i * d;
+      var ltr = (i % 2 === 0);
+      segs.push(ltr ? line(xL, y, xR, y) : line(xR, y, xL, y));
+      if (i < k - 1) {
+        /* โค้งฝั่งขวาเดินตามเข็ม ฝั่งซ้ายต้องเดินทวนเข็มถึงจะออกจากบนลงล่างผ่านจุดซ้ายสุด
+           ถ้าใส่ทิศกลับด้าน ช่องจะถูกวางย้อนลำดับและเส้นทางจะพาดทับตัวเอง */
+        segs.push(ltr ? arc(xR, y + rU, rU, -Math.PI / 2, Math.PI / 2)
+                      : arc(xL, y + rU, rU, -Math.PI / 2, -Math.PI * 1.5));
+      }
+    }
+    /* รางวนกลับเป็นส่วนโค้งใหญ่โค้งเดียวที่โป่งไปทางซ้ายเท่ากับ lane
+       ของเดิมใช้มุมหักสองมุมกับแนวตรง ซึ่งรัศมีมุมเล็กกว่าระยะห่างช่อง
+       ทำให้ช่องก่อนเลี้ยวกับหลังเลี้ยววกมาชนกัน โค้งเดียวรัศมีใหญ่จึงไม่มีจุดหักคม */
+    var yLast = (k - 1) * d;
+    var Rret = (yLast * yLast + 4 * lane * lane) / (8 * lane);
+    var cxr = xL - lane + Rret, cyr = yLast / 2;
+    var aStart = Math.atan2(yLast / 2, xL - cxr);
+    var aEnd = Math.atan2(-yLast / 2, xL - cxr) + TAU;
+    segs.push(arc(cxr, cyr, Rret, aStart, aEnd));
+
+    var rows = [];
+    for (i = 0; i < k; i++) rows.push({ y: i * d, x1: xL, x2: xR, ltr: i % 2 === 0 });
+    return { segs: segs, P: total(segs), k: k, rows: rows, d: d, rU: rU, lane: lane };
+  }
+
+  /* ระยะที่ใกล้ที่สุดระหว่างช่องคู่ใด ๆ ที่ไม่ได้อยู่ติดกันตามลำดับ
+     ใช้ตรวจว่าเส้นทางพับกลับมาชนตัวเองตรงไหนหรือเปล่า ซึ่งไล่ดูด้วยตาไม่ไหว */
+  function minGap(segs, P, N) {
+    var pts = [], i, j;
+    for (i = 0; i < N; i++) pts.push(pointAt(segs, P, i * P / N));
+    var worst = Infinity;
+    for (i = 0; i < N; i++) {
+      for (j = i + 2; j < N; j++) {
+        if (i === 0 && j === N - 1) continue;
+        var d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+        if (d < worst) worst = d;
+      }
+    }
+    return worst;
+  }
+
+  /* ผังรถไฟแบบสมมาตร ไม่มีโค้งครึ่งวงกลมใหญ่เป็นทางกลับ
+     แต่แบ่งเป็นสองฝั่งซ้ายขวาคั่นด้วยร่องกลาง แถวบนสุดพาดเต็มความกว้าง
+     เส้นทางหวีลงฝั่งซ้าย ข้ามร่องที่แถวล่างสุด แล้วหวีกลับขึ้นฝั่งขวา
+     โค้งทุกโค้งมีรัศมีเท่ากันหมดคือครึ่งหนึ่งของระยะห่างแถว */
+  function snakeSymBuild(k, W, H, g) {
+    if (k < 4 || k % 2) return null;
+    var d = H / (k - 1), rU = d / 2, cx = W / 2;
+    var xL = rU, xR = W - rU;
+    var half = (cx - g) - xL;
+    if (g < rU * 1.15) return null;          /* ร่องกลางต้องกว้างกว่าโค้งที่โป่งเข้ามาสองฝั่ง */
+    if (half < rU * 1.4) return null;        /* ฝั่งละต้องยาวพอจะเป็นแถวจริง */
+
+    var segs = [], i, y;
+    var Y = function (n) { return n * d; };
+
+    segs.push(line(xR, 0, xL, 0));                                   /* แถวบนสุดเต็มความกว้าง */
+    segs.push(arc(xL, rU, rU, -Math.PI / 2, -Math.PI * 1.5));        /* โค้งซ้ายลงแถว 1 */
+
+    for (i = 1; i <= k - 1; i++) {
+      y = Y(i);
+      if (i % 2) segs.push(line(xL, y, cx - g, y));
+      else segs.push(line(cx - g, y, xL, y));
+      if (i < k - 1) {
+        segs.push(i % 2 ? arc(cx - g, y + rU, rU, -Math.PI / 2, Math.PI / 2)
+                        : arc(xL, y + rU, rU, -Math.PI / 2, -Math.PI * 1.5));
+      }
+    }
+
+    segs.push(line(cx - g, Y(k - 1), cx + g, Y(k - 1)));             /* ข้ามร่องกลางที่แถวล่างสุด */
+
+    for (i = k - 1; i >= 1; i--) {
+      y = Y(i);
+      var toRight = ((k - 1 - i) % 2 === 0);
+      segs.push(toRight ? line(cx + g, y, xR, y) : line(xR, y, cx + g, y));
+      segs.push(toRight ? arc(xR, y - rU, rU, Math.PI / 2, -Math.PI / 2)
+                        : arc(cx + g, y - rU, rU, Math.PI / 2, Math.PI * 1.5));
+    }
+
+    var rows = [];
+    for (i = 0; i < k; i++) {
+      rows.push(i === 0 ? { y: Y(i), x1: xL, x2: xR, ltr: false }
+                        : { y: Y(i), x1: xL, x2: cx - g, ltr: i % 2 === 1 });
+      if (i > 0) rows.push({ y: Y(i), x1: cx + g, x2: xR, ltr: (k - 1 - i) % 2 === 0 });
+    }
+    return { segs: segs, P: total(segs), k: k, rows: rows, lane: g, sym: true };
+  }
+
+  function snakeSymSegs(N, W, H, maxTile) {
+    var best = null, relaxed = null;
+    for (var k = 4; k <= 10; k += 2) {
+      var probe = snakeSymBuild(k, W, H, W * 0.08);
+      var r0 = probe ? Math.min(maxTile || 26, probe.P / N * 0.44) : (maxTile || 26);
+      for (var f = 0; f < 9; f++) {
+        var g = Math.max(W * 0.05, r0 * (1.6 + f * 0.7));
+        var b = snakeSymBuild(k, W, H, g);
+        if (!b) continue;
+        var r = Math.min(maxTile || 26, b.P / N * 0.44);
+        if (H / (k - 1) < r * ROW_GAP) continue;
+        b.gap = minGap(b.segs, b.P, N);
+        b.tile = r;
+        if (!relaxed || b.gap / b.tile > relaxed.gap / relaxed.tile) relaxed = b;
+        if (b.gap < r * MIN_CLEAR) continue;
+        if (!best || b.P > best.P) best = b;
+      }
+    }
+    return best || relaxed;
+  }
+
+  function snakeSegs(N, W, H, maxTile) {
+    var best = null, relaxed = null;
+    /* ความกว้างช่องทางวนกลับคุมสองอย่างพร้อมกัน คือระยะพ้นโค้งกลับหัวฝั่งซ้าย
+       และรัศมีมุมเลี้ยวของรางวนกลับ มุมที่แคบกว่าระยะห่างช่องจะทำให้ช่องก่อนเลี้ยว
+       กับหลังเลี้ยววกมาชนกัน จึงลองหลายความกว้างแล้วให้ตัวตรวจเป็นคนตัดสิน */
+    var LANES = [3.2, 4.4, 5.6, 7.0, 8.6, 10.5];
+    for (var k = 2; k <= 10; k += 2) {
+      var probe = snakeBuild(k, W, H, W * 0.10);
+      if (!probe) continue;
+      var r0 = Math.min(maxTile || 26, probe.P / N * 0.44);
+      for (var li = 0; li < LANES.length; li++) {
+        var b = snakeBuild(k, W, H, Math.max(W * 0.08, r0 * LANES[li]));
+        if (!b) continue;
+        var r = Math.min(maxTile || 26, b.P / N * 0.44);
+        if (b.d < r * ROW_GAP) continue;
+        b.gap = minGap(b.segs, b.P, N);
+        b.tile = r;
+        if (!relaxed || b.gap / b.tile > relaxed.gap / relaxed.tile) relaxed = b;
+        if (b.gap < r * MIN_CLEAR) continue;
+        if (!best || b.P > best.P) best = b;
+      }
+    }
+    if (!best) best = relaxed;
+    if (!best) best = snakeFallback(W, H);
+    return best;
+  }
+
+  /* ทางสำรองรูปสนามกรีฑา ใช้เมื่อไม่มีจำนวนแถวไหนผ่านเงื่อนไขเลย
+     โค้งหัวท้ายต้องอยู่ในกรอบ จึงยุบแนวตรงเข้ามาเท่ารัศมีโค้ง */
+  function snakeFallback(W, H) {
+    var r = H / 2, xL = r, xR = W - r;
+    if (xR < xL) { xL = W / 2; xR = W / 2; }
+    var segs = [line(xL, 0, xR, 0), arc(xR, r, r, -Math.PI / 2, Math.PI / 2),
+                line(xR, H, xL, H), arc(xL, r, r, Math.PI / 2, Math.PI * 1.5)];
+    return { segs: segs, k: 2,
+             rows: [{ y: 0, x1: xL, x2: xR, ltr: true }, { y: H, x1: xL, x2: xR, ltr: false }],
+             corridor: 0 };
+  }
+
+  /* ---------- ตัวหลัก ---------- */
+
+  /* o = { shape:'ring'|'poly'|'snake', sides, tiles, W, H, maxTile }
+     คืนจุดของทุกช่องพร้อมเวกเตอร์ตั้งฉาก และเส้นตัวอย่างถี่ ๆ ไว้ให้ UI วาดราง */
+  function layout(o) {
+    var shape = o.shape || 'ring';
+    var N = Math.max(3, o.tiles | 0);
+    var W = o.W, H = o.H;
+    var maxTile = o.maxTile || 26;
+
+    function build(w, h) {
+      if (shape === 'poly' && o.sides >= 3) return { segs: polySegs(o.sides, w, h) };
+      if (shape === 'snake') {
+        if (o.flip && o.flip.sym) {
+          var sym = snakeSymSegs(N, w, h, maxTile);
+          if (sym) return sym;
+        }
+        return snakeSegs(N, w, h, maxTile);
+      }
+      return { segs: ringSegs(w, h) };
+    }
+
+    /* สองรอบ: รอบแรกหาขนาดช่องคร่าว ๆ แล้วหดกรอบตามขนาดนั้นเพื่อไม่ให้ช่องล้นขอบ */
+    var pass1 = build(W, H);
+    var r1 = Math.min(maxTile, total(pass1.segs) / N * 0.44);
+    var inset = r1 + 2;
+    var res = build(Math.max(40, W - inset * 2), Math.max(40, H - inset * 2));
+    var segs = res.segs, P = total(segs);
+    var tileR = Math.min(maxTile, P / N * 0.44);
+
+    function shift(p) { return { x: p.x + inset, y: p.y + inset, tx: p.tx, ty: p.ty }; }
+
+    var pts = [], i, p, q;
+    for (i = 0; i < N; i++) {
+      p = shift(pointAt(segs, P, i * P / N));
+      pts.push({ x: p.x, y: p.y, nx: p.ty, ny: -p.tx });   /* ตั้งฉากชี้ออกนอกเส้นทาง */
+    }
+
+    /* เส้นตัวอย่างถี่ ๆ ไว้วาดราง หมอนรอง และชานชาลา */
+    var step = 5, samples = [];
+    for (var t = 0; t < P; t += step) {
+      q = shift(pointAt(segs, P, t));
+      samples.push({ x: q.x, y: q.y, nx: q.ty, ny: -q.tx });
+    }
+
+    /* พลิกทั้งผังหลังคำนวณเสร็จ เป็นการแปลงแบบแข็งเกร็ง ลำดับช่องจึงไม่เปลี่ยน
+       ได้ผังต่างกัน 4 แบบโดยไม่ต้องคำนวณเส้นทางใหม่ */
+    var fx = !!(o.flip && o.flip.x), fy = !!(o.flip && o.flip.y);
+    if (fx || fy) {
+      var mirror = function (p) {
+        if (fx) { p.x = W - p.x; p.nx = -p.nx; }
+        if (fy) { p.y = H - p.y; p.ny = -p.ny; }
+        return p;
+      };
+      pts.forEach(mirror);
+      samples.forEach(mirror);
+    }
+
+    var rows = null;
+    if (res.rows) {
+      rows = res.rows.map(function (r) {
+        var y = r.y + inset, x1 = r.x1 + inset, x2 = r.x2 + inset, ltr = r.ltr;
+        if (fx) { var t2 = W - x1; x1 = W - x2; x2 = t2; ltr = !ltr; }
+        if (fy) y = H - y;
+        return { y: y, x1: x1, x2: x2, ltr: ltr };
+      });
+      rows.sort(function (a, b) { return a.y - b.y; });
+    }
+
+    return {
+      shape: shape, pts: pts, samples: samples, tileR: tileR,
+      flip: { x: fx, y: fy, sym: !!res.sym },
+      W: W, H: H, length: P, rows: rows, lanes: res.k || null,
+      laneGap: res.lane || null
+    };
+  }
+
+  var api = { layout: layout, pointAt: pointAt, total: total, ROW_GAP: ROW_GAP, MIN_CLEAR: MIN_CLEAR };
+  root.Geom = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* สนามทุ่นระเบิด v2 - core logic
+   ต่างจาก v1 ตรงที่ทอยเต๋าสองลูกแล้วผู้เล่นเลือกจำนวนก้าวเองในช่วงระหว่างสองแต้ม
+   แต้มซ้ำกันทำให้ช่วงเหลือค่าเดียว จึงถูกบังคับทั้งการเดินและการวางทุ่น
+   ทุกฟังก์ชันสาธารณะเป็น pure และไม่มีข้อความภาษาใด ๆ */
+(function (root) {
+  'use strict';
+
+  var C = {
+    HP_START: 2,
+    HP_HARD_MAX: 5,   /* หัวใจเริ่มต้นสูงสุดที่ตั้งได้ */
+    MINE_START: 3,
+    MINE_MAX: 6,
+    MINE_HARD_MAX: 12,
+    MINE_STACK: 2,    /* ซ้อนได้สูงสุดกี่ลูกต่อช่อง */
+    SPACING: 12,
+    SPACING_MIN: 6,
+    SPACING_MAX: 15,
+    CACHES: 3,
+    CACHE_DIV: 3,
+    MAX_PLAYERS: 6
+  };
+
+  /* สีหมากโลหะ ต้องสว่างพอที่จะอ่านออกบนกระดานไม้เข้ม */
+  var UNITS = [
+    { letter: 'A', color: '#E2574A' },
+    { letter: 'B', color: '#4F9FE0' },
+    { letter: 'C', color: '#8FC24C' },
+    { letter: 'D', color: '#B586E2' },
+    { letter: 'E', color: '#E8A63D' },
+    { letter: 'F', color: '#3FC7BC' }
+  ];
+
+  var ERR = { NO_MINE: 'ERR_NO_MINE', MINED: 'ERR_MINED', STACK_FULL: 'ERR_STACK_FULL' };
+
+  function clone(s) { return JSON.parse(JSON.stringify(s)); }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function isAlive(p) { return p.hp > 0; }
+  function alivePlayers(s) { return s.players.filter(isAlive); }
+
+  function log(s, kind, key, params) {
+    s.log.unshift({ turn: s.turnCount + 1, kind: kind, key: key, p: params || {} });
+    return s;
+  }
+
+  function maxCaches(spacing) { return Math.floor(spacing / C.CACHE_DIV); }
+
+  function pickOffsets(spacing, k, rng) {
+    var pool = [], i, j, t;
+    for (i = 1; i < spacing; i++) pool.push(i);
+    for (j = pool.length - 1; j > 0; j--) {
+      i = Math.floor(rng() * (j + 1));
+      t = pool[j]; pool[j] = pool[i]; pool[i] = t;
+    }
+    return pool.slice(0, k).sort(function (a, b) { return a - b; });
+  }
+
+  function buildCaches(count, spacing, k, rng) {
+    var out = {};
+    for (var seg = 0; seg < count; seg++) {
+      pickOffsets(spacing, k, rng).forEach(function (off) {
+        out[seg * spacing + off] = true;
+      });
+    }
+    return out;
+  }
+
+  function cleanName(v) {
+    if (typeof v !== 'string') return null;
+    var t = v.trim().slice(0, 14);
+    return t.length ? t : null;
+  }
+
+  function createGame(n, opts) {
+    opts = opts || {};
+    var count = clamp(n | 0, 2, C.MAX_PLAYERS);
+    var spacing = clamp(opts.spacing === undefined ? C.SPACING : opts.spacing | 0, C.SPACING_MIN, C.SPACING_MAX);
+    var cacheCount = clamp(opts.caches === undefined ? C.CACHES : opts.caches | 0, 0, maxCaches(spacing));
+    var mineMax = clamp(opts.mineMax === undefined ? C.MINE_MAX : opts.mineMax | 0, 1, C.MINE_HARD_MAX);
+    var mineStart = clamp(opts.mineStart === undefined ? C.MINE_START : opts.mineStart | 0, 0, mineMax);
+    /* เพดานหัวใจผูกกับค่าเริ่มต้นเสมอ คือมากกว่าหนึ่งดวง เพื่อให้การกลับฐานยังมีที่ให้ฟื้นเสมอ */
+    var hpStart = clamp(opts.hpStart === undefined ? C.HP_START : opts.hpStart | 0, 1, C.HP_HARD_MAX);
+    var hpMax = hpStart + 1;
+    var rng = opts.rng || Math.random;
+    /* รูปทรงบอร์ดไม่กระทบกติกาเลย แต่เก็บไว้ใน state เพื่อให้ replay หรือ save ได้ในอนาคต */
+    var shape = ({ ring: 1, poly: 1, snake: 1 })[opts.shape] ? opts.shape : 'ring';
+    if (shape === 'poly' && count < 3) shape = 'ring';
+    /* บอร์ดแบบรถไฟสุ่มพลิกซ้ายขวาและบนล่างทุกเกม ได้ผัง 4 แบบจากรูปทรงเดียว
+       เก็บผลสุ่มไว้ใน state ไม่ใช่สุ่มตอนวาด ไม่งั้นสลับภาษาแล้วผังจะเปลี่ยนกลางเกม */
+    /* ผังแบบรถไฟถูกสุ่มพลิกซ้ายขวาและบนล่าง ใส่ทั้งคู่ได้ผลเหมือนหมุน 180 องศา
+       เก็บไว้ใน rules เพื่อให้วาดซ้ำได้เหมือนเดิมตอนสลับภาษาหรือรีเรนเดอร์ */
+    var flip = { x: false, y: false, sym: false };
+    if (shape === 'snake') {
+      /* หนึ่งในสามของเกมได้ผังสมมาตรที่ไม่มีโค้งใหญ่เป็นทางกลับ
+         ที่เหลือได้ผังหวีเดี่ยวซึ่งสุ่มพลิกซ้ายขวาและบนล่างอีกชั้น */
+      flip.sym = rng() < 0.34;
+      flip.x = rng() < 0.5;
+      flip.y = rng() < 0.5;
+    }
+    var names = opts.names || [];
+    var bots = opts.bots || [];
+    var boardSize = count * spacing;
+
+    var startTiles = [], players = [];
+    for (var i = 0; i < count; i++) {
+      var tile = i * spacing;
+      startTiles.push(tile);
+      players.push({
+        id: i,
+        letter: UNITS[i].letter,
+        color: UNITS[i].color,
+        name: cleanName(names[i]),
+        bot: bots[i] || null,
+        startTile: tile,
+        pos: tile,
+        mines: mineStart,
+        hp: hpStart
+      });
+    }
+
+    return {
+      phase: 'AWAIT_ROLL',
+      forced: false,
+      boardSize: boardSize,
+      rules: {
+        mineStart: mineStart, mineMax: mineMax, spacing: spacing, caches: cacheCount,
+        hpStart: hpStart, hpMax: hpMax, shape: shape, flip: flip
+      },
+      startTiles: startTiles,
+      caches: buildCaches(count, spacing, cacheCount, rng),
+      players: players,
+      currentIdx: 0,
+      mines: {},
+      lastRoll: null,
+      turnCount: 0,
+      winner: null,
+      log: [{ turn: 1, kind: 'info', key: 'open', p: { n: count, tiles: boardSize, caches: cacheCount * count } }]
+    };
+  }
+
+  /* คืนคู่แต้ม ไม่ใช่ผลบวก */
+  function rollDice(rng) {
+    var r = rng || Math.random;
+    return { a: 1 + Math.floor(r() * 6), b: 1 + Math.floor(r() * 6) };
+  }
+
+  function isDouble(roll) { return !!roll && roll.a === roll.b; }
+
+  /* ช่วงจำนวนก้าวที่เลือกได้ แต้มซ้ำจะเหลือค่าเดียว */
+  function stepRange(roll) {
+    if (!roll) return null;
+    return [Math.min(roll.a, roll.b), Math.max(roll.a, roll.b)];
+  }
+
+  function stepChoices(roll) {
+    var r = stepRange(roll);
+    if (!r) return [];
+    var out = [];
+    for (var i = r[0]; i <= r[1]; i++) out.push(i);
+    return out;
+  }
+
+  /* ตัวเลือกปลายทางทั้งหมดของเทิร์นนี้ ใช้ทั้งฝั่ง UI และฝั่งบอท */
+  function moveOptions(s) {
+    var p = s.players[s.currentIdx];
+    return stepChoices(s.lastRoll).map(function (n) {
+      return { steps: n, tile: (p.pos + n) % s.boardSize };
+    });
+  }
+
+  /* บันทึกผลทอยแล้วเข้าสู่ช่วงเลือกก้าว */
+  function applyRoll(s, roll) {
+    s = clone(s);
+    s.lastRoll = { a: roll.a, b: roll.b };
+    s.forced = isDouble(roll);
+    s.phase = 'AWAIT_MOVE';
+    return s;
+  }
+
+  function pathFor(s, steps) {
+    var p = s.players[s.currentIdx];
+    var out = [];
+    for (var i = 1; i <= steps; i++) out.push((p.pos + i) % s.boardSize);
+    return out;
+  }
+
+  function nextAliveIdx(s, from) {
+    var n = s.players.length;
+    for (var i = 1; i <= n; i++) {
+      var idx = (from + i) % n;
+      if (isAlive(s.players[idx])) return idx;
+    }
+    return from;
+  }
+
+  function stackAt(s, tile) {
+    var m = s.mines[tile];
+    return m ? (m.count || 1) : 0;
+  }
+
+  /* ซ้อนได้เฉพาะบนทุ่นของตัวเอง และไม่เกิน MINE_STACK ลูก */
+  function placementError(s) {
+    var p = s.players[s.currentIdx];
+    var m = s.mines[p.pos];
+    if (p.mines === 0) return ERR.NO_MINE;
+    if (m && m.ownerId !== p.id) return ERR.MINED;
+    if (m && (m.count || 1) >= C.MINE_STACK) return ERR.STACK_FULL;
+    return null;
+  }
+
+  /* เดินตามจำนวนก้าวที่เลือก แล้วตรวจช่องตามลำดับเดิม: ทุ่น -> ฐาน -> จุดเก็บ */
+  function land(s, steps) {
+    if (s.phase !== 'AWAIT_MOVE') return s;
+    if (stepChoices(s.lastRoll).indexOf(steps) < 0) return s;   /* ก้าวนอกช่วงที่ทอยได้ */
+
+    s = clone(s);
+    var p = s.players[s.currentIdx];
+    var roll = s.lastRoll;
+    var dest = (p.pos + steps) % s.boardSize;
+    p.pos = dest;
+    log(s, 'move', 'move', { p: p.id, a: roll.a, b: roll.b, steps: steps, tile: dest });
+
+    var m = s.mines[dest];
+    if (m && m.ownerId !== p.id) {
+      /* กองซ้อนระเบิดพร้อมกันทั้งกอง หักหัวใจทีเดียวแล้วหายไปทั้งหมด */
+      var dmg = m.count || 1;
+      delete s.mines[dest];
+      p.hp -= dmg;
+      log(s, 'boom', dmg > 1 ? 'boomstack' : 'boom',
+        { p: p.id, owner: m.ownerId, hp: Math.max(0, p.hp), dmg: dmg });
+      if (p.hp <= 0) {
+        log(s, 'out', 'out', { p: p.id });
+        return endTurn(s);
+      }
+    } else if (m) {
+      log(s, 'safe', 'ownmine', { p: p.id });
+    }
+
+    if (dest === p.startTile) {
+      if (p.hp < s.rules.hpMax) {
+        p.hp += 1;
+        log(s, 'heal', 'heal', { p: p.id, hp: p.hp });
+      } else {
+        log(s, 'safe', 'healfull', { p: p.id });
+      }
+    }
+
+    if (s.caches[dest]) {
+      if (p.mines < s.rules.mineMax) {
+        p.mines += 1;
+        log(s, 'mine', 'supply', { p: p.id, mines: p.mines });
+      } else {
+        log(s, 'safe', 'supplyfull', { p: p.id });
+      }
+    }
+
+    return afterLanding(s);
+  }
+
+  function afterLanding(s) {
+    var p = s.players[s.currentIdx];
+    var err = placementError(s);
+
+    if (isDouble(s.lastRoll)) {
+      if (!err) {
+        s.phase = 'AWAIT_MINE';
+        s.forced = true;
+        log(s, 'mine', 'forced', { p: p.id, a: s.lastRoll.a, tile: p.pos });
+        return s;
+      }
+      s.forced = false;
+      log(s, 'safe', 'forcedfail', { p: p.id, err: err });
+      return endTurn(s);
+    }
+
+    s.forced = false;
+    if (err) return endTurn(s);
+
+    s.phase = 'AWAIT_MINE';
+    return s;
+  }
+
+  function placeMine(s) {
+    s = clone(s);
+    if (placementError(s)) return s;
+    var p = s.players[s.currentIdx];
+    var had = stackAt(s, p.pos);
+    s.mines[p.pos] = { ownerId: p.id, count: had + 1 };
+    p.mines -= 1;
+    log(s, 'mine', had ? 'stack' : 'place', { p: p.id, tile: p.pos, count: had + 1 });
+    return endTurn(s);
+  }
+
+  function skipMine(s) {
+    s = clone(s);
+    if (s.forced && !placementError(s)) return s;
+    return endTurn(s);
+  }
+
+  function endTurn(s) {
+    s = clone(s);
+    s.forced = false;
+
+    var live = alivePlayers(s);
+    if (live.length <= 1) {
+      s.phase = 'GAME_OVER';
+      s.winner = live.length === 1 ? live[0].id : null;
+      if (s.winner !== null) log(s, 'win', 'win', { p: s.winner });
+      else log(s, 'win', 'nosurvivor', {});
+      return s;
+    }
+
+    s.turnCount += 1;
+    s.currentIdx = nextAliveIdx(s, s.currentIdx);
+    s.phase = 'AWAIT_ROLL';
+    return s;
+  }
+
+  var api = {
+    C: C,
+    UNITS: UNITS,
+    ERR: ERR,
+    maxCaches: maxCaches,
+    stackAt: stackAt,
+    createGame: createGame,
+    rollDice: rollDice,
+    isDouble: isDouble,
+    stepRange: stepRange,
+    stepChoices: stepChoices,
+    moveOptions: moveOptions,
+    applyRoll: applyRoll,
+    pathFor: pathFor,
+    land: land,
+    afterLanding: afterLanding,
+    placementError: placementError,
+    placeMine: placeMine,
+    skipMine: skipMine,
+    endTurn: endTurn,
+    isAlive: isAlive,
+    alivePlayers: alivePlayers,
+    nextAliveIdx: nextAliveIdx
+  };
+
+  root.Game = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* สนามทุ่นระเบิด v2 - นโยบายของคอมพิวเตอร์
+   v2 บอทต้องตัดสินใจสองเรื่องต่อเทิร์น ไม่ใช่เรื่องเดียวเหมือน v1
+     1) เลือกจำนวนก้าว  <- ของใหม่ และสำคัญกว่า เพราะเป็นตัวตัดสินว่าจะรอดหรือตาย
+     2) วางทุ่นหรือไม่
+
+   ข้อค้นพบที่เปลี่ยนนโยบายจาก v1: เมื่อผู้เล่นเลือกช่องได้ ทุ่นลูกเดี่ยว ๆ แทบไร้ค่า
+   เพราะคู่แข่งมองเห็นแล้วเดินเลี่ยง ทุ่นจะมีค่าก็ต่อเมื่อวางต่อกันเป็นแนวจนปิดทั้งช่วง
+   ที่คู่แข่งทอยได้ นโยบายจึงเน้น "ต่อกำแพง" แทนการกระจายวาง */
+(function (root) {
+  'use strict';
+
+  var G = root.Game || (typeof require !== 'undefined' ? require('./game.js') : null);
+
+  var LEVELS = {
+    easy:   { random: 0.45, blindMove: true },
+    normal: { baseline: 0.35, thr: 0.30, noise: 0.35, moveNoise: 0.35, killBonus: false, wall: 0.5 },
+    hard:   { baseline: 0.35, thr: 0.15, noise: 0,    moveNoise: 0,    killBonus: true,  wall: 0.9 }
+  };
+
+  function levelOf(name) { return LEVELS[name] || LEVELS.normal; }
+
+  function liveOpponents(s) {
+    var me = s.players[s.currentIdx];
+    return s.players.filter(function (o) { return o.id !== me.id && o.hp > 0; });
+  }
+
+  /* ทุ่นที่ไม่ใช่ของเรา = อันตรายสำหรับเรา คืนความเสียหายที่จะโดน (0 ถ้าปลอดภัย) */
+  function hostileMine(s, tile, meId) {
+    var m = s.mines[tile];
+    return (m && m.ownerId !== meId) ? (m.count || 1) : 0;
+  }
+
+  /* จำนวนคู่แข่งที่ยังอยู่ซึ่งอยู่ห่างจาก tile ไปข้างหลัง 1-6 ช่อง */
+  function behindCount(s, tile) {
+    var n = 0;
+    liveOpponents(s).forEach(function (o) {
+      var d = (tile - o.pos + s.boardSize) % s.boardSize;
+      if (d >= 1 && d <= 6) n += 1;
+    });
+    return n;
+  }
+
+  /* ---------- 1) เลือกจำนวนก้าว ---------- */
+
+  function stepScore(s, opt, levelName) {
+    var cfg = levelOf(levelName);
+    var me = s.players[s.currentIdx];
+    var tile = opt.tile;
+    var v = 0;
+
+    var dmg = hostileMine(s, tile, me.id);
+    if (dmg) v -= 100 * dmg;              /* กองซ้อนอันตรายกว่า เลี่ยงก่อนเป็นอันดับแรก */
+    if (dmg && me.hp <= dmg) v -= 300;    /* ช่องนี้ถึงตาย ห้ามเหยียบเด็ดขาดถ้ายังมีทางอื่น */
+    if (tile === me.startTile && me.hp < s.rules.hpMax) v += 1.4;       /* แวะฐานฟื้น HP */
+    if (s.caches[tile] && me.mines < s.rules.mineMax) v += 1.0;      /* แวะเก็บทุ่น */
+
+    /* ต่อกำแพง: ช่องที่ติดกับทุ่นของเราเองมีค่าสูงสุด เพราะวางแล้วแนวยาวขึ้นหนึ่งช่อง
+       ทุ่นของคนอื่นก็ช่วยปิดทางคู่แข่งได้บ้าง แต่ไม่ปิดเจ้าของทุ่นนั้น */
+    var wall = 0;
+    [-1, 1].forEach(function (d) {
+      var t = (tile + d + s.boardSize) % s.boardSize;
+      var m = s.mines[t];
+      if (!m) return;
+      wall += (m.ownerId === me.id) ? 1 : 0.35;
+    });
+    v += wall * (cfg.wall || 0);
+
+    v += behindCount(s, tile) * 0.3;    /* วางแล้วมีคนให้ดักทันที */
+    return Math.round(v * 100) / 100;
+  }
+
+  function chooseStep(s, levelName, rng) {
+    var r = rng || Math.random;
+    var opts = G.moveOptions(s);
+    if (!opts.length) return null;
+    if (opts.length === 1) return opts[0].steps;
+
+    var me = s.players[s.currentIdx];
+    var cfg = levelOf(levelName);
+
+    if (cfg.blindMove) {
+      /* มือใหม่: หลบทุ่นที่เห็นได้ แต่ไม่คิดต่อว่าช่องไหนคุ้มกว่ากัน */
+      var safe = opts.filter(function (o) { return !hostileMine(s, o.tile, me.id); });
+      var pool = safe.length ? safe : opts;
+      return pool[Math.floor(r() * pool.length)].steps;
+    }
+
+    /* ระดับปกติเลือกช่องที่ดีที่สุดไม่ทุกครั้ง แต่ยังไม่เดินเข้าหาทุ่นเอง */
+    if (cfg.moveNoise && r() < cfg.moveNoise) {
+      var pool = opts.filter(function (o) { return !hostileMine(s, o.tile, me.id); });
+      if (!pool.length) pool = opts;
+      return pool[Math.floor(r() * pool.length)].steps;
+    }
+
+    var best = null, bestScore = -Infinity;
+    opts.forEach(function (o) {
+      var sc = stepScore(s, o, levelName);
+      if (sc > bestScore) { bestScore = sc; best = o; }
+    });
+    return best.steps;
+  }
+
+  /* ---------- 2) วางทุ่นหรือไม่ ---------- */
+
+  function score(s, levelName) {
+    var cfg = levelOf(levelName);
+    if (cfg.random !== undefined) return 0;
+
+    var me = s.players[s.currentIdx];
+    var tile = me.pos;
+
+    /* ซ้อนทุ่นไม่ได้ปิดทางเพิ่มแม้แต่ช่องเดียว จึงคุ้มเฉพาะตอนที่มันเปลี่ยนเป็นการฆ่าทันที
+       คือมีคู่แข่งอยู่ในระยะและเหลือหัวใจไม่เกินความเสียหายของกองซ้อน */
+    var here = s.mines[tile];
+    if (here && here.ownerId === me.id) {
+      var v2 = -0.4;
+      liveOpponents(s).forEach(function (o) {
+        var d = (tile - o.pos + s.boardSize) % s.boardSize;
+        if (d < 1 || d > 6) return;
+        v2 += (o.hp <= G.C.MINE_STACK) ? 1.5 : 0.2;
+      });
+      return Math.round(v2 * 100) / 100;
+    }
+    var v = cfg.baseline;
+    var neutralised = false;
+
+    s.players.forEach(function (o) {
+      if (o.id === me.id || o.hp <= 0) return;
+      var d = (tile - o.pos + s.boardSize) % s.boardSize;
+      var w = (d >= 1 && d <= 6) ? 1 : 0;
+      if (tile === o.startTile && o.hp >= 2) { w *= 0.15; neutralised = true; }
+      else if (cfg.killBonus && o.hp === 1) w *= 2;
+      v += w;
+    });
+
+    /* v2: ทุ่นที่ต่อกับแนวเดิมของเรามีค่ากว่าทุ่นโดด ๆ มาก เพราะปิดช่วงเลือกของคู่แข่งได้ */
+    [-1, 1].forEach(function (d) {
+      var t = (tile + d + s.boardSize) % s.boardSize;
+      var m = s.mines[t];
+      if (m && m.ownerId === me.id) v += cfg.wall;
+    });
+
+    if (neutralised) v -= cfg.baseline * 0.8;
+    return Math.round(v * 100) / 100;
+  }
+
+  function threshold(levelName) { return levelOf(levelName).thr; }
+
+  function decide(s, levelName, rng) {
+    var r = rng || Math.random;
+    if (G && G.placementError(s)) return 'skip';
+    if (s.forced) return 'place';
+
+    var cfg = levelOf(levelName);
+    if (cfg.random !== undefined) return r() < cfg.random ? 'place' : 'skip';
+    if (cfg.noise && r() < cfg.noise) return r() < 0.5 ? 'place' : 'skip';
+
+    return score(s, levelName) >= cfg.thr ? 'place' : 'skip';
+  }
+
+  var api = {
+    LEVELS: LEVELS,
+    levels: function () { return Object.keys(LEVELS); },
+    stepScore: stepScore,
+    chooseStep: chooseStep,
+    score: score,
+    threshold: threshold,
+    decide: decide
+  };
+
+  root.Bot = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* สนามทุ่นระเบิด - ระบบเสียง
+   สังเคราะห์ทุกเสียงด้วย Web Audio ไม่มีไฟล์เสียงแนบสักไฟล์
+   เพราะเกมต้องเปิดจาก file:// ได้ และไม่อยากมีเรื่องลิขสิทธิ์เสียงตามมา
+   โมดูลนี้ไม่รู้จักกติกาเลย รู้จักแค่ชื่อเสียง */
+(function (root) {
+  'use strict';
+
+  var ctx = null, master = null, on = true, last = {};
+
+  function init() {
+    if (ctx) return ctx;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    ctx = new AC();
+    /* ทุกเสียงวิ่งผ่านคอมเพรสเซอร์ตัวเดียวกัน กันระเบิดกับแฟนแฟร์ที่ดังพร้อมกันแตกลำโพง */
+    var comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -18;
+    comp.ratio.value = 12;
+    master = ctx.createGain();
+    master.gain.value = 0.5;
+    master.connect(comp);
+    comp.connect(ctx.destination);
+    return ctx;
+  }
+
+  function ready() {
+    if (!ctx) return false;
+    if (ctx.state === 'suspended') ctx.resume();
+    return true;
+  }
+
+  function tone(o) {
+    var t0 = ctx.currentTime + (o.delay || 0);
+    var osc = ctx.createOscillator();
+    osc.type = o.type || 'sine';
+    osc.frequency.setValueAtTime(o.f, t0);
+    if (o.to) osc.frequency.exponentialRampToValueAtTime(Math.max(20, o.to), t0 + o.dur);
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(o.gain || 0.2, t0 + (o.attack || 0.006));
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + o.dur);
+    osc.connect(g); g.connect(master);
+    osc.start(t0); osc.stop(t0 + o.dur + 0.03);
+  }
+
+  function noise(o) {
+    var t0 = ctx.currentTime + (o.delay || 0);
+    var len = Math.max(1, Math.ceil(ctx.sampleRate * o.dur));
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+    var f = ctx.createBiquadFilter();
+    f.type = o.filter || 'lowpass';
+    f.frequency.setValueAtTime(o.f, t0);
+    if (o.to) f.frequency.exponentialRampToValueAtTime(Math.max(40, o.to), t0 + o.dur);
+    f.Q.value = o.q || 1;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(o.gain || 0.2, t0 + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + o.dur);
+    src.connect(f); f.connect(g); g.connect(master);
+    src.start(t0); src.stop(t0 + o.dur + 0.03);
+  }
+
+  var SOUNDS = {
+    /* เต๋ากลิ้ง: คลิกไม้แห้ง ๆ ยิงตามจังหวะที่ภาพสลับหน้าอยู่แล้ว */
+    dice: function () { noise({ filter: 'bandpass', f: 1800 + Math.random() * 900, q: 3, dur: 0.04, gain: 0.16 }); },
+    settle: function () {
+      noise({ filter: 'lowpass', f: 900, to: 200, dur: 0.13, gain: 0.28 });
+      tone({ type: 'sine', f: 110, to: 70, dur: 0.18, gain: 0.22 });
+    },
+    /* เดินทีละช่อง เสียงไล่สูงขึ้นตามจำนวนก้าว ทำให้ได้ยินว่าเดินไปกี่ช่อง */
+    step: function (n) { tone({ type: 'triangle', f: 660 + 45 * (n || 0), dur: 0.05, gain: 0.11 }); },
+    land: function () { tone({ type: 'sine', f: 320, dur: 0.09, gain: 0.12 }); },
+    pickup: function () {
+      [520, 660, 784].forEach(function (f, i) {
+        tone({ type: 'triangle', f: f, dur: 0.1, gain: 0.15, delay: i * 0.055 });
+      });
+    },
+    heal: function () {
+      tone({ type: 'sine', f: 440, dur: 0.34, gain: 0.16 });
+      tone({ type: 'sine', f: 660, dur: 0.34, gain: 0.11, delay: 0.02 });
+    },
+    /* วางทุ่น: คลิกโลหะจากสองคลื่นที่เพี้ยนกันเล็กน้อย */
+    plant: function (d) {
+      d = d || 0;
+      tone({ type: 'square', f: 1180, to: 880, dur: 0.07, gain: 0.08, delay: d });
+      tone({ type: 'square', f: 1244, to: 930, dur: 0.07, gain: 0.06, delay: d });
+      noise({ filter: 'highpass', f: 2600, dur: 0.05, gain: 0.1, delay: d });
+    },
+    plant2: function () { SOUNDS.plant(0); SOUNDS.plant(0.09); },
+    blast: function () {
+      noise({ filter: 'lowpass', f: 2400, to: 90, dur: 0.42, gain: 0.5 });
+      tone({ type: 'sine', f: 120, to: 38, dur: 0.4, gain: 0.34 });
+    },
+    /* กองซ้อน: ลึกกว่า ยาวกว่า และซ้อนสองชั้นเหลื่อมกัน */
+    blast2: function () {
+      noise({ filter: 'lowpass', f: 2600, to: 70, dur: 0.7, gain: 0.55 });
+      tone({ type: 'sine', f: 100, to: 28, dur: 0.66, gain: 0.4 });
+      noise({ filter: 'lowpass', f: 1600, to: 60, dur: 0.6, gain: 0.34, delay: 0.07 });
+    },
+    death: function () { tone({ type: 'sawtooth', f: 220, to: 148, dur: 0.62, gain: 0.17 }); },
+    fanfare: function () {
+      [523, 659, 784, 1046].forEach(function (f, i) {
+        tone({ type: 'triangle', f: f, dur: 0.3, gain: 0.17, delay: i * 0.13 });
+      });
+    },
+    alert: function () {
+      tone({ type: 'square', f: 880, dur: 0.09, gain: 0.11 });
+      tone({ type: 'square', f: 1174, dur: 0.12, gain: 0.11, delay: 0.1 });
+    },
+    click: function () { tone({ type: 'triangle', f: 900, dur: 0.03, gain: 0.07 }); }
+  };
+
+  /* กันเสียงชนิดเดียวกันซ้อนกันรัวเกินไปตอนโหมดนั่งดูคอมพิวเตอร์เล่นกันเอง */
+  function play(name, arg) {
+    if (!on || !SOUNDS[name] || !ready()) return;
+    var t = ctx.currentTime;
+    if (last[name] !== undefined && t - last[name] < 0.03) return;
+    last[name] = t;
+    try { SOUNDS[name](arg); } catch (e) { /* เสียงพังไม่ควรทำให้เกมพัง */ }
+  }
+
+  var api = {
+    init: init,
+    play: play,
+    isOn: function () { return on; },
+    setOn: function (v) { on = !!v; if (on) ready(); return on; },
+    toggle: function () { return api.setOn(!on); },
+    names: function () { return Object.keys(SOUNDS); }
+  };
+
+  root.Sfx = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+
+<script>
+/* ---------- i18n: ทุกข้อความอยู่ที่นี่ที่เดียว logic ไม่มีข้อความเลย ---------- */
+var DICT = {
+th:{
+  doc:'สนามทุ่นระเบิด', lang:'ไทย',
+  tagline:'บอร์ดเกมเต๋าสองลูก เลือกก้าวเองแล้ววางทุ่นระเบิด',
+  meta_none:'ยังไม่เปิดสนาม',
+  meta:'{n} หน่วย · {tiles} ช่อง · เทิร์นที่ {turn} · ทุ่นระเบิดบนสนาม {mines} ลูก',
+  setup_title:'ตั้งค่าสนาม',
+  setup_intro:'ตั้งชื่อผู้เล่นและเลือกได้ว่าใครให้คอมพิวเตอร์เล่นแทน ค่าสนามอื่น ๆ ปรับได้ในติดตั้งเพิ่มเติม',
+  rules:[
+    ['วิธีการเดิน','ทอยเต๋า 2 ลูกแล้วเลือกเดินได้ตั้งแต่แต้มต่ำถึงแต้มสูง เช่น ทอยได้ 2 กับ 5 เลือกเดินได้ 2 3 4 หรือ 5 ก้าว เดินตามเข็มนาฬิกา ระยะระหว่างฐาน {spacing} ช่อง ถ้าทอยได้แต้มซ้ำกัน เช่น 6 กับ 6 ต้องเดิน 6 ก้าวพอดี และบังคับวางทุ่นระเบิดที่ช่องนั้น'],
+    ['ทุ่นระเบิด','เริ่มคนละ {start} ลูก ถือได้ไม่เกิน {max} วางได้เฉพาะช่องที่ตัวเองหยุด ถ้าวนกลับมาหยุดบนทุ่นระเบิดของตัวเองวางซ้อนได้อีก 1 ลูก ผู้เล่นอื่นที่มาเหยียบกองซ้อนจะเสีย 2 หัวใจรวดเดียว'],
+    ['จุดเก็บทุ่นระเบิด','เซกเมนต์ละ {caches} จุด สุ่มตำแหน่งใหม่ทุกเกม ถ้าผู้เล่นหยุดบนช่องนี้จะได้ทุ่นระเบิดเพิ่ม 1 ลูกทุกครั้งที่วนมาหยุด'],
+    ['หัวใจ','เริ่มที่ {hp} หัวใจ ถ้าผู้เล่นเหยียบทุ่นระเบิดของผู้เล่นอื่นจะเสีย 1 หัวใจ ถ้าเหลือ 0 คือตกรอบ ถ้าผู้เล่นหยุดที่ฐานตัวเองจะได้เพิ่ม 1 หัวใจ สูงสุด {hpmax} หัวใจ'],
+    ['ปลอดภัย','ทุ่นระเบิดจะทำงานเมื่อผู้เล่นเดินมาหยุดบนทุ่นระเบิดของผู้เล่นอื่นเท่านั้น ถ้าเดินผ่านไม่โดน หยุดบนทุ่นระเบิดตัวเองไม่โดน ถ้าวางทุ่นระเบิดบนผู้เล่นอื่นที่ยืนอยู่ก่อนไม่โดน']
+  ],
+  opt_hp:'หัวใจเริ่มต้นต่อผู้เล่น', opt_start:'ทุ่นระเบิดตั้งต้นต่อผู้เล่น', opt_max:'ถือได้สูงสุด',
+  opt_spacing:'ระยะระหว่างฐาน', opt_caches:'จุดเก็บทุ่นระเบิดต่อเซกเมนต์',
+  seg_human:'คน', seg_bot:'คอม', tag_bot:'คอม', opt_botlevel:'ระดับคอมพิวเตอร์',
+  lvl_easy:'ง่าย', lvl_normal:'ปกติ', lvl_hard:'ยาก', st_thinking:'{name} กำลังคิด',
+  btn_start:'เริ่มเกมส์',
+  lbl_players:'จำนวนผู้เล่น', snd:'เสียง',
+  opt_shape:'รูปทรงบอร์ด', shp_ring:'วงกลม', shp_poly:'{n} เหลี่ยม', shp_snake:'รถไฟ',
+  shp_poly_off:'ต้องมีผู้เล่น 3 คนขึ้นไป', adv_title:'ติดตั้งเพิ่มเติม', board_title:'แผนผังสนาม', units_title:'หน่วยในสนาม', log_title:'บันทึกสนาม',
+  btn_roll:'ทอยลูกเต๋า', btn_place:'วางระเบิด', btn_skip:'ไม่วาง จบเทิร์น',
+  btn_reset:'เริ่มใหม่', btn_again:'เปิดสนามใหม่',
+  over_kicker:'จบภารกิจ', over_win:'{name} เคลียร์สนามได้', over_none:'ไม่มีผู้รอด',
+  st_over:'จบภารกิจ', st_turn:'ถึงเทิร์น {name}', st_sub:'หัวใจ {hp} · ทุ่นระเบิดในมือ {mines} ลูก',
+  st_forced:'แต้มซ้ำ ต้องวางทุ่นระเบิดที่ช่อง {tile}', st_forced_sub:'แต้มซ้ำบังคับวาง ข้ามไม่ได้',
+  st_move:'{name} เลือกเดิน {lo} ถึง {hi} ก้าว', st_move_sub:'คลิกช่องที่ไฮไลต์ หรือกดปุ่มตัวเลข',
+  st_ask:'วางทุ่นระเบิดที่ช่อง {tile} หรือไม่', st_left:'เหลือในมือ {mines} ลูก',
+  unit:'หน่วย {l}', base:'ฐาน {l}', at_tile:'ช่อง {tile}', active:'ถึงเทิร์น', knocked:'ตกรอบแล้ว',
+  ERR_NO_MINE:'ไม่มีทุ่นระเบิดในมือ', ERR_MINED:'ช่องนี้เป็นทุ่นระเบิดของผู้เล่นอื่น', ERR_STACK_FULL:'ช่องนี้ซ้อนครบ 2 ลูกแล้ว',
+  footer:'เดินตามเข็มนาฬิกา · ทุ่นระเบิดทำงานเฉพาะตอนหยุด',
+  log_open:'เปิดสนาม {n} หน่วย {tiles} ช่อง จุดเก็บทุ่นระเบิด {caches} จุด',
+  log_move:'{name} ทอยได้ {a} กับ {b} เดิน {steps} ก้าว หยุดที่ช่อง {tile}',
+  log_boom:'{name} เหยียบทุ่นระเบิดของ{owner} เสีย 1 หัวใจ เหลือ {hp}',
+  log_boomstack:'{name} เหยียบกองทุ่นระเบิดซ้อนของ{owner} เสีย 2 หัวใจ เหลือ {hp}',
+  log_out:'{name} ตกรอบ',
+  log_ownmine:'{name} หยุดบนทุ่นระเบิดของตัวเอง ปลอดภัย',
+  log_heal:'{name} กลับถึงฐาน HP เพิ่มเป็น {hp}',
+  log_healfull:'{name} กลับถึงฐาน แต่ HP เต็มแล้ว',
+  log_supply:'{name} เก็บทุ่นระเบิดจากจุดเก็บ มีในมือ {mines} ลูก',
+  log_supplyfull:'{name} ถึงจุดเก็บทุ่นระเบิด แต่ถือเต็มเพดานแล้ว',
+  log_forced:'แต้มซ้ำ {a} คู่ {name} ต้องวางทุ่นระเบิดที่ช่อง {tile}',
+  log_forcedfail:'แต้มซ้ำแต่วางไม่ได้ ({err})',
+  log_place:'{name} วางทุ่นระเบิดที่ช่อง {tile}',
+  log_stack:'{name} วางทุ่นระเบิดซ้อนที่ช่อง {tile} รวมเป็น 2 ลูก',
+  log_win:'{name} เคลียร์สนามได้สำเร็จ', log_nosurvivor:'ไม่มีผู้รอด'
+},
+en:{
+  doc:'Minefield', lang:'EN',
+  tagline:'A two-dice board game about choosing your step and laying mines',
+  meta_none:'field not opened yet',
+  meta:'{n} units · {tiles} tiles · turn {turn} · {mines} mines on field',
+  setup_title:'Field setup',
+  setup_intro:'Pick how many units take the field, then tune the rest. Board size is the unit count times the spacing between bases.',
+  rules:[
+    ['How to move','Roll two dice and move any number of steps between the two values — roll a 2 and a 5 and you may move 2, 3, 4 or 5. Movement is clockwise and bases sit {spacing} tiles apart. Doubles, say 6 and 6, fix your move at exactly 6 and force you to lay a landmine on that tile.'],
+    ['Landmines','Start with {start}, hold up to {max}. You may only lay one on the tile you stopped on. Come back round to your own mine and you may stack a second on it — another player who stops there loses 2 hearts at once.'],
+    ['Supply depots','{caches} per segment, redrawn at random every game. Stop on one and you gain a landmine, every single time you come round to it.'],
+    ['Hearts','Start with {hp} hearts. Stepping on another player\u2019s landmine costs 1 heart, and at 0 you are out. Stopping on your own base gives 1 heart back, up to {hpmax}.'],
+    ['Safe cases','A landmine only goes off when you stop on another player\u2019s landmine. Passing over it is safe, stopping on your own is safe, and a player already standing on a tile is safe when a mine is laid under them.']
+  ],
+  opt_hp:'Starting hearts per player', opt_start:'Starting mines per player', opt_max:'Carry limit',
+  opt_spacing:'Tiles between bases', opt_caches:'Depots per segment',
+  seg_human:'Human', seg_bot:'CPU', tag_bot:'CPU', opt_botlevel:'Computer skill',
+  lvl_easy:'Easy', lvl_normal:'Normal', lvl_hard:'Hard', st_thinking:'{name} is thinking',
+  btn_start:'Start game',
+  lbl_players:'Players', snd:'Sound',
+  opt_shape:'Board shape', shp_ring:'Ring', shp_poly:'{n}-gon', shp_snake:'Railway',
+  shp_poly_off:'needs 3 or more players', adv_title:'Advanced settings', board_title:'Field map', units_title:'Units in play', log_title:'Field log',
+  btn_roll:'Roll the die', btn_place:'Lay mine', btn_skip:'Skip, end turn',
+  btn_reset:'Restart', btn_again:'Open a new field',
+  over_kicker:'Mission over', over_win:'{name} cleared the field', over_none:'No survivors',
+  st_over:'Mission over', st_turn:'{name} to roll', st_sub:'HP {hp} · {mines} mines in hand',
+  st_forced:'Doubles — lay a mine on tile {tile}', st_forced_sub:'Doubles force placement, skipping is not allowed',
+  st_move:'{name} may move {lo} to {hi}', st_move_sub:'Click a highlighted tile or press a number',
+  st_ask:'Lay a mine on tile {tile}?', st_left:'{mines} left in hand',
+  unit:'Unit {l}', base:'Base {l}', at_tile:'Tile {tile}', active:'to move', knocked:'knocked out',
+  ERR_NO_MINE:'no mines in hand', ERR_MINED:'this tile holds another player\u2019s mine', ERR_STACK_FULL:'this tile already holds 2 mines',
+  footer:'clockwise · mines trigger only on a stop',
+  log_open:'Field opened — {n} units, {tiles} tiles, {caches} depots',
+  log_move:'{name} rolled {a} and {b}, moved {steps} to tile {tile}',
+  log_boom:'{name} stepped on a mine laid by {owner} — 1 heart lost, {hp} left',
+  log_boomstack:'{name} hit a double stack laid by {owner} — 2 hearts lost, {hp} left',
+  log_out:'{name} is out',
+  log_ownmine:'{name} stopped on their own mine and is safe',
+  log_heal:'{name} reached base — HP up to {hp}',
+  log_healfull:'{name} reached base but HP is already full',
+  log_supply:'{name} picked up a mine at a depot — {mines} in hand',
+  log_supplyfull:'{name} reached a depot but is already at the cap',
+  log_forced:'Double {a} — {name} must lay a mine on tile {tile}',
+  log_forcedfail:'Doubles rolled but laying is not possible ({err})',
+  log_place:'{name} laid a mine on tile {tile}',
+  log_stack:'{name} stacked a second mine on tile {tile}',
+  log_win:'{name} cleared the field', log_nosurvivor:'No survivors'
+},
+de:{
+  doc:'Minenfeld', lang:'DE',
+  tagline:'Ein Brettspiel mit zwei Würfeln, freier Schrittwahl und Minen',
+  meta_none:'Feld noch nicht eröffnet',
+  meta:'{n} Einheiten · {tiles} Felder · Zug {turn} · {mines} Minen im Feld',
+  setup_title:'Feldaufbau',
+  setup_intro:'Wähle, wie viele Einheiten antreten, und stelle den Rest ein. Die Feldgröße ist Anzahl mal Abstand zwischen den Basen.',
+  rules:[
+    ['So wird gezogen','Zwei Würfel werfen und beliebig viele Schritte zwischen beiden Augenzahlen ziehen — bei einer 2 und einer 5 sind 2, 3, 4 oder 5 möglich. Gezogen wird im Uhrzeigersinn, zwischen den Basen liegen {spacing} Felder. Bei einem Pasch, etwa 6 und 6, sind es genau 6 Schritte und das Legen einer Mine ist Pflicht.'],
+    ['Minen','Start mit {start} Stück, Obergrenze {max}. Gelegt wird nur auf dem Feld, auf dem man hält. Wer erneut auf der eigenen Mine hält, darf eine zweite darauf stapeln — ein anderer Spieler verliert dort 2 Herzen auf einmal.'],
+    ['Nachschubdepots','{caches} je Abschnitt, in jedem Spiel neu ausgelost. Wer darauf hält, erhält eine Mine — bei jedem neuen Halt aufs Neue.'],
+    ['Herzen','Start mit {hp} Herzen. Die Mine eines anderen kostet 1 Herz, bei 0 scheidet man aus. Ein Halt auf der eigenen Basis gibt 1 Herz zurück, höchstens {hpmax}.'],
+    ['Sichere Fälle','Eine Mine zündet nur, wenn man auf der Mine eines anderen hält. Überqueren ist sicher, ein Halt auf der eigenen Mine ist sicher, und wer bereits auf dem Feld steht, bleibt verschont, wenn dort eine Mine gelegt wird.']
+  ],
+  opt_hp:'Herzen zu Beginn je Spieler', opt_start:'Minen zu Beginn je Spieler', opt_max:'Höchstzahl in der Hand',
+  opt_spacing:'Felder zwischen den Basen', opt_caches:'Depots je Abschnitt',
+  seg_human:'Mensch', seg_bot:'CPU', tag_bot:'CPU', opt_botlevel:'Spielstärke',
+  lvl_easy:'Leicht', lvl_normal:'Normal', lvl_hard:'Schwer', st_thinking:'{name} überlegt',
+  btn_start:'Spiel starten',
+  lbl_players:'Spieler', snd:'Ton',
+  opt_shape:'Brettform', shp_ring:'Ring', shp_poly:'{n}-Eck', shp_snake:'Bahnstrecke',
+  shp_poly_off:'ab 3 Spielern möglich', adv_title:'Weitere Einstellungen', board_title:'Feldkarte', units_title:'Einheiten im Feld', log_title:'Feldprotokoll',
+  btn_roll:'Würfeln', btn_place:'Mine legen', btn_skip:'Nicht legen, Zug beenden',
+  btn_reset:'Neu starten', btn_again:'Neues Feld eröffnen',
+  over_kicker:'Einsatz beendet', over_win:'{name} hat das Feld geräumt', over_none:'Keine Überlebenden',
+  st_over:'Einsatz beendet', st_turn:'{name} ist am Zug', st_sub:'HP {hp} · {mines} Minen in der Hand',
+  st_forced:'Pasch — Mine auf Feld {tile} legen', st_forced_sub:'Bei einem Pasch ist das Legen Pflicht',
+  st_move:'{name} darf {lo} bis {hi} ziehen', st_move_sub:'Markiertes Feld anklicken oder Zahl drücken',
+  st_ask:'Mine auf Feld {tile} legen?', st_left:'noch {mines} in der Hand',
+  unit:'Einheit {l}', base:'Basis {l}', at_tile:'Feld {tile}', active:'am Zug', knocked:'ausgeschieden',
+  ERR_NO_MINE:'keine Minen in der Hand', ERR_MINED:'auf diesem Feld liegt eine fremde Mine', ERR_STACK_FULL:'auf diesem Feld liegen bereits 2 Minen',
+  footer:'im Uhrzeigersinn · Minen zünden nur beim Halten',
+  log_open:'Feld eröffnet — {n} Einheiten, {tiles} Felder, {caches} Depots',
+  log_move:'{name} würfelt {a} und {b}, zieht {steps} auf Feld {tile}',
+  log_boom:'{name} tritt auf eine Mine von {owner} — 1 Herz weg, {hp} übrig',
+  log_boomstack:'{name} tritt auf einen Doppelstapel von {owner} — 2 Herzen weg, {hp} übrig',
+  log_out:'{name} scheidet aus',
+  log_ownmine:'{name} hält auf der eigenen Mine und bleibt sicher',
+  log_heal:'{name} erreicht die Basis — HP jetzt {hp}',
+  log_healfull:'{name} erreicht die Basis, HP ist bereits voll',
+  log_supply:'{name} nimmt eine Mine aus einem Depot — {mines} in der Hand',
+  log_supplyfull:'{name} erreicht ein Depot, ist aber bereits am Limit',
+  log_forced:'Pasch {a} — {name} muss auf Feld {tile} eine Mine legen',
+  log_forcedfail:'Pasch gewürfelt, Legen nicht möglich ({err})',
+  log_place:'{name} legt eine Mine auf Feld {tile}',
+  log_stack:'{name} stapelt eine zweite Mine auf Feld {tile}',
+  log_win:'{name} hat das Feld geräumt', log_nosurvivor:'Keine Überlebenden'
+},
+nl:{
+  doc:'Mijnenveld', lang:'NL',
+  tagline:'Een dobbelspel met twee stenen, vrije stapkeuze en mijnen',
+  meta_none:'veld nog niet geopend',
+  meta:'{n} eenheden · {tiles} velden · beurt {turn} · {mines} mijnen op het veld',
+  setup_title:'Veldopstelling',
+  setup_intro:'Kies hoeveel eenheden meedoen en stel de rest in. De bordgrootte is het aantal eenheden maal de afstand tussen de bases.',
+  rules:[
+    ['Zo loop je','Gooi twee dobbelstenen en zet een aantal stappen tussen beide ogen — bij een 2 en een 5 mag je 2, 3, 4 of 5. Je loopt met de klok mee en tussen de bases liggen {spacing} velden. Bij dubbel, bijvoorbeeld 6 en 6, zet je precies 6 en moet je daar een mijn leggen.'],
+    ['Mijnen','Start met {start}, hoogstens {max} in de hand. Leggen kan alleen op het veld waar je stopt. Kom je terug op je eigen mijn, dan mag je er een tweede op stapelen — een andere speler verliest daar 2 harten tegelijk.'],
+    ['Bevoorradingsdepots','{caches} per sector, elk spel opnieuw geloot. Stop erop en je krijgt een mijn, elke keer dat je er weer langskomt.'],
+    ['Harten','Begin met {hp} harten. De mijn van een ander kost 1 hart, bij 0 lig je eruit. Stoppen op je eigen basis geeft er 1 terug, tot maximaal {hpmax}.'],
+    ['Veilige gevallen','Een mijn gaat alleen af als je stopt op de mijn van een ander. Eroverheen lopen is veilig, stoppen op je eigen mijn is veilig, en wie er al staat blijft gespaard als er een mijn onder wordt gelegd.']
+  ],
+  opt_hp:'Harten bij start per speler', opt_start:'Mijnen bij start per speler', opt_max:'Maximaal in de hand',
+  opt_spacing:'Velden tussen de bases', opt_caches:'Depots per sector',
+  seg_human:'Mens', seg_bot:'CPU', tag_bot:'CPU', opt_botlevel:'Speelsterkte',
+  lvl_easy:'Makkelijk', lvl_normal:'Normaal', lvl_hard:'Moeilijk', st_thinking:'{name} denkt na',
+  btn_start:'Spel starten',
+  lbl_players:'Spelers', snd:'Geluid',
+  opt_shape:'Bordvorm', shp_ring:'Ring', shp_poly:'{n}-hoek', shp_snake:'Spoorlijn',
+  shp_poly_off:'vanaf 3 spelers', adv_title:'Extra instellingen', board_title:'Veldkaart', units_title:'Eenheden in het veld', log_title:'Veldlogboek',
+  btn_roll:'Gooien', btn_place:'Mijn leggen', btn_skip:'Niet leggen, beurt beëindigen',
+  btn_reset:'Opnieuw', btn_again:'Nieuw veld openen',
+  over_kicker:'Missie voorbij', over_win:'{name} heeft het veld geruimd', over_none:'Geen overlevenden',
+  st_over:'Missie voorbij', st_turn:'{name} is aan zet', st_sub:'HP {hp} · {mines} mijnen in de hand',
+  st_forced:'Dubbel — leg een mijn op veld {tile}', st_forced_sub:'Bij dubbel is leggen verplicht',
+  st_move:'{name} mag {lo} tot {hi} zetten', st_move_sub:'Klik een gemarkeerd veld of druk op een getal',
+  st_ask:'Mijn leggen op veld {tile}?', st_left:'nog {mines} in de hand',
+  unit:'Eenheid {l}', base:'Basis {l}', at_tile:'Veld {tile}', active:'aan zet', knocked:'uitgeschakeld',
+  ERR_NO_MINE:'geen mijnen in de hand', ERR_MINED:'op dit veld ligt een mijn van een ander', ERR_STACK_FULL:'op dit veld liggen al 2 mijnen',
+  footer:'met de klok mee · mijnen gaan alleen af bij stoppen',
+  log_open:'Veld geopend — {n} eenheden, {tiles} velden, {caches} depots',
+  log_move:'{name} gooit {a} en {b}, zet {steps} naar veld {tile}',
+  log_boom:'{name} stapt op een mijn van {owner} — 1 hart kwijt, nog {hp}',
+  log_boomstack:'{name} stapt op een dubbele stapel van {owner} — 2 harten kwijt, nog {hp}',
+  log_out:'{name} ligt eruit',
+  log_ownmine:'{name} stopt op de eigen mijn en blijft veilig',
+  log_heal:'{name} bereikt de basis — HP nu {hp}',
+  log_healfull:'{name} bereikt de basis, maar HP is al vol',
+  log_supply:'{name} pakt een mijn uit een depot — {mines} in de hand',
+  log_supplyfull:'{name} bereikt een depot maar zit al aan het maximum',
+  log_forced:'Dubbel {a} — {name} moet een mijn leggen op veld {tile}',
+  log_forcedfail:'Dubbel gegooid, leggen niet mogelijk ({err})',
+  log_place:'{name} legt een mijn op veld {tile}',
+  log_stack:'{name} stapelt een tweede mijn op veld {tile}',
+  log_win:'{name} heeft het veld geruimd', log_nosurvivor:'Geen overlevenden'
+}
+};
+
+(function(){
+'use strict';
+var S=null, geo=null, playerCount=3, busy=false, animTok=null, lang='th';
+var cfg={hpStart:Game.C.HP_START, mineStart:Game.C.MINE_START, mineMax:Game.C.MINE_MAX,
+         spacing:Game.C.SPACING, caches:Game.C.CACHES};
+var pnames=['','','','','',''], pbots=[false,false,false,false,false,false];
+var botLevel='normal', boardShape='ring', runId=0;
+var $=function(id){return document.getElementById(id)};
+var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+
+function D(){ return DICT[lang] }
+function fmt(str,p){ return String(str).replace(/\{(\w+)\}/g,function(_,k){ return (p&&p[k]!==undefined)?p[k]:'' }) }
+function t(key,p){ var v=D()[key]; if(v===undefined) v=DICT.th[key]; return fmt(v,p) }
+/* ชื่อที่ผู้ใช้พิมพ์เองไหลเข้า innerHTML ได้ ต้อง escape ก่อนเสมอ */
+function esc(v){ return String(v).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c] }) }
+/* name เป็น null แปลว่าใช้ชื่อมาตรฐาน จึงยังเปลี่ยนตามภาษาได้ */
+function uname(id){
+  var custom=S&&S.players[id]&&S.players[id].name;
+  return custom || t('unit',{l:Game.UNITS[id].letter});
+}
+
+/* ---------- language ---------- */
+var LANGS=['th','en','de','nl'];
+LANGS.forEach(function(code){
+  var b=document.createElement('button');
+  b.type='button'; b.textContent=DICT[code].lang; b.setAttribute('aria-pressed',code===lang);
+  b.onclick=function(){ lang=code;
+    Array.prototype.forEach.call($('langs').children,function(c,i){ c.setAttribute('aria-pressed',LANGS[i]===lang) });
+    applyLang();
+  };
+  $('langs').appendChild(b);
+});
+
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.title=t('doc');
+  $('tagline').textContent=t('tagline');
+  $('setupTitle').textContent=t('setup_title');
+  $('setupIntro').textContent=t('setup_intro');
+  $('lblPlayers').textContent=t('lbl_players');
+  $('advTitle').textContent=t('adv_title');
+  $('btnStart').textContent=t('btn_start');
+  $('boardTitle').textContent=t('board_title');
+  $('unitsTitle').textContent=t('units_title');
+  $('logTitle').textContent=t('log_title');
+  $('btnRoll').textContent=t('btn_roll');
+  $('btnPlace').textContent=t('btn_place');
+  $('btnSkip').textContent=t('btn_skip');
+  $('btnReset').textContent=t('btn_reset');
+  $('btnAgain').textContent=t('btn_again');
+  $('overKicker').textContent=t('over_kicker');
+  $('footer').textContent=t('footer');
+  $('board').setAttribute('aria-label',t('board_title'));
+  paintSound();
+  buildRoster(); buildShapeRow(); buildBotRow(); renderOpts();
+  if(S){ buildBoard(); sync(); } else { $('meta').textContent=t('meta_none'); }
+}
+
+/* ---------- setup ---------- */
+var COUNTS=[2,3,4,5,6];
+COUNTS.forEach(function(n){
+  var b=document.createElement('button');
+  b.className='choice'; b.type='button'; b.textContent=n;
+  b.setAttribute('aria-pressed',n===playerCount);
+  b.onclick=function(){ playerCount=n;
+    Array.prototype.forEach.call($('choices').children,function(c,i){ c.setAttribute('aria-pressed',COUNTS[i]===n) });
+    buildRoster(); buildShapeRow();
+  };
+  $('choices').appendChild(b);
+});
+var OPTS=[
+  {key:'opt_hp', get:function(){return cfg.hpStart}, set:function(v){cfg.hpStart=v},
+   lo:function(){return 1}, hi:function(){return Game.C.HP_HARD_MAX}},
+  {key:'opt_start', get:function(){return cfg.mineStart}, set:function(v){cfg.mineStart=v},
+   lo:function(){return 0}, hi:function(){return cfg.mineMax}},
+  {key:'opt_max', get:function(){return cfg.mineMax}, set:function(v){cfg.mineMax=v; if(cfg.mineStart>v) cfg.mineStart=v},
+   lo:function(){return 1}, hi:function(){return Game.C.MINE_HARD_MAX}},
+  {key:'opt_spacing', get:function(){return cfg.spacing},
+   set:function(v){ cfg.spacing=v; var m=Game.maxCaches(v); if(cfg.caches>m) cfg.caches=m },
+   lo:function(){return Game.C.SPACING_MIN}, hi:function(){return Game.C.SPACING_MAX}},
+  /* ต่ำสุด 1 ไม่ใช่ 0: ถ้าไม่มีจุดเก็บเลย ทุ่นทั้งเกมมีจำนวนจำกัด
+     พอถูกใช้จนหมดจะไม่มีใครฆ่าใครได้อีก เกมค้างถาวร (ยืนยันด้วยการจำลองแล้ว)
+     ตัวโมดูลยังรับ 0 ได้ถ้าเรียกตรง ๆ */
+  {key:'opt_caches', get:function(){return cfg.caches}, set:function(v){cfg.caches=v},
+   lo:function(){return 1}, hi:function(){return Game.maxCaches(cfg.spacing)}}
+];
+OPTS.forEach(function(o,i){
+  var row=document.createElement('div'); row.className='opt';
+  row.innerHTML='<span id="optlbl'+i+'"></span><div class="step">'+
+    '<button type="button" aria-label="-">\u2212</button><b id="optval'+i+'"></b>'+
+    '<button type="button" aria-label="+">+</button></div>';
+  var b=row.querySelectorAll('.step button');
+  b[0].onclick=function(){ o.set(Math.max(o.lo(),o.get()-1)); renderOpts() };
+  b[1].onclick=function(){ o.set(Math.min(o.hi(),o.get()+1)); renderOpts() };
+  $('opts').appendChild(row);
+});
+function renderOpts(){
+  OPTS.forEach(function(o,i){
+    $('optlbl'+i).textContent=t(o.key);
+    $('optval'+i).textContent=o.get();
+    var b=$('opts').children[i].querySelectorAll('.step button');
+    b[0].disabled=o.get()<=o.lo(); b[1].disabled=o.get()>=o.hi();
+  });
+  $('rules').innerHTML=D().rules.map(function(r){
+    return '<div><b>'+r[0]+'</b> '+fmt(r[1],{start:cfg.mineStart,max:cfg.mineMax,
+      spacing:cfg.spacing,caches:cfg.caches,hp:cfg.hpStart,hpmax:cfg.hpStart+1})+'</div>';
+  }).join('');
+}
+
+/* ค่าที่กรอกเก็บในอาเรย์ 6 ช่องเสมอ ลดจำนวนหน่วยแล้วเพิ่มกลับ ค่าเดิมยังอยู่ */
+function buildRoster(){
+  var box=$('proster'); box.innerHTML='';
+  for(var i=0;i<playerCount;i++){
+    (function(i){
+      var row=document.createElement('div'); row.className='prow';
+      var chip=document.createElement('span');
+      chip.className='chip'; chip.style.background=Game.UNITS[i].color;
+      chip.textContent=Game.UNITS[i].letter;
+      var inp=document.createElement('input');
+      inp.className='pname'; inp.type='text'; inp.maxLength=14; inp.value=pnames[i];
+      inp.placeholder=t('unit',{l:Game.UNITS[i].letter});
+      inp.oninput=function(){ pnames[i]=inp.value };
+      var seg=document.createElement('div'); seg.className='seg';
+      [false,true].forEach(function(isBot){
+        var b=document.createElement('button'); b.type='button';
+        b.textContent=t(isBot?'seg_bot':'seg_human');
+        b.setAttribute('aria-pressed',pbots[i]===isBot);
+        b.onclick=function(){ pbots[i]=isBot; buildRoster() };
+        seg.appendChild(b);
+      });
+      row.appendChild(chip); row.appendChild(inp); row.appendChild(seg);
+      box.appendChild(row);
+    })(i);
+  }
+}
+
+function buildShapeRow(){
+  $('shaperow').innerHTML='<div class="opt"><span id="shapelbl"></span><div class="seg" id="shapeseg"></div></div>';
+  $('shapelbl').textContent=t('opt_shape');
+  var polyOff=(playerCount<3);
+  if(polyOff&&boardShape==='poly') boardShape='ring';   /* ไม่ปล่อยให้ค่าค้างในสถานะที่ใช้ไม่ได้ */
+  [['ring',t('shp_ring')],['poly',t('shp_poly',{n:playerCount})],['snake',t('shp_snake')]]
+    .forEach(function(pair){
+      var b=document.createElement('button'); b.type='button';
+      b.textContent=pair[1];
+      b.setAttribute('aria-pressed',pair[0]===boardShape);
+      if(pair[0]==='poly'&&polyOff){ b.disabled=true; b.title=t('shp_poly_off'); }
+      else b.onclick=function(){ boardShape=pair[0]; buildShapeRow() };
+      $('shapeseg').appendChild(b);
+    });
+}
+
+function buildBotRow(){
+  $('botrow').innerHTML='<div class="opt"><span id="botlbl"></span><div class="seg" id="botseg"></div></div>';
+  $('botlbl').textContent=t('opt_botlevel');
+  Bot.levels().forEach(function(lv){
+    var b=document.createElement('button'); b.type='button';
+    b.textContent=t('lvl_'+lv); b.setAttribute('aria-pressed',lv===botLevel);
+    b.onclick=function(){ botLevel=lv; buildBotRow() };
+    $('botseg').appendChild(b);
+  });
+}
+
+$('btnStart').onclick=function(){ start(playerCount) };
+$('btnAgain').onclick=reset; $('btnReset').onclick=reset;
+
+function paintSound(){
+  var b=$('btnSound');
+  b.textContent=t('snd');
+  b.setAttribute('aria-pressed',Sfx.isOn());
+  b.setAttribute('aria-label',t('snd'));
+}
+$('btnSound').onclick=function(){
+  Sfx.init();            /* คลิกนี้คือ user gesture ที่เบราว์เซอร์ต้องการ */
+  Sfx.toggle();
+  paintSound();
+  if(Sfx.isOn()) Sfx.play('click');
+};
+
+function reset(){
+  runId++; busy=false; animTok=null; S=null;
+  $('game').classList.add('hidden'); $('setup').classList.remove('hidden');
+  $('meta').textContent=t('meta_none');
+}
+
+function start(n){
+  Sfx.init();            /* ปุ่มเริ่มเกมคือคลิกแรกเสมอ จึงเป็นจุดที่ปลดล็อกเสียงได้แน่นอน */
+  Sfx.play('click');
+  runId++; busy=false; animTok=null;
+  S=Game.createGame(n,{
+    mineStart:cfg.mineStart, mineMax:cfg.mineMax, spacing:cfg.spacing, caches:cfg.caches,
+    hpStart:cfg.hpStart, shape:boardShape,
+    names:pnames.slice(0,n),
+    bots:pbots.slice(0,n).map(function(isBot){ return isBot?botLevel:null })
+  });
+  geo=geometry();
+  $('setup').classList.add('hidden');
+  $('game').classList.remove('hidden');
+  $('over').classList.add('hidden');
+  buildBoard(); drawDie('dieA',null); drawDie('dieB',null); sync(); maybeBot();
+}
+
+/* ---------- geometry ---------- */
+/* กรอบบนจอโตตามจำนวนช่อง ไม่งั้นบอร์ด 90 ช่องจะเล็กจนอ่านไม่ออก
+   ส่วนรูปทรงจริงคำนวณโดยโมดูล Geom ซึ่งคืนพิกัดทุกช่องพร้อมเวกเตอร์ตั้งฉาก */
+function geometry(){
+  var size=S.boardSize;
+  var maxW=Math.max(520,Math.min(780,Math.round(480+size*3)));
+  var boxW=1000, boxH=Math.round(boxW*(S.rules.shape==='snake'?0.62:0.78));
+  var L=Geom.layout({shape:S.rules.shape, sides:S.players.length, tiles:size,
+                     W:boxW, H:boxH, maxTile:34,
+                     flip:S.rules.flip});
+  return {L:L, tileR:L.tileR, boxW:boxW, boxH:boxH, maxW:maxW,
+          cx:boxW/2, cy:boxH/2};
+}
+
+/* i เป็นทศนิยมได้ เพราะการเดินทีละช่องใช้ตำแหน่งระหว่างช่อง
+   off คือระยะเลื่อนไปตามเวกเตอร์ตั้งฉาก ใช้ยกหมุดตอนกระโดดและวางป้ายฐาน */
+function xy(i,off){
+  var pts=geo.L.pts, n=pts.length;
+  var f=((i%n)+n)%n, i0=Math.floor(f), u=f-i0;
+  var a=pts[i0], b=pts[(i0+1)%n];
+  var x=a.x+(b.x-a.x)*u, y=a.y+(b.y-a.y)*u;
+  if(off){
+    var nx=a.nx+(b.nx-a.nx)*u, ny=a.ny+(b.ny-a.ny)*u;
+    var m=Math.hypot(nx,ny)||1;
+    /* บนแบบรถไฟแถวคู่กับแถวคี่หันตั้งฉากคนละทาง บังคับให้ยกขึ้นเสมอจะอ่านง่ายกว่า */
+    if(S.rules.shape==='snake'&&ny>0){ nx=-nx; ny=-ny; }
+    x+=nx/m*off; y+=ny/m*off;
+  }
+  return {x:x,y:y};
+}
+function el(tag,attrs){
+  var e=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(var k in attrs) e.setAttribute(k,attrs[k]);
+  return e;
+}
+
+/* ---------- board ---------- */
+/* วาดพื้นราง: แบบรถไฟได้รางจริงพร้อมหมอนรองและชานชาลาเกาะกลาง
+   แบบอื่นได้เส้นนำสายตาจาง ๆ เหมือนเดิม */
+function drawTrack(svg){
+  var L=geo.L, g=el('g',{'class':'track'});
+
+  if(S.rules.shape==='snake'){
+    /* ชานชาลาเกาะกลางใต้แถวตรง ช่องจะดูเหมือนวางอยู่บนชานชาลาสถานี */
+    (L.rows||[]).forEach(function(r){
+      var pad=geo.tileR*1.35;
+      g.appendChild(el('rect',{x:Math.min(r.x1,r.x2)-pad,y:r.y-geo.tileR*1.15,
+        width:Math.abs(r.x2-r.x1)+pad*2,height:geo.tileR*2.3,rx:geo.tileR*1.15,
+        'class':'platform'}));
+    });
+
+    /* หมอนรองวางตั้งฉากกับรางทุก ๆ ระยะ */
+    var ties=el('g',{'class':'tie'});
+    L.samples.forEach(function(p,i){
+      if(i%3) return;
+      var w=geo.tileR*0.95;
+      ties.appendChild(el('line',{x1:p.x+p.nx*w,y1:p.y+p.ny*w,
+                                  x2:p.x-p.nx*w,y2:p.y-p.ny*w}));
+    });
+    g.appendChild(ties);
+
+    /* รางสองเส้นขนาบ */
+    [1,-1].forEach(function(sgn){
+      var d='', off=geo.tileR*0.5;
+      L.samples.forEach(function(p,i){
+        d+=(i?'L':'M')+(p.x+p.nx*off*sgn).toFixed(1)+' '+(p.y+p.ny*off*sgn).toFixed(1);
+      });
+      g.appendChild(el('path',{d:d+'Z','class':'rail'}));
+    });
+  } else {
+    var d='';
+    L.pts.forEach(function(p,i){ d+=(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1); });
+    g.appendChild(el('path',{d:d+'Z','class':'guide'}));
+  }
+  svg.appendChild(g);
+}
+
+function buildBoard(){
+  /* กลางกระดานว่างเฉพาะแบบวงกลมกับ n เหลี่ยม แบบรถไฟมีช่องอยู่ตรงนั้น ต้องย้ายลูกเต๋าออกมา */
+  var onBoard=(S.rules.shape!=='snake');
+  (onBoard?$('hudBoard'):$('hudBar')).appendChild($('hud'));
+  $('hud').classList.toggle('bar',!onBoard);
+
+  var svg=$('board');
+  svg.setAttribute('viewBox','0 0 '+geo.boxW+' '+geo.boxH);
+  svg.style.maxWidth=geo.maxW+'px';
+  svg.innerHTML='';
+  drawTrack(svg);
+  var tiles=el('g',{});
+  var pending=[];
+  for(var i=0;i<S.boardSize;i++){
+    var p=xy(i);
+    var owner=S.startTiles.indexOf(i);
+    var cls='tile'+(owner>=0?' start':'')+(S.caches[i]?' cache':'');
+    var c=el('circle',{cx:p.x,cy:p.y,r:geo.tileR,'class':cls,id:'tile'+i});
+    if(owner>=0) c.setAttribute('stroke',S.players[owner].color);
+    tiles.appendChild(c);
+    if(owner>=0||geo.tileR>=13||i%6===0){
+      var tx=el('text',{x:p.x,y:p.y,'class':'tnum','font-size':Math.max(7,Math.min(11,Math.round(geo.tileR*0.7)))});
+      tx.textContent=i; tiles.appendChild(tx);
+    }
+    if(owner>=0){
+      var col=S.players[owner].color;
+      /* กรอบสี่เหลี่ยมเส้นประครอบช่องฐาน เพราะวงกลมเส้นหนาอย่างเดียวยังกลืนไปกับช่องอื่น */
+      var box=geo.tileR+5;
+      tiles.appendChild(el('rect',{x:p.x-box,y:p.y-box,width:box*2,height:box*2,rx:3,
+        'class':'basebox',stroke:col}));
+      /* รูปบ้านแล้วตามด้วยชื่อผู้เล่น จัดกึ่งกลางทีหลังเพราะต้องวัดความกว้างข้อความจริงก่อน */
+      var grp=el('g',{});
+      grp.appendChild(el('path',{d:'M0 -0.5 L4.5 -5 L9 -0.5 L9 3.5 L0 3.5 Z',fill:col}));
+      var nm=el('text',{x:13,y:0,'class':'slabel',fill:col});
+      nm.textContent=uname(owner);
+      grp.appendChild(nm);
+      tiles.appendChild(grp);
+      pending.push({grp:grp,txt:nm,lp:xy(i,geo.tileR+15)});
+    }
+  }
+  svg.appendChild(tiles);
+  pending.forEach(function(o){
+    var w=0;
+    try { w=o.txt.getComputedTextLength(); } catch(e) { w=uname(0).length*5.5; }
+    o.grp.setAttribute('transform','translate('+(o.lp.x-(13+w)/2)+','+o.lp.y+')');
+  });
+  svg.appendChild(el('g',{id:'caches'}));
+  svg.appendChild(el('g',{id:'mines'}));
+  svg.appendChild(el('g',{id:'tokens'}));
+  svg.appendChild(el('g',{id:'picks'}));
+  svg.appendChild(el('g',{id:'fx'}));
+}
+
+/* เครื่องหมายจุดเก็บทุ่นโผล่เฉพาะตอนช่องนั้นยังไม่มีทุ่นทับ เพราะทุ่นบังตรงกลางพอดี */
+function drawCaches(){
+  var g=$('caches'); g.innerHTML='';
+  Object.keys(S.caches).forEach(function(k){
+    if(S.mines[k]) return;
+    var p=xy(+k);
+    var tx=el('text',{x:p.x,y:p.y,'class':'cglyph','font-size':Math.max(8,Math.round(geo.tileR*0.85))});
+    tx.textContent='+';
+    g.appendChild(tx);
+  });
+}
+
+/* ทุ่นระเบิดทะเล: ตัวกลมพร้อมหนาม จำนวนหนามบอกจำนวนทุ่นในช่อง
+   ทุ่นเดียว 4 ทิศ กองซ้อน 8 ทิศ อ่านความอันตรายได้จากรูปทรงโดยไม่ต้องนับ */
+function drawMineIcon(g,cx,cy,R,color,spikeCount){
+  var n=spikeCount||4;
+  var spikes=el('g',{stroke:color,'stroke-width':Math.max(1.2,R*(n>4?0.22:0.26)),'stroke-linecap':'round'});
+  for(var i=0;i<n;i++){
+    var a=-Math.PI/2 + i*(Math.PI*2/n);
+    spikes.appendChild(el('line',{
+      x1:cx+Math.cos(a)*R*0.52, y1:cy+Math.sin(a)*R*0.52,
+      x2:cx+Math.cos(a)*R,      y2:cy+Math.sin(a)*R}));
+  }
+  g.appendChild(spikes);
+  g.appendChild(el('circle',{cx:cx,cy:cy,r:R*0.62,'class':'mine',fill:color}));
+  g.appendChild(el('ellipse',{cx:cx-R*0.2,cy:cy-R*0.27,rx:R*0.26,ry:R*0.16,'class':'sheen'}));
+}
+
+function drawMines(){
+  var g=$('mines'); g.innerHTML='';
+  Object.keys(S.mines).forEach(function(k){
+    var p=xy(+k), owner=S.players[S.mines[k].ownerId], R=geo.tileR*0.88;
+    var stacked=(S.mines[k].count||1)>1;
+    drawMineIcon(g,p.x,p.y,stacked?R*1.06:R,owner.color,stacked?8:4);
+    var fs=Math.max(7,Math.round(R*0.66));
+    if(fs<=R*1.24){
+      var lb=el('text',{x:p.x,y:p.y,'class':'mlabel','font-size':fs});
+      lb.textContent=owner.letter;
+      g.appendChild(lb);
+    }
+  });
+}
+
+function drawTokens(){
+  var g=$('tokens'); g.innerHTML='';
+  var byTile={};
+  S.players.forEach(function(p){
+    if(p.hp<=0) return;
+    if(animTok&&animTok.id===p.id) return;   /* คนที่กำลังเดิน วาดแยกทีหลังให้อยู่ชั้นบนสุด */
+    (byTile[p.pos]=byTile[p.pos]||[]).push(p);
+  });
+  Object.keys(byTile).forEach(function(k){
+    var c=xy(+k), list=byTile[k], mined=!!S.mines[k];
+    var r=Math.max(6,geo.tileR*0.46), spread=(list.length>1||mined);
+    list.forEach(function(p,n){
+      var x=c.x,y=c.y;
+      if(spread){
+        var a=(n/list.length)*Math.PI*2-Math.PI/2, off=geo.tileR*(mined?1.0:0.5);
+        x+=off*Math.cos(a); y+=off*Math.sin(a);
+      }
+      g.appendChild(el('circle',{cx:x,cy:y,r:r,'class':'token',fill:p.color}));
+      g.appendChild(el('ellipse',{cx:x-r*0.22,cy:y-r*0.34,rx:r*0.46,ry:r*0.28,'class':'sheen'}));
+      if(geo.tileR>=16&&!spread){
+        var tl=el('text',{x:x,y:y,'class':'tletter'}); tl.textContent=p.letter; g.appendChild(tl);
+      }
+    });
+  });
+
+  if(animTok){
+    var mv=S.players[animTok.id];
+    var base=xy(animTok.idx);
+    var air=xy(animTok.idx,animTok.lift);
+    var r=Math.max(6,geo.tileR*0.46);
+    /* เงาอยู่กับพื้นวง ตัวหมุดลอยขึ้น ทำให้อ่านออกว่ากำลังกระโดดข้ามช่อง */
+    g.appendChild(el('ellipse',{cx:base.x,cy:base.y,rx:r*0.8,ry:r*0.55,'class':'shadow'}));
+    g.appendChild(el('circle',{cx:air.x,cy:air.y,r:r*(1+animTok.lift/(geo.tileR*4)),'class':'token moving',fill:mv.color}));
+    if(geo.tileR>=16){
+      var ml=el('text',{x:air.x,y:air.y,'class':'tletter'}); ml.textContent=mv.letter; g.appendChild(ml);
+    }
+  }
+}
+
+/* วงกระเพื่อมสำหรับเน้นเหตุการณ์บนช่อง วาดด้วย rAF เพราะ CSS animate r ไม่ได้ทุกเบราว์เซอร์ */
+function pulseAt(tile,color,scale){
+  var layer=$('fx'); if(!layer) return;
+  var p=xy(tile);
+  var c=el('circle',{cx:p.x,cy:p.y,r:geo.tileR*0.6,fill:'none',stroke:color,'stroke-width':2.5});
+  layer.appendChild(c);
+  var t0=null, dur=440, grow=geo.tileR*(scale||1.5);
+  function frame(ts){
+    if(t0===null) t0=ts;
+    var k=Math.min(1,(ts-t0)/dur);
+    c.setAttribute('r',geo.tileR*0.6+grow*k);
+    c.setAttribute('opacity',(1-k)*0.75);
+    if(k<1) requestAnimationFrame(frame); else if(c.parentNode) c.parentNode.removeChild(c);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ตัวเลขลอยขึ้นจากช่อง บอกทันทีว่าได้หรือเสียอะไรไปเท่าไร */
+function floatText(tile,text,color){
+  var layer=$('fx'); if(!layer) return;
+  var p=xy(tile);
+  var t=el('text',{x:p.x,y:p.y,'class':'floater',fill:color,
+    'font-size':Math.max(11,Math.round(geo.tileR*0.95))});
+  t.textContent=text;
+  layer.appendChild(t);
+  var t0=null, dur=900;
+  function frame(ts){
+    if(t0===null) t0=ts;
+    var k=Math.min(1,(ts-t0)/dur);
+    t.setAttribute('y',p.y-geo.tileR*1.6*k);
+    t.setAttribute('opacity', k<0.15 ? k/0.15 : 1-(k-0.15)/0.85);
+    if(k<1) requestAnimationFrame(frame); else if(t.parentNode) t.parentNode.removeChild(t);
+  }
+  requestAnimationFrame(frame);
+}
+
+function blastAt(tile){
+  var t=$('tile'+tile);
+  if(t){ t.classList.add('blast'); setTimeout(function(){t.classList.remove('blast')},700); }
+  pulseAt(tile,'#9E2B24',2.2);
+  setTimeout(function(){ pulseAt(tile,'#9E2B24',1.6) },120);
+  var st=document.querySelector('.stage');
+  st.classList.add('shake'); setTimeout(function(){st.classList.remove('shake')},430);
+}
+
+/* เดินทีละช่องด้วย ease-in-out ต่อช่อง ได้จังหวะกระโดดแบบหมากกระดาน
+   ตำแหน่งเป็นเลขทศนิยม ส่งเข้า xy() ตรง ๆ ได้เลยเพราะสูตรมุมรับค่าเศษส่วนอยู่แล้ว */
+function animateMove(id,from,roll){
+  return new Promise(function(done){
+    var t0=null, per=185, total=roll*per, lastStep=-1;
+    function frame(ts){
+      if(t0===null) t0=ts;
+      var k=Math.min(1,(ts-t0)/total);
+      var raw=k*roll;
+      var i=Math.min(roll-1,Math.floor(raw));
+      var f=raw-i;
+      var eased=f<0.5 ? 2*f*f : 1-Math.pow(-2*f+2,2)/2;
+      if(i!==lastStep){ lastStep=i; Sfx.play('step',i); }
+      animTok={id:id, idx:from+i+eased, lift:Math.sin(Math.PI*f)*geo.tileR*0.6};
+      drawTokens();
+      if(k<1) requestAnimationFrame(frame);
+      else { animTok=null; drawTokens(); done(); }
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+/* เต๋าสองลูกทิ้งตัวพร้อมกัน หน้าสลับถี่แล้วค่อย ๆ ช้าลง ปิดท้ายด้วยจังหวะกระแทกลง */
+/* แผนที่จาก log key ไปเสียง ใช้กลไก log-diff เดิมที่คำนวณอยู่แล้ว ไม่ต้องเดินสายใหม่ */
+var SFX={boom:'blast', boomstack:'blast2', heal:'heal', supply:'pickup',
+         place:'plant', stack:'plant2', forced:'alert', out:'death', win:'fanfare'};
+
+function tumbleDice(roll){
+  var A=$('dieA'), Bd=$('dieB');
+  if(reduced){ drawDie('dieA',roll.a); drawDie('dieB',roll.b); return Promise.resolve() }
+  var delays=[40,44,52,64,80,100,126,158,196];
+  A.classList.add('rolling'); Bd.classList.add('rolling');
+  return delays.reduce(function(chain,ms){
+    return chain.then(function(){
+      drawDie('dieA',1+Math.floor(Math.random()*6));
+      drawDie('dieB',1+Math.floor(Math.random()*6));
+      Sfx.play('dice');
+      return sleep(ms);
+    });
+  }, Promise.resolve()).then(function(){
+    A.classList.remove('rolling'); Bd.classList.remove('rolling');
+    drawDie('dieA',roll.a); drawDie('dieB',roll.b);
+    Sfx.play('settle');
+    A.classList.add('settle'); Bd.classList.add('settle');
+    setTimeout(function(){ A.classList.remove('settle'); Bd.classList.remove('settle') },400);
+    return sleep(160);
+  });
+}
+
+/* ---------- panels ---------- */
+function drawDie(id,v){
+  var d=$(id); d.innerHTML='';
+  var on=v?PIPS[v]:[];
+  for(var i=0;i<9;i++){
+    var s=document.createElement('i');
+    if(on.indexOf(i)>=0) s.className='on';
+    d.appendChild(s);
+  }
+}
+/* หัวใจสำหรับ HP และข้าวหลามตัดสำหรับทุ่น ให้ตรงกับสัญลักษณ์ทุ่นบนบอร์ด */
+function hpPips(hp){
+  var s='', max=(S&&S.rules)?S.rules.hpMax:Game.C.HP_START+1;
+  for(var i=0;i<max;i++) s+='<i class="'+(i<hp?'on':'off')+'">\u2665</i>';
+  return s;
+}
+/* ไอคอนทุ่นระเบิดแบบเดียวกับบนบอร์ด ย่อลงมาใช้ในแผงหน่วย */
+function mineGlyph(color,dim){
+  var sp='';
+  for(var i=0;i<4;i++){
+    var a=-Math.PI/2 + i*Math.PI/2;
+    sp+='<line x1="'+(Math.cos(a)*5).toFixed(1)+'" y1="'+(Math.sin(a)*5).toFixed(1)+
+        '" x2="'+(Math.cos(a)*9).toFixed(1)+'" y2="'+(Math.sin(a)*9).toFixed(1)+'"/>';
+  }
+  return '<svg class="mglyph'+(dim?' off':'')+'" viewBox="-10 -10 20 20" width="13" height="13" aria-hidden="true">'+
+    '<g stroke="'+color+'" stroke-width="3" stroke-linecap="round">'+sp+'</g>'+
+    '<circle r="5.8" fill="'+color+'"/></svg>';
+}
+function mineDisp(n,color){
+  if(!n) return mineGlyph(color,true);
+  if(n>8) return mineGlyph(color,false)+'<span class="mx">\u00D7'+n+'</span>';
+  var s=''; for(var i=0;i<n;i++) s+=mineGlyph(color,false);
+  return s;
+}
+
+/* ไฮไลต์ช่องปลายทางทุกช่องที่เลือกได้ พร้อมป้ายจำนวนก้าววางไว้ด้านในวง
+   ทุ่นกับจุดเก็บยังมองเห็นตามปกติ ผู้เล่นจึงตัดสินใจได้จากข้อมูลครบ */
+function drawPicks(){
+  var g=$('picks'); if(!g) return;
+  g.innerHTML='';
+  if(!S||S.phase!=='AWAIT_MOVE') return;
+  var me=S.players[S.currentIdx];
+  if(me.bot) return;
+  Game.moveOptions(S).forEach(function(o){
+    var p=xy(o.tile);
+    g.appendChild(el('circle',{cx:p.x,cy:p.y,r:geo.tileR+3.5,'class':'pick',stroke:me.color}));
+    var b=xy(o.tile,-(geo.tileR+13));
+    g.appendChild(el('circle',{cx:b.x,cy:b.y,r:9.5,'class':'badge',fill:me.color}));
+    var tx=el('text',{x:b.x,y:b.y,'class':'btxt'}); tx.textContent=o.steps; g.appendChild(tx);
+    var hit=el('circle',{cx:p.x,cy:p.y,r:geo.tileR+6,fill:'transparent','class':'hit'});
+    hit.onclick=function(){ pickStep(o.steps) };
+    g.appendChild(hit);
+  });
+}
+
+function drawUnits(){
+  var box=$('units'); box.innerHTML='';
+  S.players.forEach(function(p,i){
+    var alive=p.hp>0, turn=(i===S.currentIdx&&S.phase!=='GAME_OVER');
+    var d=document.createElement('div');
+    d.className='unit'+(alive?'':' out')+(turn&&alive?' turn':'');
+    var sub=alive?(t('at_tile',{tile:p.pos})+(turn?' · '+t('active'):'')):t('knocked');
+    d.innerHTML='<span class="chip" style="background:'+p.color+'">'+p.letter+'</span>'+
+      '<span class="uname"><span class="nm">'+esc(uname(p.id))+
+        '<span class="pips hp">'+hpPips(alive?p.hp:0)+'</span></span>'+
+        '<em>'+sub+'</em></span>'+
+      (alive?'<span class="pips mn">'+mineDisp(p.mines,p.color)+'</span>':'')+
+      (p.bot?'<span class="tag">'+t('tag_bot')+'</span>':'');
+    box.appendChild(d);
+  });
+}
+
+function logText(e){
+  var p=e.p, params={};
+  for(var k in p) params[k]=p[k];
+  if(p.p!==undefined) params.name=uname(p.p);
+  if(p.owner!==undefined) params.owner=uname(p.owner);
+  if(p.err) params.err=t(p.err);
+  return t('log_'+e.key,params);
+}
+function drawLog(){
+  var ul=$('log'); ul.innerHTML='';
+  S.log.slice(0,60).forEach(function(e){
+    var li=document.createElement('li');
+    li.className='k-'+e.kind;
+    li.innerHTML='<span class="t">'+String(e.turn).padStart(2,'0')+'</span><span></span>';
+    li.lastChild.textContent=logText(e);
+    ul.appendChild(li);
+  });
+}
+
+function sync(){
+  drawCaches(); drawMines(); drawTokens(); drawPicks(); drawUnits(); drawLog();
+  var p=S.players[S.currentIdx], over=S.phase==='GAME_OVER', err=Game.placementError(S);
+  var isBot=!over&&!!p.bot;
+  $('meta').textContent=t('meta',{n:S.players.length,tiles:S.boardSize,turn:S.turnCount+1,mines:Object.keys(S.mines).length});
+
+  var st=$('status');
+  if(over){
+    st.innerHTML='<b>'+t('st_over')+'</b>';
+  } else if(isBot){
+    st.innerHTML='<b>'+esc(t('st_thinking',{name:uname(p.id)}))+'</b>'+
+      '<span class="why">'+t('st_sub',{hp:p.hp,mines:p.mines})+'</span>';
+  } else if(S.phase==='AWAIT_MOVE'){
+    var rg=Game.stepRange(S.lastRoll);
+    st.innerHTML='<b>'+esc(t('st_move',{name:uname(p.id),lo:rg[0],hi:rg[1]}))+'</b>'+
+      '<span class="why">'+t('st_move_sub')+'</span>';
+  } else if(S.phase==='AWAIT_ROLL'){
+    st.innerHTML='<b>'+esc(t('st_turn',{name:uname(p.id)}))+'</b><span class="why">'+t('st_sub',{hp:p.hp,mines:p.mines})+'</span>';
+  } else {
+    st.innerHTML= S.forced
+      ? '<b>'+t('st_forced',{tile:p.pos})+'</b><span class="why">'+t('st_forced_sub')+'</span>'
+      : '<b>'+t('st_ask',{tile:p.pos})+'</b><span class="why">'+(err?t(err):t('st_left',{mines:p.mines}))+'</span>';
+  }
+
+  $('btnRoll').disabled=!(!over&&S.phase==='AWAIT_ROLL'&&!busy&&!isBot);
+  $('btnRoll').classList.toggle('hidden',S.phase!=='AWAIT_ROLL'||isBot);
+
+  $('hudName').textContent = over ? t('st_over') : uname(p.id);
+  $('hudHp').innerHTML = over ? '' : hpPips(p.hp);
+
+  var sb=$('steps'); sb.innerHTML='';
+  if(!over&&!isBot&&!busy&&S.phase==='AWAIT_MOVE'){
+    Game.moveOptions(S).forEach(function(o){
+      var b=document.createElement('button');
+      b.type='button'; b.className='stepbtn'; b.textContent=o.steps;
+      var m=S.mines[o.tile];
+      if(m&&m.ownerId!==p.id){
+        b.classList.add('danger');
+        if((m.count||1)>1) b.classList.add('danger2');    /* กองซ้อน เสีย 2 หัวใจ */
+      }
+      b.onclick=function(){ pickStep(o.steps) };
+      sb.appendChild(b);
+    });
+  }
+  $('btnPlace').classList.toggle('hidden',S.phase!=='AWAIT_MINE'||isBot);
+  $('btnPlace').disabled=!!err;
+  $('btnSkip').classList.toggle('hidden',S.phase!=='AWAIT_MINE'||S.forced||isBot);
+
+  if(over){
+    $('over').classList.remove('hidden');
+    $('overText').textContent = S.winner!==null ? t('over_win',{name:uname(S.winner)}) : t('over_none');
+  }
+}
+
+/* ---------- actions ---------- */
+function sleep(ms){ return new Promise(function(r){setTimeout(r,ms)}) }
+
+async function doRoll(){
+  var roll=Game.rollDice();
+  await tumbleDice(roll);
+  S=Game.applyRoll(S,roll);
+  sync();
+}
+
+async function doMove(steps){
+  var me=S.players[S.currentIdx], from=me.pos;
+  if(!reduced) await animateMove(me.id,from,steps);
+
+  var before=S.log.length;
+  var next=Game.land(S,steps);
+  var hit={};
+  next.log.slice(0,next.log.length-before).forEach(function(e){ hit[e.key]=true });
+  var where=next.players[me.id].pos;
+  S=next; sync();
+
+  Object.keys(hit).forEach(function(k){ if(SFX[k]) Sfx.play(SFX[k]) });
+  if(!hit.boom&&!hit.boomstack) Sfx.play('land');
+
+  if(!reduced){
+    if(hit.boom||hit.boomstack){
+      blastAt(where);
+      floatText(where,'\u2212'+(hit.boomstack?2:1),'#D9503F');
+      await sleep(hit.boomstack?680:560);
+    } else {
+      pulseAt(where, me.color);
+      if(hit.heal){ pulseAt(where,'#78C97C',2); floatText(where,'+1','#78C97C'); }
+      if(hit.supply){ pulseAt(where,'#D8A72B',2); floatText(where,'+1','#D8A72B'); }
+      await sleep(180);
+    }
+  }
+}
+
+$('btnRoll').onclick=async function(){
+  if(busy||!S||S.phase!=='AWAIT_ROLL'||S.players[S.currentIdx].bot) return;
+  busy=true; sync();
+  await doRoll();
+  /* แต้มซ้ำไม่มีอะไรให้เลือก เดินให้เลย */
+  if(S.forced){
+    await sleep(reduced?60:400);
+    await doMove(Game.stepChoices(S.lastRoll)[0]);
+  }
+  busy=false; sync();
+  maybeBot();
+};
+
+function pickStep(steps){
+  if(busy||!S||S.phase!=='AWAIT_MOVE'||S.players[S.currentIdx].bot) return;
+  Sfx.play('click');
+  busy=true; sync();
+  doMove(steps).then(function(){ busy=false; sync(); maybeBot(); });
+}
+
+$('btnPlace').onclick=function(){ if(busy||!S) return; S=Game.placeMine(S); sync(); maybeBot(); };
+$('btnSkip').onclick=function(){ if(busy||!S) return; S=Game.skipMine(S); sync(); maybeBot(); };
+
+/* ลูกโซ่เทิร์นของคอมพิวเตอร์
+   ทุกขั้นเทียบ runId กับตอนที่เริ่ม ถ้าผู้ใช้กดเริ่มใหม่ระหว่างทาง คิวที่ค้างอยู่จะหยุดเงียบ ๆ
+   ไม่ไปแตะ state ของเกมรอบใหม่ */
+function maybeBot(){
+  if(!S||S.phase==='GAME_OVER'||!S.players[S.currentIdx].bot) return;
+  var my=runId;
+  setTimeout(function(){ botTurn(my) }, reduced?60:320);
+}
+
+async function botTurn(my){
+  if(my!==runId||!S||S.phase!=='AWAIT_ROLL') return;
+  var p=S.players[S.currentIdx];
+  if(!p.bot) return;
+
+  busy=true; sync();
+  await sleep(reduced?80:420);
+  if(my!==runId) return;
+
+  await doRoll();
+  if(my!==runId) return;
+
+  if(S.phase==='AWAIT_MOVE'){
+    await sleep(reduced?60:420);
+    if(my!==runId) return;
+    await doMove(Bot.chooseStep(S,p.bot));
+    if(my!==runId) return;
+  }
+
+  if(S.phase==='AWAIT_MINE'){
+    await sleep(reduced?80:420);
+    if(my!==runId) return;
+    S = Bot.decide(S,p.bot)==='place' ? Game.placeMine(S) : Game.skipMine(S);
+    sync();
+  }
+
+  busy=false; sync();
+  maybeBot();
+}
+
+applyLang();
+})();
+</script>
+</body>
+</html>

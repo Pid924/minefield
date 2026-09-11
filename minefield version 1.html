@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>สนามทุ่นระเบิด</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#D9D5C3; --paper-2:#E6E3D6; --paper-3:#CFCAB4;
+  --ink:#1B1F1A; --ink-2:#565B4C; --ink-3:#7E8271;
+  --rule:#AFAA90; --hazard:#DFA61B; --blood:#9E2B24; --heal:#3F7A4A; --cache:#F0E0AC;
+  --sans:'IBM Plex Sans Thai',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--sans); color:var(--ink); background-color:var(--paper);
+  background-image:linear-gradient(var(--paper-3) 1px,transparent 1px),linear-gradient(90deg,var(--paper-3) 1px,transparent 1px);
+  background-size:26px 26px; background-position:-1px -1px;
+  padding:20px 16px 48px; line-height:1.6;
+}
+.app{max-width:1120px;margin:0 auto}
+
+header{border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:22px}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;margin:0;text-transform:uppercase}
+.tagline{font-size:14px;color:var(--ink-2)}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;margin-top:4px}
+.langs{display:flex;border:1px solid var(--rule);border-radius:3px;overflow:hidden;flex:none}
+.langs button{font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:6px 11px;border:0;border-radius:0;
+  border-left:1px solid var(--rule);background:var(--paper-2);color:var(--ink-2);cursor:pointer}
+.langs button:first-child{border-left:0}
+.langs button[aria-pressed="true"]{background:var(--ink);color:var(--paper-2)}
+
+.card{background:var(--paper-2);border:1px solid var(--rule);border-radius:3px}
+.card h2{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  margin:0;padding:9px 14px;border-bottom:1px solid var(--rule);color:var(--ink-2)}
+
+.setup{max-width:540px;margin:8px auto}
+.setup .body{padding:20px}
+.setup p{margin:0 0 16px;color:var(--ink-2);font-size:15px}
+.choices{display:flex;gap:8px;margin-bottom:20px}
+.choice{flex:1;padding:12px 4px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;
+  cursor:pointer;text-align:center;font-family:var(--mono);font-size:19px;font-weight:600;color:var(--ink);line-height:1.2}
+.choice[aria-pressed="true"]{background:var(--ink);color:var(--paper-2);border-color:var(--ink)}
+.opts{display:grid;gap:8px;margin-bottom:18px}
+.opt{display:flex;align-items:center;gap:10px;padding:7px 12px;background:var(--paper);border:1px solid var(--rule);border-radius:3px}
+.opt span{flex:1;font-size:13px;color:var(--ink-2)}
+.step{display:flex;align-items:stretch;border:1px solid var(--rule);border-radius:3px;overflow:hidden;background:var(--paper-2)}
+.step button{border:0;border-radius:0;padding:3px 12px;font-family:var(--mono);font-size:16px;background:transparent;color:var(--ink)}
+.step button:disabled{opacity:.3}
+.step b{font-family:var(--mono);font-size:14px;min-width:32px;text-align:center;padding:4px 0;
+  border-left:1px solid var(--rule);border-right:1px solid var(--rule)}
+.proster{display:grid;gap:7px;margin-bottom:18px}
+.prow{display:flex;align-items:center;gap:9px}
+.pname{flex:1;min-width:0;font-family:var(--sans);font-size:13px;padding:7px 10px;color:var(--ink);
+  background:var(--paper);border:1px solid var(--rule);border-radius:3px}
+.pname:focus-visible{outline:2px solid var(--hazard);outline-offset:1px}
+.seg{display:flex;border:1px solid var(--rule);border-radius:3px;overflow:hidden;flex:none}
+.seg button{border:0;border-radius:0;padding:6px 12px;font-size:12px;background:var(--paper-2);
+  color:var(--ink-2);border-left:1px solid var(--rule)}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper-2)}
+.tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;padding:1px 5px;margin-left:2px;
+  border:1px solid var(--rule);border-radius:2px;color:var(--ink-3)}
+.rules{font-size:13px;color:var(--ink-2);border-top:1px dashed var(--rule);padding-top:14px}
+.rules b{font-weight:600;color:var(--ink)}
+.rules div{margin-bottom:5px}
+
+.game{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}
+@media(max-width:880px){.game{grid-template-columns:1fr}}
+
+.stage{position:relative;padding:10px 10px 0;display:flex;justify-content:center}
+svg#board{width:100%;height:auto;max-width:560px;display:block}
+.tile{fill:var(--paper);stroke:var(--rule);stroke-width:1}
+.tile.start{stroke-width:2.5}
+.tile.cache{fill:var(--cache);stroke:#C79A1E;stroke-dasharray:3 2.5}
+.cglyph{font-family:var(--mono);font-weight:600;fill:#96721A;text-anchor:middle;dominant-baseline:central}
+.tnum{font-family:var(--mono);fill:var(--ink-3);text-anchor:middle;dominant-baseline:central}
+.slabel{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-anchor:middle;dominant-baseline:central}
+.ring{fill:none;stroke:var(--rule);stroke-width:1;stroke-dasharray:2 6;opacity:.7}
+.token{stroke:var(--paper-2);stroke-width:1.5}
+.token.moving{stroke-width:2.5}
+.shadow{fill:var(--ink);opacity:.16}
+.tletter{font-family:var(--mono);font-size:11px;font-weight:600;fill:var(--paper-2);text-anchor:middle;dominant-baseline:central}
+.mine{stroke:var(--hazard);stroke-width:2.5;stroke-linejoin:round}
+.mlabel{font-family:var(--mono);font-weight:600;fill:var(--paper-2);text-anchor:middle;dominant-baseline:central}
+.blast{animation:blast .7s ease-out}
+@keyframes blast{0%{fill:var(--blood)}60%{fill:var(--hazard)}100%{fill:var(--paper)}}
+@media(prefers-reduced-motion:reduce){.blast{animation:none}}
+
+.console{padding:14px;border-top:1px solid var(--rule);margin-top:10px}
+.readout{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.die{width:54px;height:54px;flex:none;background:var(--paper);border:1.5px solid var(--ink);border-radius:6px;
+  display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:7px;gap:2px}
+.die i{border-radius:50%;background:transparent}
+.die i.on{background:var(--ink)}
+.die{transition:box-shadow .2s}
+.die.rolling{animation:tumble .3s linear infinite}
+@keyframes tumble{
+  0%{transform:rotate(0) scale(1) translateY(0)}
+  25%{transform:rotate(-15deg) scale(1.07) translateY(-4px)}
+  50%{transform:rotate(7deg) scale(.95) translateY(3px)}
+  75%{transform:rotate(16deg) scale(1.05) translateY(-2px)}
+  100%{transform:rotate(0) scale(1) translateY(0)}
+}
+.die.settle{animation:settle .4s cubic-bezier(.2,1.5,.4,1)}
+@keyframes settle{0%{transform:scale(1.24)}55%{transform:scale(.95)}100%{transform:scale(1)}}
+.stage.shake{animation:bshake .42s ease-out}
+@keyframes bshake{
+  0%,100%{transform:translate(0,0)}
+  15%{transform:translate(-5px,2px)}35%{transform:translate(4px,-3px)}
+  55%{transform:translate(-3px,-1px)}75%{transform:translate(2px,2px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .die.rolling,.die.settle,.stage.shake{animation:none}
+}
+.status{flex:1;min-width:200px;font-size:14px}
+.status b{font-weight:600}
+.status .why{display:block;font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+button{font-family:var(--sans);font-size:14px;font-weight:500;padding:9px 18px;border-radius:3px;cursor:pointer;
+  border:1px solid var(--ink);background:var(--paper);color:var(--ink)}
+button.primary{background:var(--ink);color:var(--paper-2)}
+button.hazard{background:var(--hazard);border-color:#9C7208;color:#3A2A02}
+button:disabled{opacity:.34;cursor:not-allowed}
+button:focus-visible{outline:2px solid var(--hazard);outline-offset:2px}
+
+.units{padding:6px 0}
+.unit{display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px dashed var(--rule)}
+.unit:last-child{border-bottom:0}
+.unit.turn{background:var(--paper)}
+.chip{width:13px;height:13px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.35)}
+.uname{font-size:13px;font-weight:500;flex:1;min-width:0}
+.uname em{font-family:var(--mono);font-style:normal;font-size:10px;color:var(--ink-3);letter-spacing:.06em;display:block}
+.pips{font-family:var(--mono);font-size:13px;letter-spacing:1px;white-space:nowrap}
+.pips i{font-style:normal}
+.pips i.off{opacity:.22}
+.pips.hp{color:var(--blood);font-size:12px;letter-spacing:.5px}
+.pips.mn{color:#9C7208;font-size:12px}
+.nm{display:flex;align-items:center;gap:7px}
+.unit.out{opacity:.45}
+.unit.out .uname{text-decoration:line-through}
+
+.log{list-style:none;margin:0;padding:6px 0;max-height:280px;overflow-y:auto}
+.log li{font-size:12.5px;padding:5px 14px;border-bottom:1px dashed var(--rule);display:flex;gap:9px}
+.log li:last-child{border-bottom:0}
+.log .t{font-family:var(--mono);font-size:10px;color:var(--ink-3);flex:none;padding-top:2px}
+.log .k-boom{background:rgba(158,43,36,.1);color:var(--blood);font-weight:500}
+.log .k-heal{color:var(--heal)}
+.log .k-mine{color:#8A6407}
+.log .k-out{background:rgba(27,31,26,.09);font-weight:600}
+.log .k-win{background:var(--ink);color:var(--paper-2);font-weight:600}
+.log .k-restock{color:#8A6407;font-weight:500}
+
+.over{position:absolute;inset:10px 10px 0;display:flex;align-items:center;justify-content:center;
+  background:rgba(217,213,195,.9);border-radius:3px}
+.over div{text-align:center;border:2px solid var(--ink);background:var(--paper-2);padding:22px 30px;border-radius:3px}
+.over h3{font-family:var(--mono);margin:0 0 4px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2)}
+.over p{margin:0 0 16px;font-size:21px;font-weight:600}
+.hidden{display:none !important}
+footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--ink-3);text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="top">
+      <div>
+        <div class="brand">
+          <h1>Minefield</h1>
+          <span class="tagline" id="tagline"></span>
+        </div>
+        <div class="meta" id="meta"></div>
+      </div>
+      <div class="langs" id="langs"></div>
+    </div>
+  </header>
+
+  <section class="card setup" id="setup">
+    <h2 id="setupTitle"></h2>
+    <div class="body">
+      <p id="setupIntro"></p>
+      <div class="choices" id="choices"></div>
+      <div class="proster" id="proster"></div>
+      <div class="opts" id="botrow"></div>
+      <div class="opts" id="opts"></div>
+      <div class="rules" id="rules"></div>
+      <div class="actions"><button class="primary" id="btnStart"></button></div>
+    </div>
+  </section>
+
+  <section class="game hidden" id="game">
+    <div class="card">
+      <h2 id="boardTitle"></h2>
+      <div class="stage">
+        <svg id="board" role="img"></svg>
+        <div class="over hidden" id="over">
+          <div>
+            <h3 id="overKicker"></h3>
+            <p id="overText"></p>
+            <button class="primary" id="btnAgain"></button>
+          </div>
+        </div>
+      </div>
+      <div class="console">
+        <div class="readout">
+          <div class="die" id="die" aria-hidden="true"></div>
+          <div class="status" id="status" aria-live="polite"></div>
+        </div>
+        <div class="actions">
+          <button class="primary" id="btnRoll"></button>
+          <button class="hazard hidden" id="btnPlace"></button>
+          <button class="hidden" id="btnSkip"></button>
+          <button id="btnReset"></button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:18px">
+        <h2 id="unitsTitle"></h2>
+        <div class="units" id="units"></div>
+      </div>
+      <div class="card">
+        <h2 id="logTitle"></h2>
+        <ul class="log" id="log"></ul>
+      </div>
+    </div>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* สนามทุ่นระเบิด - core logic
+   ทุกฟังก์ชันสาธารณะเป็น pure: รับ state คืน state ใหม่ ไม่แตะ DOM
+   logic ไม่มีข้อความภาษาใด ๆ: log เก็บเป็น key + params ให้ชั้น UI แปลเอง */
+(function (root) {
+  'use strict';
+
+  var C = {
+    HP_START: 2,
+    HP_MAX: 3,
+    MINE_START: 3,
+    MINE_MAX: 6,
+    MINE_HARD_MAX: 12,
+    SPACING: 12,
+    SPACING_MIN: 6,
+    SPACING_MAX: 15,
+    CACHES: 3,
+    CACHE_DIV: 3,       /* จุดเก็บต่อเซกเมนต์ไม่เกิน spacing / CACHE_DIV */
+    MAX_PLAYERS: 6
+  };
+
+  var UNITS = [
+    { letter: 'A', color: '#B4342A' },
+    { letter: 'B', color: '#2A5F86' },
+    { letter: 'C', color: '#4E6B21' },
+    { letter: 'D', color: '#7A3F86' },
+    { letter: 'E', color: '#A96214' },
+    { letter: 'F', color: '#1E6F73' }
+  ];
+
+  var ERR = { NO_MINE: 'ERR_NO_MINE', MINED: 'ERR_MINED' };
+
+  function clone(s) { return JSON.parse(JSON.stringify(s)); }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function isAlive(p) { return p.hp > 0; }
+  function alivePlayers(s) { return s.players.filter(isAlive); }
+
+  function log(s, kind, key, params) {
+    s.log.unshift({ turn: s.turnCount + 1, kind: kind, key: key, p: params || {} });
+    return s;
+  }
+
+  function maxCaches(spacing) { return Math.floor(spacing / C.CACHE_DIV); }
+
+  /* สุ่ม k ตำแหน่งไม่ซ้ำจาก offset 1..spacing-1 (ตัดช่องฐานที่ offset 0 ออกเสมอ) */
+  function pickOffsets(spacing, k, rng) {
+    var pool = [], i, j, t;
+    for (i = 1; i < spacing; i++) pool.push(i);
+    for (j = pool.length - 1; j > 0; j--) {
+      i = Math.floor(rng() * (j + 1));
+      t = pool[j]; pool[j] = pool[i]; pool[i] = t;
+    }
+    return pool.slice(0, k).sort(function (a, b) { return a - b; });
+  }
+
+  /* เซกเมนต์ละ k จุดเท่ากันทุกเซกเมนต์ แต่สุ่ม offset แยกกัน ตำแหน่งจริงจึงไม่ซ้ำ */
+  function buildCaches(count, spacing, k, rng) {
+    var out = {};
+    for (var seg = 0; seg < count; seg++) {
+      pickOffsets(spacing, k, rng).forEach(function (off) {
+        out[seg * spacing + off] = true;
+      });
+    }
+    return out;
+  }
+
+  function cleanName(v) {
+    if (typeof v !== 'string') return null;
+    var t = v.trim().slice(0, 14);
+    return t.length ? t : null;
+  }
+
+  /* opts: { mineStart, mineMax, spacing, caches, rng, names[], bots[] }
+     ค่าที่ผิดช่วงถูกบีบเข้ากรอบให้เอง
+     name เป็น null แปลว่าใช้ชื่อมาตรฐาน ชั้น UI จะแปลตามภาษาให้เอง
+     bot เป็น null แปลว่าเป็นคน หรือเป็นสตริงระดับความเก่ง logic ไม่เคยอ่านค่านี้ */
+  function createGame(n, opts) {
+    opts = opts || {};
+    var count = clamp(n | 0, 2, C.MAX_PLAYERS);
+    var spacing = clamp(opts.spacing === undefined ? C.SPACING : opts.spacing | 0, C.SPACING_MIN, C.SPACING_MAX);
+    var cacheCount = clamp(opts.caches === undefined ? C.CACHES : opts.caches | 0, 0, maxCaches(spacing));
+    var mineMax = clamp(opts.mineMax === undefined ? C.MINE_MAX : opts.mineMax | 0, 1, C.MINE_HARD_MAX);
+    var mineStart = clamp(opts.mineStart === undefined ? C.MINE_START : opts.mineStart | 0, 0, mineMax);
+    var rng = opts.rng || Math.random;
+    var names = opts.names || [];
+    var bots = opts.bots || [];
+    var boardSize = count * spacing;
+
+    var startTiles = [], players = [];
+    for (var i = 0; i < count; i++) {
+      var tile = i * spacing;
+      startTiles.push(tile);
+      players.push({
+        id: i,
+        letter: UNITS[i].letter,
+        color: UNITS[i].color,
+        name: cleanName(names[i]),
+        bot: bots[i] || null,
+        startTile: tile,
+        pos: tile,
+        mines: mineStart,
+        hp: C.HP_START
+      });
+    }
+
+    return {
+      phase: 'AWAIT_ROLL',
+      forced: false,
+      boardSize: boardSize,
+      rules: { mineStart: mineStart, mineMax: mineMax, spacing: spacing, caches: cacheCount },
+      startTiles: startTiles,
+      caches: buildCaches(count, spacing, cacheCount, rng),
+      players: players,
+      currentIdx: 0,
+      mines: {},
+      lastRoll: null,
+      turnCount: 0,
+      winner: null,
+      log: [{ turn: 1, kind: 'info', key: 'open', p: { n: count, tiles: boardSize, caches: cacheCount * count } }]
+    };
+  }
+
+  function rollDice(rng) {
+    var r = rng || Math.random;
+    return 1 + Math.floor(r() * 6);
+  }
+
+  /* ช่องที่ต้องเดินผ่านทั้งหมด ใช้ทำ animation */
+  function pathFor(s, roll) {
+    var p = s.players[s.currentIdx];
+    var out = [];
+    for (var i = 1; i <= roll; i++) out.push((p.pos + i) % s.boardSize);
+    return out;
+  }
+
+  function nextAliveIdx(s, from) {
+    var n = s.players.length;
+    for (var i = 1; i <= n; i++) {
+      var idx = (from + i) % n;
+      if (isAlive(s.players[idx])) return idx;
+    }
+    return from;
+  }
+
+  /* คืน error key หรือ null ถ้าวางได้ - จุดเก็บทุ่นวางทับได้ตามปกติ */
+  function placementError(s) {
+    var p = s.players[s.currentIdx];
+    if (p.mines === 0) return ERR.NO_MINE;
+    if (s.mines[p.pos]) return ERR.MINED;
+    return null;
+  }
+
+  /* ลำดับตอนหยุดบนช่อง: ทุ่น -> ฐานตัวเอง -> จุดเก็บทุ่น -> แต้มพิเศษ */
+  function land(s, roll) {
+    s = clone(s);
+    var p = s.players[s.currentIdx];
+    var dest = (p.pos + roll) % s.boardSize;
+    p.pos = dest;
+    s.lastRoll = roll;
+    log(s, 'move', 'move', { p: p.id, roll: roll, tile: dest });
+
+    var m = s.mines[dest];
+    if (m && m.ownerId !== p.id) {
+      delete s.mines[dest];
+      p.hp -= 1;
+      log(s, 'boom', 'boom', { p: p.id, owner: m.ownerId, hp: p.hp });
+      if (p.hp <= 0) {
+        log(s, 'out', 'out', { p: p.id });
+        return endTurn(s);
+      }
+    } else if (m) {
+      log(s, 'safe', 'ownmine', { p: p.id });
+    }
+
+    if (dest === p.startTile) {
+      if (p.hp < C.HP_MAX) {
+        p.hp += 1;
+        log(s, 'heal', 'heal', { p: p.id, hp: p.hp });
+      } else {
+        log(s, 'safe', 'healfull', { p: p.id });
+      }
+    }
+
+    if (s.caches[dest]) {
+      if (p.mines < s.rules.mineMax) {
+        p.mines += 1;
+        log(s, 'mine', 'supply', { p: p.id, mines: p.mines });
+      } else {
+        log(s, 'safe', 'supplyfull', { p: p.id });
+      }
+    }
+
+    return afterLanding(s, roll);
+  }
+
+  function afterLanding(s, roll) {
+    var p = s.players[s.currentIdx];
+    var err = placementError(s);
+
+    if (roll === 6) {
+      if (!err) {
+        s.phase = 'AWAIT_MINE';
+        s.forced = true;
+        log(s, 'mine', 'forced', { p: p.id, tile: p.pos });
+        return s;
+      }
+      log(s, 'safe', 'forcedfail', { p: p.id, err: err });
+      return endTurn(s);
+    }
+
+    if (err) return endTurn(s);
+
+    s.phase = 'AWAIT_MINE';
+    s.forced = false;
+    return s;
+  }
+
+  function placeMine(s) {
+    s = clone(s);
+    if (placementError(s)) return s;
+    var p = s.players[s.currentIdx];
+    s.mines[p.pos] = { ownerId: p.id };
+    p.mines -= 1;
+    log(s, 'mine', 'place', { p: p.id, tile: p.pos });
+    return endTurn(s);
+  }
+
+  function skipMine(s) {
+    s = clone(s);
+    if (s.forced && !placementError(s)) return s;
+    return endTurn(s);
+  }
+
+  function endTurn(s) {
+    s = clone(s);
+    s.forced = false;
+
+    var live = alivePlayers(s);
+    if (live.length <= 1) {
+      s.phase = 'GAME_OVER';
+      s.winner = live.length === 1 ? live[0].id : null;
+      if (s.winner !== null) log(s, 'win', 'win', { p: s.winner });
+      else log(s, 'win', 'nosurvivor', {});
+      return s;
+    }
+
+    s.turnCount += 1;
+    s.currentIdx = nextAliveIdx(s, s.currentIdx);
+    s.phase = 'AWAIT_ROLL';
+    return s;
+  }
+
+  var api = {
+    C: C,
+    UNITS: UNITS,
+    ERR: ERR,
+    maxCaches: maxCaches,
+    createGame: createGame,
+    rollDice: rollDice,
+    pathFor: pathFor,
+    land: land,
+    afterLanding: afterLanding,
+    placementError: placementError,
+    placeMine: placeMine,
+    skipMine: skipMine,
+    endTurn: endTurn,
+    isAlive: isAlive,
+    alivePlayers: alivePlayers,
+    nextAliveIdx: nextAliveIdx
+  };
+
+  root.Game = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* สนามทุ่นระเบิด - นโยบายการตัดสินใจของคอมพิวเตอร์
+   pure ทั้งหมด: รับ state คืนคำตัดสิน ไม่แตะ DOM ไม่แก้ state
+   แยกจาก game.js เพราะนี่คือกลยุทธ์ ไม่ใช่กติกา
+
+   ข้อค้นพบจากการจำลอง: ทุ่นที่วางแล้วอยู่บนบอร์ดตลอดกาล และทุกคนเดินวนผ่านทุกช่อง
+   เท่า ๆ กันในระยะยาว ทุ่นทุกลูกที่ลงบอร์ดจึงมีค่าเสมอ ส่วนทุ่นที่ถือไว้มีค่าศูนย์
+   นโยบายที่ถูกต้องคือวางให้มากที่สุด ไม่ใช่เก็บไว้รอจังหวะ */
+(function (root) {
+  'use strict';
+
+  var G = root.Game || (typeof require !== 'undefined' ? require('./game.js') : null);
+
+  var LEVELS = {
+    /* มือใหม่: โยนหัวก้อย ไม่ดูอะไรเลย */
+    easy:   { random: 0.45 },
+    /* พอเล่นเป็น แต่ยังพลาดเป็นบางครั้ง */
+    normal: { baseline: 0.35, thr: 0.30, noise: 0.35, killBonus: false },
+    /* นิ่งและมองหาจังหวะปิดจ๊อบ */
+    hard:   { baseline: 0.35, thr: 0.15, noise: 0,    killBonus: true }
+  };
+
+  function levelOf(name) { return LEVELS[name] || LEVELS.normal; }
+
+  /* ความคุ้มค่าของการวางทุ่นลงช่องที่ยืนอยู่ตอนนี้ */
+  function score(s, levelName) {
+    var cfg = levelOf(levelName);
+    if (cfg.random !== undefined) return 0;
+
+    var me = s.players[s.currentIdx];
+    var tile = me.pos;
+    var v = cfg.baseline;      /* ค่าติดตัวของทุ่นทุกลูกที่ได้ลงบอร์ด */
+    var neutralised = false;
+
+    s.players.forEach(function (o) {
+      if (o.id === me.id || o.hp <= 0) return;
+      var d = (tile - o.pos + s.boardSize) % s.boardSize;
+      var w = (d >= 1 && d <= 6) ? 1 : 0;
+
+      if (tile === o.startTile && o.hp >= 2) {
+        /* ลำดับการตรวจคือทุ่นก่อนแล้วค่อยฟื้น HP เขาเสีย 1 ได้คืน 1 สุทธิเป็นศูนย์
+           ทุ่นลูกนี้แทบไม่ทำอะไรเขาเลย */
+        w *= 0.15;
+        neutralised = true;
+      } else if (cfg.killBonus && o.hp === 1) {
+        w *= 2;                /* เหลือ HP เดียว วางตรงนี้คือปิดจ๊อบ */
+      }
+      v += w;
+    });
+
+    if (neutralised) v -= cfg.baseline * 0.8;
+    return Math.round(v * 100) / 100;
+  }
+
+  function threshold(levelName) { return levelOf(levelName).thr; }
+
+  /* คืน 'place' หรือ 'skip' */
+  function decide(s, levelName, rng) {
+    var r = rng || Math.random;
+    if (G && G.placementError(s)) return 'skip';
+    if (s.forced) return 'place';
+
+    var cfg = levelOf(levelName);
+    if (cfg.random !== undefined) return r() < cfg.random ? 'place' : 'skip';
+    if (cfg.noise && r() < cfg.noise) return r() < 0.5 ? 'place' : 'skip';
+
+    return score(s, levelName) >= cfg.thr ? 'place' : 'skip';
+  }
+
+  var api = {
+    LEVELS: LEVELS,
+    levels: function () { return Object.keys(LEVELS); },
+    score: score,
+    threshold: threshold,
+    decide: decide
+  };
+
+  root.Bot = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+
+<script>
+/* ---------- i18n: ทุกข้อความอยู่ที่นี่ที่เดียว logic ไม่มีข้อความเลย ---------- */
+var DICT = {
+th:{
+  doc:'สนามทุ่นระเบิด', lang:'ไทย',
+  tagline:'บอร์ดเกมทอยลูกเต๋าวางทุ่นระเบิด',
+  meta_none:'ยังไม่เปิดสนาม',
+  meta:'{n} หน่วย · {tiles} ช่อง · เทิร์นที่ {turn} · ทุ่นบนสนาม {mines} ลูก',
+  setup_title:'ตั้งค่าสนาม',
+  setup_intro:'เลือกจำนวนหน่วยแล้วปรับค่าสนามได้ตามใจ ขนาดบอร์ดคือจำนวนหน่วยคูณระยะระหว่างฐาน',
+  rules:[
+    ['เดิน','ทอยเต๋าแล้วเดินตามเข็มนาฬิกา วนไปเรื่อย ๆ ไม่มีเส้นชัย ระยะระหว่างฐาน {spacing} ช่อง'],
+    ['ทุ่น','เริ่มคนละ {start} ลูก ถือได้ไม่เกิน {max} วางได้เฉพาะช่องที่ตัวเองหยุด'],
+    ['จุดเก็บทุ่น','เซกเมนต์ละ {caches} จุด สุ่มตำแหน่งใหม่ทุกเกม หยุดทับได้ทุ่นเพิ่ม 1 ลูก เป็นของกลางและใช้ซ้ำได้ไม่จำกัด'],
+    ['HP','เริ่มที่ 2 เหยียบทุ่นคนอื่นเสีย 1 เหลือ 0 คือตกรอบ กลับถึงฐานตัวเองได้คืน 1 สูงสุด 3'],
+    ['แต้มพิเศษ','ทอยได้ 6 บังคับวางทุ่นที่ช่องนั้น'],
+    ['ปลอดภัย','ทุ่นทำงานเฉพาะตอนหยุดบนช่อง เดินผ่านไม่โดน ทุ่นตัวเองไม่โดน คนที่ยืนอยู่ก่อนไม่โดน']
+  ],
+  opt_start:'ทุ่นตั้งต้นต่อหน่วย', opt_max:'ถือได้สูงสุด',
+  opt_spacing:'ระยะระหว่างฐาน', opt_caches:'จุดเก็บทุ่นต่อเซกเมนต์',
+  seg_human:'คน', seg_bot:'คอม', tag_bot:'คอม', opt_botlevel:'ระดับคอมพิวเตอร์',
+  lvl_easy:'ง่าย', lvl_normal:'ปกติ', lvl_hard:'ยาก', st_thinking:'{name} กำลังคิด',
+  btn_start:'เปิดสนาม', board_title:'แผนผังสนาม', units_title:'หน่วยในสนาม', log_title:'บันทึกสนาม',
+  btn_roll:'ทอยลูกเต๋า', btn_place:'วางระเบิด', btn_skip:'ไม่วาง จบเทิร์น',
+  btn_reset:'เริ่มใหม่', btn_again:'เปิดสนามใหม่',
+  over_kicker:'จบภารกิจ', over_win:'{name} เคลียร์สนามได้', over_none:'ไม่มีผู้รอด',
+  st_over:'จบภารกิจ', st_turn:'ถึงตา {name}', st_sub:'HP {hp} · ทุ่นในมือ {mines} ลูก',
+  st_forced:'ทอยได้ 6 ต้องวางทุ่นที่ช่อง {tile}', st_forced_sub:'แต้ม 6 บังคับวาง ข้ามไม่ได้',
+  st_ask:'วางทุ่นที่ช่อง {tile} หรือไม่', st_left:'เหลือในมือ {mines} ลูก',
+  unit:'หน่วย {l}', base:'ฐาน {l}', at_tile:'ช่อง {tile}', active:'ถึงตา', knocked:'ตกรอบแล้ว',
+  ERR_NO_MINE:'ไม่มีระเบิดในมือ', ERR_MINED:'ช่องนี้มีระเบิดอยู่แล้ว',
+  footer:'เดินตามเข็มนาฬิกา · ทุ่นทำงานเฉพาะตอนหยุด',
+  log_open:'เปิดสนาม {n} หน่วย {tiles} ช่อง จุดเก็บทุ่น {caches} จุด',
+  log_move:'{name} ทอยได้ {roll} หยุดที่ช่อง {tile}',
+  log_boom:'{name} เหยียบทุ่นของ{owner} HP เหลือ {hp}',
+  log_out:'{name} ตกรอบ',
+  log_ownmine:'{name} หยุดบนทุ่นของตัวเอง ปลอดภัย',
+  log_heal:'{name} กลับถึงฐาน HP เพิ่มเป็น {hp}',
+  log_healfull:'{name} กลับถึงฐาน แต่ HP เต็มแล้ว',
+  log_supply:'{name} เก็บทุ่นจากจุดเก็บ มีในมือ {mines} ลูก',
+  log_supplyfull:'{name} ถึงจุดเก็บทุ่น แต่ถือเต็มเพดานแล้ว',
+  log_forced:'ทอยได้ 6 {name} ต้องวางทุ่นที่ช่อง {tile}',
+  log_forcedfail:'ทอยได้ 6 แต่วางไม่ได้ ({err})',
+  log_place:'{name} วางทุ่นที่ช่อง {tile}',
+  log_win:'{name} เคลียร์สนามได้สำเร็จ', log_nosurvivor:'ไม่มีผู้รอด'
+},
+en:{
+  doc:'Minefield', lang:'EN',
+  tagline:'A dice board game about laying mines',
+  meta_none:'field not opened yet',
+  meta:'{n} units · {tiles} tiles · turn {turn} · {mines} mines on field',
+  setup_title:'Field setup',
+  setup_intro:'Pick how many units take the field, then tune the rest. Board size is the unit count times the spacing between bases.',
+  rules:[
+    ['Movement','Roll a die and move clockwise around the ring, lap after lap. Bases sit {spacing} tiles apart.'],
+    ['Mines','Start with {start}, hold up to {max}. You may only lay one on the tile you stopped on.'],
+    ['Supply depots','{caches} per segment, redrawn at random every game. Stop on one for an extra mine — they are shared and never run out.'],
+    ['HP','Start at 2. Another unit\u2019s mine costs 1 HP, and at 0 you are out. Stopping on your own base restores 1, up to 3.'],
+    ['Special rolls','A 6 forces you to lay a mine on that tile.'],
+    ['Safe cases','Mines only trigger when you stop on them. Passing over is safe, your own mines are safe, and anyone already standing there is safe.']
+  ],
+  opt_start:'Starting mines per unit', opt_max:'Carry limit',
+  opt_spacing:'Tiles between bases', opt_caches:'Depots per segment',
+  seg_human:'Human', seg_bot:'CPU', tag_bot:'CPU', opt_botlevel:'Computer skill',
+  lvl_easy:'Easy', lvl_normal:'Normal', lvl_hard:'Hard', st_thinking:'{name} is thinking',
+  btn_start:'Open field', board_title:'Field map', units_title:'Units in play', log_title:'Field log',
+  btn_roll:'Roll the die', btn_place:'Lay mine', btn_skip:'Skip, end turn',
+  btn_reset:'Restart', btn_again:'Open a new field',
+  over_kicker:'Mission over', over_win:'{name} cleared the field', over_none:'No survivors',
+  st_over:'Mission over', st_turn:'{name} to roll', st_sub:'HP {hp} · {mines} mines in hand',
+  st_forced:'Rolled a 6 — lay a mine on tile {tile}', st_forced_sub:'A 6 forces placement, skipping is not allowed',
+  st_ask:'Lay a mine on tile {tile}?', st_left:'{mines} left in hand',
+  unit:'Unit {l}', base:'Base {l}', at_tile:'Tile {tile}', active:'to move', knocked:'knocked out',
+  ERR_NO_MINE:'no mines in hand', ERR_MINED:'this tile is already mined',
+  footer:'clockwise · mines trigger only on a stop',
+  log_open:'Field opened — {n} units, {tiles} tiles, {caches} depots',
+  log_move:'{name} rolled {roll} and stopped on tile {tile}',
+  log_boom:'{name} stepped on a mine laid by {owner} — HP down to {hp}',
+  log_out:'{name} is out',
+  log_ownmine:'{name} stopped on their own mine and is safe',
+  log_heal:'{name} reached base — HP up to {hp}',
+  log_healfull:'{name} reached base but HP is already full',
+  log_supply:'{name} picked up a mine at a depot — {mines} in hand',
+  log_supplyfull:'{name} reached a depot but is already at the cap',
+  log_forced:'Rolled a 6 — {name} must lay a mine on tile {tile}',
+  log_forcedfail:'Rolled a 6 but cannot lay ({err})',
+  log_place:'{name} laid a mine on tile {tile}',
+  log_win:'{name} cleared the field', log_nosurvivor:'No survivors'
+},
+de:{
+  doc:'Minenfeld', lang:'DE',
+  tagline:'Ein Würfel-Brettspiel über das Legen von Minen',
+  meta_none:'Feld noch nicht eröffnet',
+  meta:'{n} Einheiten · {tiles} Felder · Zug {turn} · {mines} Minen im Feld',
+  setup_title:'Feldaufbau',
+  setup_intro:'Wähle, wie viele Einheiten antreten, und stelle den Rest ein. Die Feldgröße ist Anzahl mal Abstand zwischen den Basen.',
+  rules:[
+    ['Bewegung','Würfeln und im Uhrzeigersinn Runde um Runde weiterziehen. Zwischen den Basen liegen {spacing} Felder.'],
+    ['Minen','Start mit {start} Stück, Obergrenze {max}. Gelegt wird nur auf dem Feld, auf dem man hält.'],
+    ['Nachschubdepots','{caches} je Abschnitt, in jedem Spiel neu ausgelost. Wer darauf hält, erhält eine Mine. Depots sind gemeinsam und unerschöpflich.'],
+    ['HP','Start bei 2. Eine fremde Mine kostet 1 HP, bei 0 scheidet die Einheit aus. Ein Halt auf der eigenen Basis gibt 1 HP zurück, höchstens bis 3.'],
+    ['Sonderwürfe','Eine 6 zwingt zum Legen auf diesem Feld.'],
+    ['Sichere Fälle','Minen zünden nur beim Halten. Überqueren ist sicher, eigene Minen sind sicher, und wer bereits dort steht, bleibt verschont.']
+  ],
+  opt_start:'Minen zu Beginn je Einheit', opt_max:'Höchstzahl in der Hand',
+  opt_spacing:'Felder zwischen den Basen', opt_caches:'Depots je Abschnitt',
+  seg_human:'Mensch', seg_bot:'CPU', tag_bot:'CPU', opt_botlevel:'Spielstärke',
+  lvl_easy:'Leicht', lvl_normal:'Normal', lvl_hard:'Schwer', st_thinking:'{name} überlegt',
+  btn_start:'Feld eröffnen', board_title:'Feldkarte', units_title:'Einheiten im Feld', log_title:'Feldprotokoll',
+  btn_roll:'Würfeln', btn_place:'Mine legen', btn_skip:'Nicht legen, Zug beenden',
+  btn_reset:'Neu starten', btn_again:'Neues Feld eröffnen',
+  over_kicker:'Einsatz beendet', over_win:'{name} hat das Feld geräumt', over_none:'Keine Überlebenden',
+  st_over:'Einsatz beendet', st_turn:'{name} ist am Zug', st_sub:'HP {hp} · {mines} Minen in der Hand',
+  st_forced:'Eine 6 gewürfelt — Mine auf Feld {tile} legen', st_forced_sub:'Bei einer 6 ist das Legen Pflicht',
+  st_ask:'Mine auf Feld {tile} legen?', st_left:'noch {mines} in der Hand',
+  unit:'Einheit {l}', base:'Basis {l}', at_tile:'Feld {tile}', active:'am Zug', knocked:'ausgeschieden',
+  ERR_NO_MINE:'keine Minen in der Hand', ERR_MINED:'dieses Feld ist bereits vermint',
+  footer:'im Uhrzeigersinn · Minen zünden nur beim Halten',
+  log_open:'Feld eröffnet — {n} Einheiten, {tiles} Felder, {caches} Depots',
+  log_move:'{name} würfelt {roll} und hält auf Feld {tile}',
+  log_boom:'{name} tritt auf eine Mine von {owner} — HP jetzt {hp}',
+  log_out:'{name} scheidet aus',
+  log_ownmine:'{name} hält auf der eigenen Mine und bleibt sicher',
+  log_heal:'{name} erreicht die Basis — HP jetzt {hp}',
+  log_healfull:'{name} erreicht die Basis, HP ist bereits voll',
+  log_supply:'{name} nimmt eine Mine aus einem Depot — {mines} in der Hand',
+  log_supplyfull:'{name} erreicht ein Depot, ist aber bereits am Limit',
+  log_forced:'Eine 6 gewürfelt — {name} muss auf Feld {tile} eine Mine legen',
+  log_forcedfail:'Eine 6 gewürfelt, Legen nicht möglich ({err})',
+  log_place:'{name} legt eine Mine auf Feld {tile}',
+  log_win:'{name} hat das Feld geräumt', log_nosurvivor:'Keine Überlebenden'
+},
+nl:{
+  doc:'Mijnenveld', lang:'NL',
+  tagline:'Een dobbelbordspel over het leggen van mijnen',
+  meta_none:'veld nog niet geopend',
+  meta:'{n} eenheden · {tiles} velden · beurt {turn} · {mines} mijnen op het veld',
+  setup_title:'Veldopstelling',
+  setup_intro:'Kies hoeveel eenheden meedoen en stel de rest in. De bordgrootte is het aantal eenheden maal de afstand tussen de bases.',
+  rules:[
+    ['Beweging','Gooi en loop met de klok mee, rondje na rondje. Tussen de bases liggen {spacing} velden.'],
+    ['Mijnen','Start met {start}, hoogstens {max} in de hand. Leggen kan alleen op het veld waar je stopt.'],
+    ['Bevoorradingsdepots','{caches} per sector, elk spel opnieuw geloot. Stop erop voor een extra mijn. Ze zijn gedeeld en raken nooit op.'],
+    ['HP','Begin met 2. Een mijn van een ander kost 1 HP, bij 0 lig je eruit. Stoppen op je eigen basis geeft er 1 terug, tot maximaal 3.'],
+    ['Speciale worpen','Een 6 dwingt je een mijn op dat veld te leggen.'],
+    ['Veilige gevallen','Mijnen gaan alleen af als je erop stopt. Eroverheen lopen is veilig, je eigen mijnen zijn veilig, en wie er al staat blijft gespaard.']
+  ],
+  opt_start:'Mijnen bij start per eenheid', opt_max:'Maximaal in de hand',
+  opt_spacing:'Velden tussen de bases', opt_caches:'Depots per sector',
+  seg_human:'Mens', seg_bot:'CPU', tag_bot:'CPU', opt_botlevel:'Speelsterkte',
+  lvl_easy:'Makkelijk', lvl_normal:'Normaal', lvl_hard:'Moeilijk', st_thinking:'{name} denkt na',
+  btn_start:'Veld openen', board_title:'Veldkaart', units_title:'Eenheden in het veld', log_title:'Veldlogboek',
+  btn_roll:'Gooien', btn_place:'Mijn leggen', btn_skip:'Niet leggen, beurt beëindigen',
+  btn_reset:'Opnieuw', btn_again:'Nieuw veld openen',
+  over_kicker:'Missie voorbij', over_win:'{name} heeft het veld geruimd', over_none:'Geen overlevenden',
+  st_over:'Missie voorbij', st_turn:'{name} is aan zet', st_sub:'HP {hp} · {mines} mijnen in de hand',
+  st_forced:'Een 6 gegooid — leg een mijn op veld {tile}', st_forced_sub:'Bij een 6 is leggen verplicht',
+  st_ask:'Mijn leggen op veld {tile}?', st_left:'nog {mines} in de hand',
+  unit:'Eenheid {l}', base:'Basis {l}', at_tile:'Veld {tile}', active:'aan zet', knocked:'uitgeschakeld',
+  ERR_NO_MINE:'geen mijnen in de hand', ERR_MINED:'dit veld is al bemijnd',
+  footer:'met de klok mee · mijnen gaan alleen af bij stoppen',
+  log_open:'Veld geopend — {n} eenheden, {tiles} velden, {caches} depots',
+  log_move:'{name} gooit {roll} en stopt op veld {tile}',
+  log_boom:'{name} stapt op een mijn van {owner} — HP nu {hp}',
+  log_out:'{name} ligt eruit',
+  log_ownmine:'{name} stopt op de eigen mijn en blijft veilig',
+  log_heal:'{name} bereikt de basis — HP nu {hp}',
+  log_healfull:'{name} bereikt de basis, maar HP is al vol',
+  log_supply:'{name} pakt een mijn uit een depot — {mines} in de hand',
+  log_supplyfull:'{name} bereikt een depot maar zit al aan het maximum',
+  log_forced:'Een 6 gegooid — {name} moet een mijn leggen op veld {tile}',
+  log_forcedfail:'Een 6 gegooid, leggen niet mogelijk ({err})',
+  log_place:'{name} legt een mijn op veld {tile}',
+  log_win:'{name} heeft het veld geruimd', log_nosurvivor:'Geen overlevenden'
+}
+};
+
+(function(){
+'use strict';
+var S=null, geo=null, playerCount=3, busy=false, animTok=null, lang='th';
+var cfg={mineStart:Game.C.MINE_START, mineMax:Game.C.MINE_MAX, spacing:Game.C.SPACING, caches:Game.C.CACHES};
+var pnames=['','','','','',''], pbots=[false,false,false,false,false,false];
+var botLevel='normal', runId=0;
+var $=function(id){return document.getElementById(id)};
+var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+
+function D(){ return DICT[lang] }
+function fmt(str,p){ return String(str).replace(/\{(\w+)\}/g,function(_,k){ return (p&&p[k]!==undefined)?p[k]:'' }) }
+function t(key,p){ var v=D()[key]; if(v===undefined) v=DICT.th[key]; return fmt(v,p) }
+/* ชื่อที่ผู้ใช้พิมพ์เองไหลเข้า innerHTML ได้ ต้อง escape ก่อนเสมอ */
+function esc(v){ return String(v).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c] }) }
+/* name เป็น null แปลว่าใช้ชื่อมาตรฐาน จึงยังเปลี่ยนตามภาษาได้ */
+function uname(id){
+  var custom=S&&S.players[id]&&S.players[id].name;
+  return custom || t('unit',{l:Game.UNITS[id].letter});
+}
+
+/* ---------- language ---------- */
+var LANGS=['th','en','de','nl'];
+LANGS.forEach(function(code){
+  var b=document.createElement('button');
+  b.type='button'; b.textContent=DICT[code].lang; b.setAttribute('aria-pressed',code===lang);
+  b.onclick=function(){ lang=code;
+    Array.prototype.forEach.call($('langs').children,function(c,i){ c.setAttribute('aria-pressed',LANGS[i]===lang) });
+    applyLang();
+  };
+  $('langs').appendChild(b);
+});
+
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.title=t('doc');
+  $('tagline').textContent=t('tagline');
+  $('setupTitle').textContent=t('setup_title');
+  $('setupIntro').textContent=t('setup_intro');
+  $('btnStart').textContent=t('btn_start');
+  $('boardTitle').textContent=t('board_title');
+  $('unitsTitle').textContent=t('units_title');
+  $('logTitle').textContent=t('log_title');
+  $('btnRoll').textContent=t('btn_roll');
+  $('btnPlace').textContent=t('btn_place');
+  $('btnSkip').textContent=t('btn_skip');
+  $('btnReset').textContent=t('btn_reset');
+  $('btnAgain').textContent=t('btn_again');
+  $('overKicker').textContent=t('over_kicker');
+  $('footer').textContent=t('footer');
+  $('board').setAttribute('aria-label',t('board_title'));
+  buildRoster(); buildBotRow(); renderOpts();
+  if(S){ buildBoard(); sync(); } else { $('meta').textContent=t('meta_none'); }
+}
+
+/* ---------- setup ---------- */
+var COUNTS=[2,3,4,5,6];
+COUNTS.forEach(function(n){
+  var b=document.createElement('button');
+  b.className='choice'; b.type='button'; b.textContent=n;
+  b.setAttribute('aria-pressed',n===playerCount);
+  b.onclick=function(){ playerCount=n;
+    Array.prototype.forEach.call($('choices').children,function(c,i){ c.setAttribute('aria-pressed',COUNTS[i]===n) });
+    buildRoster();
+  };
+  $('choices').appendChild(b);
+});
+var OPTS=[
+  {key:'opt_start', get:function(){return cfg.mineStart}, set:function(v){cfg.mineStart=v},
+   lo:function(){return 0}, hi:function(){return cfg.mineMax}},
+  {key:'opt_max', get:function(){return cfg.mineMax}, set:function(v){cfg.mineMax=v; if(cfg.mineStart>v) cfg.mineStart=v},
+   lo:function(){return 1}, hi:function(){return Game.C.MINE_HARD_MAX}},
+  {key:'opt_spacing', get:function(){return cfg.spacing},
+   set:function(v){ cfg.spacing=v; var m=Game.maxCaches(v); if(cfg.caches>m) cfg.caches=m },
+   lo:function(){return Game.C.SPACING_MIN}, hi:function(){return Game.C.SPACING_MAX}},
+  /* ต่ำสุด 1 ไม่ใช่ 0: ถ้าไม่มีจุดเก็บเลย ทุ่นทั้งเกมมีจำนวนจำกัด
+     พอถูกใช้จนหมดจะไม่มีใครฆ่าใครได้อีก เกมค้างถาวร (ยืนยันด้วยการจำลองแล้ว)
+     ตัวโมดูลยังรับ 0 ได้ถ้าเรียกตรง ๆ */
+  {key:'opt_caches', get:function(){return cfg.caches}, set:function(v){cfg.caches=v},
+   lo:function(){return 1}, hi:function(){return Game.maxCaches(cfg.spacing)}}
+];
+OPTS.forEach(function(o,i){
+  var row=document.createElement('div'); row.className='opt';
+  row.innerHTML='<span id="optlbl'+i+'"></span><div class="step">'+
+    '<button type="button" aria-label="-">\u2212</button><b id="optval'+i+'"></b>'+
+    '<button type="button" aria-label="+">+</button></div>';
+  var b=row.querySelectorAll('.step button');
+  b[0].onclick=function(){ o.set(Math.max(o.lo(),o.get()-1)); renderOpts() };
+  b[1].onclick=function(){ o.set(Math.min(o.hi(),o.get()+1)); renderOpts() };
+  $('opts').appendChild(row);
+});
+function renderOpts(){
+  OPTS.forEach(function(o,i){
+    $('optlbl'+i).textContent=t(o.key);
+    $('optval'+i).textContent=o.get();
+    var b=$('opts').children[i].querySelectorAll('.step button');
+    b[0].disabled=o.get()<=o.lo(); b[1].disabled=o.get()>=o.hi();
+  });
+  $('rules').innerHTML=D().rules.map(function(r){
+    return '<div><b>'+r[0]+'</b> '+fmt(r[1],{start:cfg.mineStart,max:cfg.mineMax,spacing:cfg.spacing,caches:cfg.caches})+'</div>';
+  }).join('');
+}
+
+/* ค่าที่กรอกเก็บในอาเรย์ 6 ช่องเสมอ ลดจำนวนหน่วยแล้วเพิ่มกลับ ค่าเดิมยังอยู่ */
+function buildRoster(){
+  var box=$('proster'); box.innerHTML='';
+  for(var i=0;i<playerCount;i++){
+    (function(i){
+      var row=document.createElement('div'); row.className='prow';
+      var chip=document.createElement('span');
+      chip.className='chip'; chip.style.background=Game.UNITS[i].color;
+      var inp=document.createElement('input');
+      inp.className='pname'; inp.type='text'; inp.maxLength=14; inp.value=pnames[i];
+      inp.placeholder=t('unit',{l:Game.UNITS[i].letter});
+      inp.oninput=function(){ pnames[i]=inp.value };
+      var seg=document.createElement('div'); seg.className='seg';
+      [false,true].forEach(function(isBot){
+        var b=document.createElement('button'); b.type='button';
+        b.textContent=t(isBot?'seg_bot':'seg_human');
+        b.setAttribute('aria-pressed',pbots[i]===isBot);
+        b.onclick=function(){ pbots[i]=isBot; buildRoster() };
+        seg.appendChild(b);
+      });
+      row.appendChild(chip); row.appendChild(inp); row.appendChild(seg);
+      box.appendChild(row);
+    })(i);
+  }
+}
+
+function buildBotRow(){
+  $('botrow').innerHTML='<div class="opt"><span id="botlbl"></span><div class="seg" id="botseg"></div></div>';
+  $('botlbl').textContent=t('opt_botlevel');
+  Bot.levels().forEach(function(lv){
+    var b=document.createElement('button'); b.type='button';
+    b.textContent=t('lvl_'+lv); b.setAttribute('aria-pressed',lv===botLevel);
+    b.onclick=function(){ botLevel=lv; buildBotRow() };
+    $('botseg').appendChild(b);
+  });
+}
+
+$('btnStart').onclick=function(){ start(playerCount) };
+$('btnAgain').onclick=reset; $('btnReset').onclick=reset;
+
+function reset(){
+  runId++; busy=false; animTok=null; S=null;
+  $('game').classList.add('hidden'); $('setup').classList.remove('hidden');
+  $('meta').textContent=t('meta_none');
+}
+
+function start(n){
+  runId++; busy=false; animTok=null;
+  S=Game.createGame(n,{
+    mineStart:cfg.mineStart, mineMax:cfg.mineMax, spacing:cfg.spacing, caches:cfg.caches,
+    names:pnames.slice(0,n),
+    bots:pbots.slice(0,n).map(function(isBot){ return isBot?botLevel:null })
+  });
+  geo=geometry(S.boardSize);
+  $('setup').classList.add('hidden');
+  $('game').classList.remove('hidden');
+  $('over').classList.add('hidden');
+  buildBoard(); drawDie(null); sync(); maybeBot();
+}
+
+/* ---------- geometry ---------- */
+/* ขนาดช่องคิดจากจำนวนช่องจริง เพราะระยะฐานปรับได้แล้ว
+   จำนวนผู้เล่นไม่ใช่ตัวบอกความหนาแน่นอีกต่อไป */
+function geometry(size){
+  var tileR=Math.max(7,Math.min(20,Math.round((2*Math.PI*264-7*size)/(2*size+2*Math.PI))));
+  var ringR=size*(tileR*2+7)/(2*Math.PI);
+  var box=(ringR+tileR+46)*2;
+  /* บอร์ดใหญ่สุดคือ 6 หน่วย x 15 ช่อง = 90 ช่อง ถ้าคุมความกว้างบนจอไว้เท่าเดิม
+     ช่องจะเล็กจนอ่านไม่ออก จึงให้กรอบบนจอโตตามจำนวนช่องด้วย */
+  return {tileR:tileR, ringR:ringR, box:box, cx:box/2, cy:box/2,
+          maxW:Math.max(520,Math.min(760,Math.round(480+size*3)))};
+}
+function xy(i,r){
+  var a=i/S.boardSize*Math.PI*2-Math.PI/2;
+  return {x:geo.cx+r*Math.cos(a), y:geo.cy+r*Math.sin(a)};
+}
+function el(tag,attrs){
+  var e=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(var k in attrs) e.setAttribute(k,attrs[k]);
+  return e;
+}
+
+/* ---------- board ---------- */
+function buildBoard(){
+  var svg=$('board');
+  svg.setAttribute('viewBox','0 0 '+geo.box+' '+geo.box);
+  svg.style.maxWidth=geo.maxW+'px';
+  svg.innerHTML='';
+  svg.appendChild(el('circle',{cx:geo.cx,cy:geo.cy,r:geo.ringR,'class':'ring'}));
+  var tiles=el('g',{});
+  for(var i=0;i<S.boardSize;i++){
+    var p=xy(i,geo.ringR);
+    var owner=S.startTiles.indexOf(i);
+    var cls='tile'+(owner>=0?' start':'')+(S.caches[i]?' cache':'');
+    var c=el('circle',{cx:p.x,cy:p.y,r:geo.tileR,'class':cls,id:'tile'+i});
+    if(owner>=0) c.setAttribute('stroke',S.players[owner].color);
+    tiles.appendChild(c);
+    if(owner>=0||i%6===0){
+      var tx=el('text',{x:p.x,y:p.y,'class':'tnum','font-size':Math.max(7,Math.min(11,Math.round(geo.tileR*0.7)))});
+      tx.textContent=i; tiles.appendChild(tx);
+    }
+    if(owner>=0){
+      var lp=xy(i,geo.ringR+geo.tileR+15);
+      var lb=el('text',{x:lp.x,y:lp.y,'class':'slabel',fill:S.players[owner].color});
+      lb.textContent=t('base',{l:S.players[owner].letter});
+      tiles.appendChild(lb);
+    }
+  }
+  svg.appendChild(tiles);
+  svg.appendChild(el('g',{id:'caches'}));
+  svg.appendChild(el('g',{id:'mines'}));
+  svg.appendChild(el('g',{id:'tokens'}));
+  svg.appendChild(el('g',{id:'fx'}));
+}
+
+/* เครื่องหมายจุดเก็บทุ่นโผล่เฉพาะตอนช่องนั้นยังไม่มีทุ่นทับ เพราะทุ่นบังตรงกลางพอดี */
+function drawCaches(){
+  var g=$('caches'); g.innerHTML='';
+  Object.keys(S.caches).forEach(function(k){
+    if(S.mines[k]) return;
+    var p=xy(+k,geo.ringR);
+    var tx=el('text',{x:p.x,y:p.y,'class':'cglyph','font-size':Math.max(8,Math.round(geo.tileR*0.85))});
+    tx.textContent='+';
+    g.appendChild(tx);
+  });
+}
+
+function drawMines(){
+  var g=$('mines'); g.innerHTML='';
+  Object.keys(S.mines).forEach(function(k){
+    var p=xy(+k,geo.ringR), owner=S.players[S.mines[k].ownerId], r=geo.tileR*0.66;
+    g.appendChild(el('rect',{x:-r,y:-r,width:r*2,height:r*2,rx:2,'class':'mine',
+      transform:'translate('+p.x+','+p.y+') rotate(45)', fill:owner.color}));
+    var lb=el('text',{x:p.x,y:p.y,'class':'mlabel','font-size':Math.max(7,Math.round(geo.tileR*0.62))});
+    lb.textContent=owner.letter;
+    g.appendChild(lb);
+  });
+}
+
+function drawTokens(){
+  var g=$('tokens'); g.innerHTML='';
+  var byTile={};
+  S.players.forEach(function(p){
+    if(p.hp<=0) return;
+    if(animTok&&animTok.id===p.id) return;   /* คนที่กำลังเดิน วาดแยกทีหลังให้อยู่ชั้นบนสุด */
+    (byTile[p.pos]=byTile[p.pos]||[]).push(p);
+  });
+  Object.keys(byTile).forEach(function(k){
+    var c=xy(+k,geo.ringR), list=byTile[k], mined=!!S.mines[k];
+    var r=Math.max(6,geo.tileR*0.46), spread=(list.length>1||mined);
+    list.forEach(function(p,n){
+      var x=c.x,y=c.y;
+      if(spread){
+        var a=(n/list.length)*Math.PI*2-Math.PI/2, off=geo.tileR*(mined?1.0:0.5);
+        x+=off*Math.cos(a); y+=off*Math.sin(a);
+      }
+      g.appendChild(el('circle',{cx:x,cy:y,r:r,'class':'token',fill:p.color}));
+      if(geo.tileR>=16&&!spread){
+        var tl=el('text',{x:x,y:y,'class':'tletter'}); tl.textContent=p.letter; g.appendChild(tl);
+      }
+    });
+  });
+
+  if(animTok){
+    var mv=S.players[animTok.id];
+    var base=xy(animTok.idx,geo.ringR);
+    var air=xy(animTok.idx,geo.ringR+animTok.lift);
+    var r=Math.max(6,geo.tileR*0.46);
+    /* เงาอยู่กับพื้นวง ตัวหมุดลอยขึ้น ทำให้อ่านออกว่ากำลังกระโดดข้ามช่อง */
+    g.appendChild(el('ellipse',{cx:base.x,cy:base.y,rx:r*0.8,ry:r*0.55,'class':'shadow'}));
+    g.appendChild(el('circle',{cx:air.x,cy:air.y,r:r*(1+animTok.lift/(geo.tileR*4)),'class':'token moving',fill:mv.color}));
+    if(geo.tileR>=16){
+      var ml=el('text',{x:air.x,y:air.y,'class':'tletter'}); ml.textContent=mv.letter; g.appendChild(ml);
+    }
+  }
+}
+
+/* วงกระเพื่อมสำหรับเน้นเหตุการณ์บนช่อง วาดด้วย rAF เพราะ CSS animate r ไม่ได้ทุกเบราว์เซอร์ */
+function pulseAt(tile,color,scale){
+  var layer=$('fx'); if(!layer) return;
+  var p=xy(tile,geo.ringR);
+  var c=el('circle',{cx:p.x,cy:p.y,r:geo.tileR*0.6,fill:'none',stroke:color,'stroke-width':2.5});
+  layer.appendChild(c);
+  var t0=null, dur=440, grow=geo.tileR*(scale||1.5);
+  function frame(ts){
+    if(t0===null) t0=ts;
+    var k=Math.min(1,(ts-t0)/dur);
+    c.setAttribute('r',geo.tileR*0.6+grow*k);
+    c.setAttribute('opacity',(1-k)*0.75);
+    if(k<1) requestAnimationFrame(frame); else if(c.parentNode) c.parentNode.removeChild(c);
+  }
+  requestAnimationFrame(frame);
+}
+
+function blastAt(tile){
+  var t=$('tile'+tile);
+  if(t){ t.classList.add('blast'); setTimeout(function(){t.classList.remove('blast')},700); }
+  pulseAt(tile,'#9E2B24',2.2);
+  setTimeout(function(){ pulseAt(tile,'#9E2B24',1.6) },120);
+  var st=document.querySelector('.stage');
+  st.classList.add('shake'); setTimeout(function(){st.classList.remove('shake')},430);
+}
+
+/* เดินทีละช่องด้วย ease-in-out ต่อช่อง ได้จังหวะกระโดดแบบหมากกระดาน
+   ตำแหน่งเป็นเลขทศนิยม ส่งเข้า xy() ตรง ๆ ได้เลยเพราะสูตรมุมรับค่าเศษส่วนอยู่แล้ว */
+function animateMove(id,from,roll){
+  return new Promise(function(done){
+    var t0=null, per=185, total=roll*per;
+    function frame(ts){
+      if(t0===null) t0=ts;
+      var k=Math.min(1,(ts-t0)/total);
+      var raw=k*roll;
+      var i=Math.min(roll-1,Math.floor(raw));
+      var f=raw-i;
+      var eased=f<0.5 ? 2*f*f : 1-Math.pow(-2*f+2,2)/2;
+      animTok={id:id, idx:from+i+eased, lift:Math.sin(Math.PI*f)*geo.tileR*0.6};
+      drawTokens();
+      if(k<1) requestAnimationFrame(frame);
+      else { animTok=null; drawTokens(); done(); }
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+/* หน้าเต๋าสลับถี่แล้วค่อย ๆ ช้าลง ปิดท้ายด้วยจังหวะกระแทกลง */
+function tumbleDie(final){
+  var d=$('die');
+  if(reduced){ drawDie(final); return Promise.resolve() }
+  var delays=[40,44,52,64,80,100,126,158,196];
+  d.classList.add('rolling');
+  return delays.reduce(function(chain,ms){
+    return chain.then(function(){ drawDie(1+Math.floor(Math.random()*6)); return sleep(ms) });
+  }, Promise.resolve()).then(function(){
+    d.classList.remove('rolling');
+    drawDie(final);
+    d.classList.add('settle');
+    setTimeout(function(){ d.classList.remove('settle') },400);
+    return sleep(160);
+  });
+}
+
+/* ---------- panels ---------- */
+function drawDie(v){
+  var d=$('die'); d.innerHTML='';
+  var on=v?PIPS[v]:[];
+  for(var i=0;i<9;i++){
+    var s=document.createElement('i');
+    if(on.indexOf(i)>=0) s.className='on';
+    d.appendChild(s);
+  }
+}
+/* หัวใจสำหรับ HP และข้าวหลามตัดสำหรับทุ่น ให้ตรงกับสัญลักษณ์ทุ่นบนบอร์ด */
+function hpPips(hp){
+  var s='';
+  for(var i=0;i<Game.C.HP_MAX;i++) s+='<i class="'+(i<hp?'on':'off')+'">\u2665</i>';
+  return s;
+}
+function mineDisp(n){
+  if(!n) return '<i class="off">\u25C6</i>';
+  if(n>8) return '<i>\u25C6</i>\u00D7'+n;
+  var s=''; for(var i=0;i<n;i++) s+='<i>\u25C6</i>';
+  return s;
+}
+
+function drawUnits(){
+  var box=$('units'); box.innerHTML='';
+  S.players.forEach(function(p,i){
+    var alive=p.hp>0, turn=(i===S.currentIdx&&S.phase!=='GAME_OVER');
+    var d=document.createElement('div');
+    d.className='unit'+(alive?'':' out')+(turn&&alive?' turn':'');
+    var sub=alive?(t('at_tile',{tile:p.pos})+(turn?' · '+t('active'):'')):t('knocked');
+    d.innerHTML='<span class="chip" style="background:'+p.color+'"></span>'+
+      '<span class="uname"><span class="nm">'+esc(uname(p.id))+
+        '<span class="pips hp">'+hpPips(alive?p.hp:0)+'</span></span>'+
+        '<em>'+sub+'</em></span>'+
+      (alive?'<span class="pips mn">'+mineDisp(p.mines)+'</span>':'')+
+      (p.bot?'<span class="tag">'+t('tag_bot')+'</span>':'');
+    box.appendChild(d);
+  });
+}
+
+function logText(e){
+  var p=e.p, params={};
+  for(var k in p) params[k]=p[k];
+  if(p.p!==undefined) params.name=uname(p.p);
+  if(p.owner!==undefined) params.owner=uname(p.owner);
+  if(p.err) params.err=t(p.err);
+  return t('log_'+e.key,params);
+}
+function drawLog(){
+  var ul=$('log'); ul.innerHTML='';
+  S.log.slice(0,60).forEach(function(e){
+    var li=document.createElement('li');
+    li.className='k-'+e.kind;
+    li.innerHTML='<span class="t">'+String(e.turn).padStart(2,'0')+'</span><span></span>';
+    li.lastChild.textContent=logText(e);
+    ul.appendChild(li);
+  });
+}
+
+function sync(){
+  drawCaches(); drawMines(); drawTokens(); drawUnits(); drawLog();
+  var p=S.players[S.currentIdx], over=S.phase==='GAME_OVER', err=Game.placementError(S);
+  var isBot=!over&&!!p.bot;
+  $('meta').textContent=t('meta',{n:S.players.length,tiles:S.boardSize,turn:S.turnCount+1,mines:Object.keys(S.mines).length});
+
+  var st=$('status');
+  if(over){
+    st.innerHTML='<b>'+t('st_over')+'</b>';
+  } else if(isBot){
+    st.innerHTML='<b>'+esc(t('st_thinking',{name:uname(p.id)}))+'</b>'+
+      '<span class="why">'+t('st_sub',{hp:p.hp,mines:p.mines})+'</span>';
+  } else if(S.phase==='AWAIT_ROLL'){
+    st.innerHTML='<b>'+esc(t('st_turn',{name:uname(p.id)}))+'</b><span class="why">'+t('st_sub',{hp:p.hp,mines:p.mines})+'</span>';
+  } else {
+    st.innerHTML= S.forced
+      ? '<b>'+t('st_forced',{tile:p.pos})+'</b><span class="why">'+t('st_forced_sub')+'</span>'
+      : '<b>'+t('st_ask',{tile:p.pos})+'</b><span class="why">'+(err?t(err):t('st_left',{mines:p.mines}))+'</span>';
+  }
+
+  $('btnRoll').disabled=!(!over&&S.phase==='AWAIT_ROLL'&&!busy&&!isBot);
+  $('btnRoll').classList.toggle('hidden',S.phase==='AWAIT_MINE'||isBot);
+  $('btnPlace').classList.toggle('hidden',S.phase!=='AWAIT_MINE'||isBot);
+  $('btnPlace').disabled=!!err;
+  $('btnSkip').classList.toggle('hidden',S.phase!=='AWAIT_MINE'||S.forced||isBot);
+
+  if(over){
+    $('over').classList.remove('hidden');
+    $('overText').textContent = S.winner!==null ? t('over_win',{name:uname(S.winner)}) : t('over_none');
+  }
+}
+
+/* ---------- actions ---------- */
+function sleep(ms){ return new Promise(function(r){setTimeout(r,ms)}) }
+
+async function doRoll(){
+  var roll=Game.rollDice();
+  await tumbleDie(roll);
+
+  var me=S.players[S.currentIdx], from=me.pos;
+  if(!reduced) await animateMove(me.id,from,roll);
+
+  var before=S.log.length;
+  var next=Game.land(S,roll);
+  var hit={};
+  next.log.slice(0,next.log.length-before).forEach(function(e){ hit[e.key]=true });
+  var where=next.players[me.id].pos;
+  S=next; sync();
+
+  if(!reduced){
+    if(hit.boom){ blastAt(where); await sleep(560); }
+    else {
+      pulseAt(where, me.color);
+      if(hit.heal) pulseAt(where,'#3F7A4A',2);
+      if(hit.supply) pulseAt(where,'#C79A1E',2);
+      await sleep(180);
+    }
+  }
+}
+
+$('btnRoll').onclick=async function(){
+  if(busy||!S||S.phase!=='AWAIT_ROLL'||S.players[S.currentIdx].bot) return;
+  busy=true; sync();
+  await doRoll();
+  busy=false; sync();
+  maybeBot();
+};
+
+$('btnPlace').onclick=function(){ if(busy||!S) return; S=Game.placeMine(S); sync(); maybeBot(); };
+$('btnSkip').onclick=function(){ if(busy||!S) return; S=Game.skipMine(S); sync(); maybeBot(); };
+
+/* ลูกโซ่เทิร์นของคอมพิวเตอร์
+   ทุกขั้นเทียบ runId กับตอนที่เริ่ม ถ้าผู้ใช้กดเริ่มใหม่ระหว่างทาง คิวที่ค้างอยู่จะหยุดเงียบ ๆ
+   ไม่ไปแตะ state ของเกมรอบใหม่ */
+function maybeBot(){
+  if(!S||S.phase==='GAME_OVER'||!S.players[S.currentIdx].bot) return;
+  var my=runId;
+  setTimeout(function(){ botTurn(my) }, reduced?60:320);
+}
+
+async function botTurn(my){
+  if(my!==runId||!S||S.phase!=='AWAIT_ROLL') return;
+  var p=S.players[S.currentIdx];
+  if(!p.bot) return;
+
+  busy=true; sync();
+  await sleep(reduced?80:420);
+  if(my!==runId) return;
+
+  await doRoll();
+  if(my!==runId) return;
+
+  if(S.phase==='AWAIT_MINE'){
+    await sleep(reduced?80:420);
+    if(my!==runId) return;
+    S = Bot.decide(S,p.bot)==='place' ? Game.placeMine(S) : Game.skipMine(S);
+    sync();
+  }
+
+  busy=false; sync();
+  maybeBot();
+}
+
+applyLang();
+})();
+</script>
+</body>
+</html>

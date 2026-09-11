@@ -106,7 +106,6 @@ header{border-bottom:2px solid var(--brass-dark);padding-bottom:10px;margin-bott
 .brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
 h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;margin:0;text-transform:uppercase}
 .tagline{font-size:14px;color:var(--ink-2)}
-.ver{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--ink-3);margin-top:3px}
 .meta{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;margin-top:4px}
 .langs{display:flex;border:1px solid var(--rule);border-radius:3px;overflow:hidden;flex:none}
 .langs button{font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:6px 11px;border:0;border-radius:0;
@@ -150,53 +149,6 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
 .prow{display:flex;align-items:center;gap:9px}
 .pick{font-family:var(--sans);font-size:13px;padding:6px 10px;color:var(--ink);
   background:var(--ctrl);border:1px solid var(--rule);border-radius:4px;cursor:pointer}
-/* ผู้เข้าร่วมไม่ได้เป็นคนตั้งค่า จึงหรี่ทุกอย่างที่ไม่ใช่เรื่องของเขาลง
-   ยกเว้นแถวห้องรอ ซึ่งยังต้องกดเลือกที่นั่งและออกจากห้องได้ */
-.guestlock .choices,.guestlock #teamrow,.guestlock #shaperow,.guestlock #roster,
-.guestlock .adv,.guestlock #btnStart{opacity:.45}
-.guestlock .adv summary{cursor:not-allowed}
-.lockmsg{font-size:12.5px;color:var(--brass);margin:10px 0 0}
-/* เข้าห้องคนอื่นแล้ว การตั้งค่าเป็นสิทธิ์ของเจ้าของห้อง
-   หรี่และปิดทุกอย่างยกเว้นแถวห้องรอ ปุ่มดูไอเท็ม และปุ่มออกจากห้อง */
-/* หรี่ให้รู้ว่าแตะไม่ได้ แต่ไม่บล็อกคลิกแบบเหมารวมอีกแล้ว
-   ตัวที่กันจริงคือ disabled บนปุ่มแต่ละตัว ซึ่งเบราว์เซอร์กันคลิกให้อยู่แล้ว
-   การใช้ pointer-events คลุมทั้งกล่องเคยทำให้ปุ่มที่ตั้งใจเปิดไว้กดไม่ได้มาแล้วสองรอบ */
-.setup.guestlock .body > *{opacity:.45}
-.setup.guestlock .body > #netrow,
-.setup.guestlock .body > .actions{opacity:1}
-.setup.guestlock .body > .actions #btnStart{opacity:.45}
-.setup.guestlock.canrejoin .body > .actions #btnStart{opacity:1}
-.guestlock.canrejoin #btnStart{opacity:1}
-/* ส่วนที่กดได้โดยไม่มี disabled ต้องกันด้วยวิธีนี้ เพราะ summary ปิดไม่ได้ */
-.setup.guestlock .adv{pointer-events:none}
-.setup.guestlock.canrejoin .adv{pointer-events:none}
-.lockmsg{font-size:12.5px;color:var(--ink-2);margin:10px 0 0}
-.lobby{display:grid;gap:6px;margin-top:10px}
-.seatrow{display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--rule);
-  border-radius:4px;background:var(--ctrl-b)}
-.seatrow .who{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.seatrow .tm{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;padding:1px 6px;
-  border-radius:2px;border:1px solid currentColor;white-space:nowrap}
-.seatrow .tag2{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--ink-3)}
-.seatrow.mine{border-color:var(--brass);background:rgba(216,167,43,.12)}
-.seatrow.live{border-color:var(--heal)}
-.seatrow .tag2.live{color:var(--heal)}
-.seatrow button{padding:5px 12px;font-size:12px}
-.netcode{font-family:var(--mono);font-size:22px;letter-spacing:.28em;color:var(--brass);font-weight:600}
-.netin{font-family:var(--mono);font-size:16px;letter-spacing:.22em;text-transform:uppercase;
-  width:130px;padding:7px 10px;color:var(--ink);background:var(--ctrl);
-  border:2px solid var(--rule);border-radius:4px}
-.netmsg{font-size:12.5px;color:var(--ink-2)}
-.netmsg.bad{color:var(--blood)}
-.netmsg.ok{color:var(--heal)}
-.langs button{display:flex;align-items:center;justify-content:center;min-width:34px;height:30px;padding:0 8px}
-.langwrap{position:relative}
-.langpop{position:absolute;right:0;top:calc(100% + 5px);z-index:30;display:flex;flex-direction:column;
-  gap:3px;padding:5px;background:var(--paper-2);border:1px solid var(--brass);border-radius:5px;
-  box-shadow:0 4px 0 var(--shade)}
-.langpop button{border:1px solid transparent;border-radius:3px;padding:6px 14px;min-width:74px;
-  font-size:12.5px;background:none;color:var(--ink-2);cursor:pointer}
-.langpop button[aria-pressed="true"]{border-color:var(--brass);color:var(--ink);background:rgba(216,167,43,.14)}
 .ptokwrap{position:relative;flex:none;line-height:0}
 .ptokbtn{padding:3px 7px;border:2px solid var(--rule);border-radius:4px;background:var(--ctrl);
   cursor:pointer;line-height:0}
@@ -266,79 +218,6 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
 
 .game{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}
 @media(max-width:880px){.game{grid-template-columns:1fr}}
-
-/* ---------- จอมือถือ ----------
-   หลักคิด: กระดานต้องได้พื้นที่มากที่สุด ปุ่มต้องกดด้วยนิ้วได้ และไม่มีอะไรล้นขอบจอ
-   ทุกอย่างเรียงเป็นแถวเดียวจากบนลงล่าง ตามลำดับที่ต้องใช้จริงระหว่างเล่น */
-@media(max-width:640px){
-  body{padding:12px 10px 32px}
-  h1{font-size:19px;letter-spacing:.16em}
-  .tagline{font-size:12.5px}
-  .meta{font-size:10px}
-  header{padding-bottom:8px;margin-bottom:14px}
-  .top{gap:10px}
-  .tools{justify-content:flex-start;width:100%}
-
-  .setup{margin:4px auto}
-  .setup .body{padding:14px}
-  .setup p{font-size:14px;margin-bottom:12px}
-  .card h2{padding:8px 12px}
-
-  /* ปุ่มจำนวนผู้เล่นเรียงเต็มแถว นิ้วกดง่าย */
-  .choices{gap:6px}
-  .choice{padding:14px 2px;font-size:18px}
-
-  /* แถวตั้งค่าที่มีป้ายกับตัวเลือก ให้ป้ายขึ้นบรรทัดของตัวเอง ไม่งั้นบีบจนอ่านไม่ออก */
-  .opt{flex-wrap:wrap;gap:8px;padding:9px 10px}
-  .opt > span:first-child{flex:1 0 100%}
-  .seg{flex-wrap:wrap}
-  .seg button{padding:9px 12px}
-  .pick,.netin{flex:1;min-width:0}
-
-  /* แถวผู้เล่น ชื่อกินพื้นที่ที่เหลือ ปุ่มคนกับคอมไปอยู่บรรทัดล่างเมื่อที่ไม่พอ */
-  .prow{flex-wrap:wrap;gap:8px}
-  .pname{flex:1 1 120px;font-size:16px}
-  .ptokbtn{padding:5px 9px}
-
-  /* พื้นที่กระดาน ตัดขอบในให้เหลือน้อยที่สุดเพื่อให้ช่องใหญ่ที่สุดเท่าที่ทำได้ */
-  .game{gap:12px}
-  .stage{padding:8px}
-  svg#board{max-width:100%}
-  .console{padding:12px 10px}
-  .readout{gap:10px}
-  .die{width:42px;height:42px}
-
-  /* ปุ่มสั่งการต้องสูงพอสำหรับนิ้ว */
-  button{padding:11px 16px;font-size:15px}
-  .actions{gap:10px}
-  .actions button{flex:1 1 auto;min-height:46px}
-  .steps{gap:8px}
-  .stepbtn{min-width:52px;min-height:50px;font-size:17px;padding:9px 12px}
-  .stepbtn{padding-bottom:17px}
-
-  /* แผงหน่วยกับบันทึกอยู่ใต้กระดาน ย่อความสูงลงไม่ให้ต้องเลื่อนยาว */
-  .log{max-height:180px}
-  .unit{padding:7px 10px}
-  .modal{padding:10px}
-  .modal .sheet{max-height:88vh}
-  .infobody{padding:14px}
-  .irow{padding:10px 12px}
-
-  /* หน้าต่างยืนยันไอเท็มเต็มจอมากขึ้น */
-  .itemcard{inset:8px}
-  .itemcard .body{padding:16px 18px}
-
-  /* แถบเลือกรูปทรงตัวละครมีหกตัว บนจอแคบต้องพับบรรทัดไม่ให้ล้นออกนอกจอ */
-  .tokpop{max-width:calc(100vw - 40px);flex-wrap:wrap;left:auto;right:0}
-}
-
-/* จอแคบมาก เช่นมือถือรุ่นเล็กหรือแนวนอนแคบ */
-@media(max-width:380px){
-  h1{font-size:17px}
-  .choice{font-size:16px;padding:12px 2px}
-  .stepbtn{min-width:46px;font-size:16px}
-  .netcode{font-size:18px;letter-spacing:.2em}
-}
 
 .stage{position:relative;padding:14px;display:flex;justify-content:center;
   background:var(--stage);
@@ -510,12 +389,11 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
           <span class="tagline" id="tagline"></span>
         </div>
         <div class="meta" id="meta"></div>
-        <div class="ver" id="ver"></div>
       </div>
       <div class="tools">
         <div class="langs"><button id="btnLook" type="button"></button></div>
         <div class="langs"><button id="btnSound" type="button"></button></div>
-        <div class="langs langwrap"><button id="btnLang" type="button"></button><div class="langpop hidden" id="langs"></div></div>
+        <div class="langs" id="langs"></div>
       </div>
     </div>
   </header>
@@ -527,7 +405,6 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
       <div class="fieldlbl" id="lblPlayers"></div>
       <div class="choices" id="choices"></div>
       <div class="proster" id="proster"></div>
-      <div class="opts" id="netrow"></div>
       <div class="opts" id="teamrow"></div>
       <div class="opts" id="shaperow"></div>
       <details class="adv"><summary id="advTitle"></summary>
@@ -2181,239 +2058,6 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
-/* สนามทุ่นระเบิด - ชั้นเชื่อมต่อออนไลน์
-   สถาปัตยกรรม: เครื่องที่กดสร้างห้องเป็นกรรมการคนเดียว
-   ผู้เข้าร่วมไม่คำนวณกติกาเองเลย ส่งแค่ความตั้งใจไปแล้วรอสถานะใหม่กลับมาวาด
-   ข้อดีคือไม่มีทางที่สองเครื่องคำนวณต่างกัน และคนเข้ามากลางเกมก็แค่ขอสถานะก้อนล่าสุด
-
-   โมดูลนี้ไม่รู้จักกติกาของเกมเลย รู้แค่ว่าต้องส่งอะไรไปหาใคร */
-(function (root) {
-  'use strict';
-
-  var PEER_SRC = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
-  var PREFIX = 'minefield5-';
-
-  var mode = 'off';          /* off | hosting | joined */
-  var peer = null;
-  var conns = [];            /* ฝั่งเจ้าของห้อง: การเชื่อมต่อของผู้เข้าร่วมทุกคน */
-  var conn = null;           /* ฝั่งผู้เข้าร่วม: ช่องทางไปหาเจ้าของห้อง */
-  var roomCode = '';
-  var mySeat = 0;
-  var hooks = {};            /* onState onStatus onJoin onAct */
-  var loaded = false;
-
-  function say(kind, text, extra) {
-    if (hooks.onStatus) hooks.onStatus(kind, text, extra || {});
-  }
-
-  function loadLib() {
-    if (loaded || root.Peer) { loaded = true; return Promise.resolve(); }
-    return new Promise(function (res, rej) {
-      var s = document.createElement('script');
-      s.src = PEER_SRC;
-      s.onload = function () { loaded = true; res(); };
-      s.onerror = function () { rej(new Error('LIB')); };
-      document.head.appendChild(s);
-      setTimeout(function () { if (!root.Peer) rej(new Error('LIB')); }, 12000);
-    });
-  }
-
-  function code6(rng) {
-    var abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', out = '';
-    var r = rng || Math.random;
-    for (var i = 0; i < 6; i++) out += abc[Math.floor(r() * abc.length)];
-    return out;
-  }
-
-  function makePeer(id) {
-    return new Promise(function (res, rej) {
-      var p = new root.Peer(id, { debug: 0 });
-      var done = false;
-      p.on('open', function () { done = true; res(p); });
-      p.on('error', function (e) {
-        /* ชนกับห้องที่มีอยู่แล้ว หรือต่อเซิร์ฟเวอร์นัดพบไม่ได้ */
-        if (!done) { done = true; rej(e); }
-        else say('warn', 'peer_error', { detail: e && e.type });
-      });
-      setTimeout(function () { if (!done) { done = true; rej(new Error('SIGNAL')); } }, 15000);
-    });
-  }
-
-  /* ---------- ฝั่งเจ้าของห้อง ---------- */
-
-  function host(opts) {
-    opts = opts || {};
-    hooks = opts;
-    mySeat = opts.seat === undefined ? 0 : opts.seat;
-    say('busy', 'loading');
-    return loadLib().then(function () {
-      roomCode = code6(opts.rng);
-      say('busy', 'signalling');
-      return makePeer(PREFIX + roomCode);
-    }).then(function (p) {
-      peer = p; mode = 'hosting';
-      say('ok', 'hosting', { code: roomCode });
-      p.on('connection', function (c) {
-        conns.push(c);
-        c.on('open', function () { say('info', 'guest_open'); });
-        c.on('data', function (msg) { onHostMessage(c, msg); });
-        c.on('close', function () {
-          var seat = seatOf(c);
-          conns = conns.filter(function (x) { return x !== c; });
-          if (hooks.onLeave) hooks.onLeave(seat);
-          say('warn', 'guest_left');
-        });
-      });
-      return roomCode;
-    }).catch(function (e) { fail(e); throw e; });
-  }
-
-  function onHostMessage(c, msg) {
-    if (!msg || !msg.k) return;
-    if (msg.k === 'hello') {
-      /* ยังไม่แจกที่นั่ง ส่งรายการที่นั่งไปให้เลือกเองก่อน */
-      c.metadata = { seat: -1, name: msg.name || '' };
-      if (hooks.onHello) hooks.onHello(c);
-      if (hooks.onSeats) hooks.onSeats(-1, c.metadata.name || '');
-      return;
-    }
-    if (msg.k === 'pick') {
-      /* กรรมการเป็นคนตัดสิน ใครส่งมาก่อนได้ก่อน คนที่ช้ากว่าจะถูกปฏิเสธ */
-      var got = hooks.onPick ? hooks.onPick(msg.seat, c) : -1;
-      c.metadata.seat = got;
-      c.send({ k: 'seat', seat: got });
-      if (got >= 0 && hooks.onState) {
-        var st = hooks.onState();
-        if (st) c.send({ k: 'state', s: st });
-      }
-      /* แจ้งชั้นบนว่าที่นั่งเปลี่ยนแล้ว เพื่อให้เจ้าของห้องวาดใหม่และส่งรายการใหม่ให้ทุกคน */
-      if (hooks.onSeats) hooks.onSeats(got, c.metadata.name || '');
-      return;
-    }
-    if (msg.k === 'act') {
-      var seat = c.metadata ? c.metadata.seat : -1;
-      if (seat < 0) return;
-      if (hooks.onAct) hooks.onAct(seat, msg.a);   /* ให้ชั้นบนตรวจว่าถึงตาเขาจริงไหม */
-    }
-  }
-
-  /* ส่งรายการที่นั่งให้ทุกคนที่ต่ออยู่ เรียกทุกครั้งที่ผังที่นั่งเปลี่ยน */
-  function sendLobby(seats, teams) {
-    if (mode !== 'hosting') return;
-    var payload = { k: 'lobby', seats: seats, teams: !!teams };
-    conns.forEach(function (c) {
-      if (c.open) { try { c.send(payload); } catch (e) {} }
-    });
-  }
-
-  function seatOf(c) { return c && c.metadata ? c.metadata.seat : -1; }
-  /* รายชื่อพร้อมที่นั่งของผู้เข้าร่วมทุกคนที่ยังอยู่ ใช้เป็นความจริงชุดเดียว
-     ชั้นบนจะได้สร้างรายชื่อใหม่ทั้งชุดแทนการไล่แก้ทีละเหตุการณ์ */
-  function seatNames() {
-    return conns.filter(function (c) { return c.open && c.metadata; })
-      .map(function (c) { return { seat: c.metadata.seat, name: c.metadata.name || '' }; });
-  }
-
-  function takenSeats() {
-    return conns.filter(function (c) { return c.open && seatOf(c) >= 0; })
-                .map(function (c) { return seatOf(c); });
-  }
-  function releaseSeat(c) { if (c && c.metadata) c.metadata.seat = -1; }
-
-  /* กระจายสถานะให้ทุกคน เรียกทุกครั้งที่สถานะเปลี่ยน */
-  function broadcast(state) {
-    if (mode !== 'hosting') return;
-    var payload = { k: 'state', s: state };
-    conns.forEach(function (c) {
-      if (c.open) { try { c.send(payload); } catch (e) { /* ปล่อยผ่าน */ } }
-    });
-  }
-
-  /* ---------- ฝั่งผู้เข้าร่วม ---------- */
-
-  function join(codeText, opts) {
-    opts = opts || {};
-    hooks = opts;
-    var wanted = String(codeText || '').trim().toUpperCase();
-    say('busy', 'loading');
-    return loadLib().then(function () {
-      say('busy', 'signalling');
-      return makePeer(null);
-    }).then(function (p) {
-      peer = p;
-      return new Promise(function (res, rej) {
-        var c = p.connect(PREFIX + wanted, { reliable: true });
-        var opened = false;
-        c.on('open', function () {
-          opened = true; conn = c; mode = 'joined'; roomCode = wanted;
-          c.send({ k: 'hello', name: opts.name || '' });
-          say('ok', 'joined', { code: wanted });
-          res(wanted);
-        });
-        c.on('data', function (msg) {
-          if (!msg || !msg.k) return;
-          if (msg.k === 'seat') {
-            mySeat = msg.seat;
-            if (msg.seat < 0) say('warn', 'room_full');
-            else say('ok', 'seated', { seat: msg.seat });
-          } else if (msg.k === 'lobby' && hooks.onLobby) {
-            hooks.onLobby(msg.seats, msg.teams);
-          } else if (msg.k === 'state' && hooks.onRemoteState) {
-            hooks.onRemoteState(msg.s);
-          }
-        });
-        c.on('close', function () { mode = 'off'; conn = null; say('warn', 'host_left'); });
-        c.on('error', function (e) { if (!opened) rej(e); });
-        setTimeout(function () { if (!opened) rej(new Error('CONNECT')); }, 15000);
-      });
-    }).catch(function (e) { fail(e); throw e; });
-  }
-
-  /* ผู้เข้าร่วมขอจองที่นั่ง */
-  function pick(seat) {
-    if (mode !== 'joined' || !conn || !conn.open) return false;
-    conn.send({ k: 'pick', seat: seat });
-    return true;
-  }
-
-  /* ผู้เข้าร่วมส่งความตั้งใจไปให้กรรมการ ไม่แตะสถานะของตัวเองเลย */
-  function send(action) {
-    if (mode !== 'joined' || !conn || !conn.open) return false;
-    conn.send({ k: 'act', a: action });
-    return true;
-  }
-
-  function fail(e) {
-    var why = (e && e.message) === 'LIB' ? 'no_lib'
-            : (e && e.message) === 'SIGNAL' ? 'no_signal'
-            : (e && e.type === 'peer-unavailable') ? 'no_room'
-            : (e && e.type === 'unavailable-id') ? 'code_taken'
-            : 'failed';
-    say('bad', why, { detail: (e && (e.type || e.message)) || '' });
-  }
-
-  function leave() {
-    try { conns.forEach(function (c) { c.close(); }); } catch (e) {}
-    try { if (conn) conn.close(); } catch (e) {}
-    try { if (peer) peer.destroy(); } catch (e) {}
-    conns = []; conn = null; peer = null; mode = 'off'; roomCode = ''; mySeat = 0;
-  }
-
-  root.Net = {
-    host: host, join: join, send: send, broadcast: broadcast, leave: leave,
-    pick: pick, sendLobby: sendLobby, takenSeats: takenSeats, seatNames: seatNames,
-    seatOf: seatOf, releaseSeat: releaseSeat,
-    mode: function () { return mode; },
-    isHost: function () { return mode === 'hosting'; },
-    isGuest: function () { return mode === 'joined'; },
-    online: function () { return mode !== 'off'; },
-    seat: function () { return mySeat; },
-    code: function () { return roomCode; },
-    guests: function () { return conns.filter(function (c) { return c.open; }).length; }
-  };
-  if (typeof module !== 'undefined' && module.exports) module.exports = root.Net;
-})(typeof globalThis !== 'undefined' ? globalThis : this);
-
 </script>
 
 <script>
@@ -2452,17 +2096,6 @@ th:{
   tip_ban:'วางทุ่นระเบิดไม่ได้จนกว่าเทิร์นจะวนกลับไปถึงคนที่ใช้ไอเท็ม',
   tip_slow:'การทอยอีก {n} ครั้งถัดไปจะได้แต้มหารสองปัดขึ้นทั้งสองลูก',
   tip_lift:'การทอยอีก {n} ครั้งถัดไปจะถูกบวก 1 ที่แต้มน้อยที่สุด ช่วงเดินจึงแคบลงจากด้านล่าง', btn_items:'ดูไอเท็มทั้งหมด', items_title:'ไอเท็มทั้งหมด', btn_close:'ปิด', opt_view:'มุมมอง', view_flat:'มองจากบน', view_tilt:'มองเอียง', btn_look:'ภาพ', look_title:'การแสดงผล',
-  opt_online:'เล่นออนไลน์', net_host:'สร้างห้อง', net_join:'เข้าร่วมห้อง', net_leave:'ออกจากห้อง',
-  lobby_title:'ที่นั่งในห้อง', seat_online:'เข้าห้องแล้ว', guest_locked:'เจ้าของห้องเป็นคนตั้งค่าเกม คุณเลือกได้แค่ที่นั่ง', seat_free:'ว่าง', seat_you:'คุณ', seat_bot:'คอมพิวเตอร์',
-  lock_hint:'เจ้าของห้องเป็นคนตั้งค่าและกดเริ่มเกม คุณเลือกได้แค่ที่นั่ง',
-  seat_host:'เจ้าของห้อง', seat_take:'เลือก', lobby_hint:'กดที่นั่งที่ว่างเพื่อย้ายไปนั่ง',
-  net_code:'รหัสห้อง', net_seat:'คุณคือ {name}', net_wait:'รอเพื่อนเข้าห้อง มีแล้ว {n} คน',
-  net_loading:'กำลังโหลดตัวเชื่อมต่อ', net_signal:'กำลังต่อเซิร์ฟเวอร์นัดพบ',
-  net_hosting:'เปิดห้องแล้ว รหัส {code}', net_joined:'เข้าห้อง {code} แล้ว',
-  net_full:'ห้องเต็ม', net_hostleft:'เจ้าของห้องออกไปแล้ว', net_guestleft:'ผู้เล่นคนหนึ่งออกไป',
-  net_nolib:'โหลดตัวเชื่อมต่อไม่ได้ ต้องเปิดหน้านี้ผ่าน https', net_nosignal:'ต่อเซิร์ฟเวอร์นัดพบไม่ได้',
-  net_noroom:'ไม่พบห้องนี้', net_taken:'รหัสห้องชนกัน ลองใหม่', net_failed:'เชื่อมต่อไม่สำเร็จ',
-  net_notyou:'รอตาของคุณ',
   opt_theme:'ธีมกระดาน', th_wood:'ไม้วอลนัท', th_steel:'เหล็กกล้า', th_jungle:'ป่ากลางคืน', th_slate:'หินชนวน', th_paper:'กระดาษสำรวจ', info_title:'รายละเอียดไอเท็ม',
   item_kind_now:'ทันที', item_kind_turn:'ติดตัวรอบนี้',
   kind_now:'ผลทันที', kind_turn:'ติดตัวรอบนี้', items_close:'ปิด', act_roll:'ทอยลูกเต๋า', act_cancel:'ยกเลิก', act_confirm:'ใช้เลย',
@@ -2504,7 +2137,7 @@ th:{
   opt_shape:'รูปทรงบอร์ด', shp_ring:'วงกลม', shp_poly:'{n} เหลี่ยม', shp_snake:'รถไฟ',
   shp_poly_off:'ต้องมีผู้เล่น 3 คนขึ้นไป', adv_title:'ติดตั้งเพิ่มเติม', board_title:'แผนผังสนาม', units_title:'หน่วยในสนาม', log_title:'บันทึกสนาม',
   btn_roll:'ทอยลูกเต๋า', btn_place:'วางระเบิด', btn_skip:'ไม่วาง จบเทิร์น',
-  btn_reset:'เริ่มใหม่', btn_again:'เปิดสนามใหม่', btn_quitgame:'ออกเกม', btn_rejoin:'กลับเข้าเกม',
+  btn_reset:'เริ่มใหม่', btn_again:'เปิดสนามใหม่',
   over_kicker:'จบภารกิจ', over_win:'{name} เคลียร์สนามได้', over_none:'ไม่มีผู้รอด',
   st_over:'จบภารกิจ', st_turn:'ถึงเทิร์น {name}', st_sub:'หัวใจ {hp} · ทุ่นระเบิดในมือ {mines} ลูก',
   st_forced:'แต้มซ้ำ ต้องวางทุ่นระเบิดที่ช่อง {tile}', st_forced_sub:'แต้มซ้ำบังคับวาง ข้ามไม่ได้',
@@ -2539,8 +2172,6 @@ th:{
   log_lifted:'{name} โดนยกพื้น แต้มน้อยที่สุดถูกบวก 1 ในเทิร์นนี้',
   log_giveAll:'{name} ได้ทุ่นระเบิดฟรี 1 ลูก และมีผู้เล่นที่ยืนบนจุดเก็บได้เพิ่มอีก {n} คน',
   log_teammine:'{name} หยุดทับทุ่นระเบิดของ{owner} ซึ่งเป็นเพื่อนร่วมทีม จึงปลอดภัย',
-  log_netLeave:'{name} ออกจากห้องไปแล้ว', log_netJoin:'{name} เข้าร่วมห้อง',
-  log_netBot:'คอมพิวเตอร์เข้าเล่นแทน {name}', log_netTakeover:'{name} กลับมาคุมหน่วยเองแล้ว',
   log_winTeam:'ทีม {team} ชนะ เหลือผู้รอดชีวิต {n} คน',
   log_healTeam:'ทั้งทีมได้หัวใจเพิ่มคนละ 1 ดวง รวม {n} คน',
   log_supplyTeam:'ทั้งทีมได้ทุ่นระเบิดเพิ่มคนละ 1 ลูก รวม {n} คน',
@@ -2588,18 +2219,6 @@ en:{
   tip_ban:'Cannot lay mines until the turn comes back round to whoever used the item',
   tip_slow:'For your next {n} roll(s) both dice are halved, rounded up',
   tip_lift:'For your next {n} roll(s) the lower die counts one more, shrinking your range from below', btn_items:'See all items', items_title:'All items', btn_close:'Close', opt_view:'View', view_flat:'Top down', view_tilt:'Tilted', btn_look:'View', look_title:'Display',
-  opt_online:'Play online', net_host:'Create room', net_join:'Join room', net_leave:'Leave room',
-  lobby_title:'Seats in the room', seat_online:'online', guest_locked:'The host sets up the game, you only choose a seat', seat_free:'open', seat_you:'you', seat_bot:'computer',
-  lock_hint:'The host sets everything up and starts the game, you only pick a seat',
-  seat_host:'host', seat_take:'take', lobby_hint:'Tap an open seat to move there',
-  net_code:'Room code', net_seat:'You are {name}', net_wait:'Waiting for friends, {n} joined',
-  net_loading:'Loading the connector', net_signal:'Contacting the matchmaking server',
-  net_hosting:'Room open, code {code}', net_joined:'Joined room {code}',
-  net_full:'Room is full', net_hostleft:'The host left', net_guestleft:'A player left',
-  net_nolib:'Could not load the connector, this page must be served over https',
-  net_nosignal:'Could not reach the matchmaking server',
-  net_noroom:'No such room', net_taken:'Code collision, try again', net_failed:'Connection failed',
-  net_notyou:'Wait for your turn',
   opt_theme:'Board theme', th_wood:'Walnut', th_steel:'Steel', th_jungle:'Night jungle', th_slate:'Slate', th_paper:'Survey paper', info_title:'Item details',
   item_kind_now:'instant', item_kind_turn:'this turn',
   kind_now:'instant', kind_turn:'this turn', items_close:'Close', act_roll:'Roll the dice', act_cancel:'Cancel', act_confirm:'Use it',
@@ -2641,7 +2260,7 @@ en:{
   opt_shape:'Board shape', shp_ring:'Ring', shp_poly:'{n}-gon', shp_snake:'Railway',
   shp_poly_off:'needs 3 or more players', adv_title:'Advanced settings', board_title:'Field map', units_title:'Units in play', log_title:'Field log',
   btn_roll:'Roll the die', btn_place:'Lay mine', btn_skip:'Skip, end turn',
-  btn_reset:'Restart', btn_again:'Open a new field', btn_quitgame:'Leave game', btn_rejoin:'Back to game',
+  btn_reset:'Restart', btn_again:'Open a new field',
   over_kicker:'Mission over', over_win:'{name} cleared the field', over_none:'No survivors',
   st_over:'Mission over', st_turn:'{name} to roll', st_sub:'HP {hp} · {mines} mines in hand',
   st_forced:'Doubles — lay a mine on tile {tile}', st_forced_sub:'Doubles force placement, skipping is not allowed',
@@ -2676,8 +2295,6 @@ en:{
   log_lifted:'{name} is raised, the lower die counts one more this turn',
   log_giveAll:'{name} gained a free mine, and {n} player(s) on a depot gained one too',
   log_teammine:'{name} stopped on a mine of {owner}, a team-mate, so nothing happened',
-  log_netLeave:'{name} left the room', log_netJoin:'{name} joined the room',
-  log_netBot:'The computer takes over {name}', log_netTakeover:'{name} takes their unit back',
   log_winTeam:'Team {team} wins with {n} survivor(s)',
   log_healTeam:'The whole team gained a heart each, {n} in all',
   log_supplyTeam:'The whole team gained a mine each, {n} in all',
@@ -2725,18 +2342,6 @@ de:{
   tip_ban:'Kann keine Minen legen, bis der Zug wieder bei dem ist, der den Gegenstand eingesetzt hat',
   tip_slow:'Bei den nächsten {n} Würfen zählen beide Würfel halb, aufgerundet',
   tip_lift:'Bei den nächsten {n} Würfen zählt die niedrigere Augenzahl eins mehr, die Spanne schrumpft von unten', btn_items:'Alle Gegenstände', items_title:'Alle Gegenstände', btn_close:'Schließen', opt_view:'Ansicht', view_flat:'Von oben', view_tilt:'Schräg', btn_look:'Optik', look_title:'Darstellung',
-  opt_online:'Online spielen', net_host:'Raum öffnen', net_join:'Raum betreten', net_leave:'Raum verlassen',
-  lobby_title:'Plätze im Raum', seat_online:'online', guest_locked:'Der Gastgeber stellt das Spiel ein, du wählst nur den Platz', seat_free:'frei', seat_you:'du', seat_bot:'Computer',
-  lock_hint:'Der Gastgeber stellt alles ein und startet, du wählst nur den Platz',
-  seat_host:'Gastgeber', seat_take:'wählen', lobby_hint:'Freien Platz antippen, um dorthin zu wechseln',
-  net_code:'Raumcode', net_seat:'Du bist {name}', net_wait:'Warte auf Mitspieler, {n} da',
-  net_loading:'Verbindungsmodul wird geladen', net_signal:'Verbinde mit dem Vermittlungsserver',
-  net_hosting:'Raum offen, Code {code}', net_joined:'Raum {code} betreten',
-  net_full:'Raum ist voll', net_hostleft:'Der Gastgeber hat den Raum verlassen', net_guestleft:'Ein Spieler ist gegangen',
-  net_nolib:'Verbindungsmodul nicht ladbar, die Seite muss über https laufen',
-  net_nosignal:'Vermittlungsserver nicht erreichbar',
-  net_noroom:'Raum nicht gefunden', net_taken:'Code doppelt, bitte erneut', net_failed:'Verbindung fehlgeschlagen',
-  net_notyou:'Warte, bis du dran bist',
   opt_theme:'Brett-Thema', th_wood:'Nussbaum', th_steel:'Stahl', th_jungle:'Nachtdschungel', th_slate:'Schiefer', th_paper:'Messtischblatt', info_title:'Details zum Gegenstand',
   item_kind_now:'sofort', item_kind_turn:'dieser Zug',
   kind_now:'sofort', kind_turn:'dieser Zug', items_close:'Schließen', act_roll:'Würfeln', act_cancel:'Abbrechen', act_confirm:'Einsetzen',
@@ -2778,7 +2383,7 @@ de:{
   opt_shape:'Brettform', shp_ring:'Ring', shp_poly:'{n}-Eck', shp_snake:'Bahnstrecke',
   shp_poly_off:'ab 3 Spielern möglich', adv_title:'Weitere Einstellungen', board_title:'Feldkarte', units_title:'Einheiten im Feld', log_title:'Feldprotokoll',
   btn_roll:'Würfeln', btn_place:'Mine legen', btn_skip:'Nicht legen, Zug beenden',
-  btn_reset:'Neu starten', btn_again:'Neues Feld eröffnen', btn_quitgame:'Spiel verlassen', btn_rejoin:'Zurück ins Spiel',
+  btn_reset:'Neu starten', btn_again:'Neues Feld eröffnen',
   over_kicker:'Einsatz beendet', over_win:'{name} hat das Feld geräumt', over_none:'Keine Überlebenden',
   st_over:'Einsatz beendet', st_turn:'{name} ist am Zug', st_sub:'HP {hp} · {mines} Minen in der Hand',
   st_forced:'Pasch — Mine auf Feld {tile} legen', st_forced_sub:'Bei einem Pasch ist das Legen Pflicht',
@@ -2813,8 +2418,6 @@ de:{
   log_lifted:'{name} ist angehoben, die niedrigere Augenzahl zählt diesen Zug eins mehr',
   log_giveAll:'{name} erhält gratis eine Mine, und {n} Spieler auf einem Depot ebenfalls',
   log_teammine:'{name} hält auf einer Mine von {owner} aus dem eigenen Team, nichts passiert',
-  log_netLeave:'{name} hat den Raum verlassen', log_netJoin:'{name} ist dem Raum beigetreten',
-  log_netBot:'Der Computer übernimmt {name}', log_netTakeover:'{name} übernimmt die Einheit wieder',
   log_winTeam:'Team {team} gewinnt mit {n} Überlebenden',
   log_healTeam:'Das ganze Team erhält je ein Herz, insgesamt {n}',
   log_supplyTeam:'Das ganze Team erhält je eine Mine, insgesamt {n}',
@@ -2862,18 +2465,6 @@ nl:{
   tip_ban:'Kan geen mijnen leggen tot de beurt weer bij degene is die het voorwerp inzette',
   tip_slow:'Bij je volgende {n} worp(en) tellen beide stenen half, naar boven afgerond',
   tip_lift:'Bij je volgende {n} worp(en) telt je laagste steen één meer, je bereik krimpt van onderen', btn_items:'Alle voorwerpen', items_title:'Alle voorwerpen', btn_close:'Sluiten', opt_view:'Aanzicht', view_flat:'Bovenaanzicht', view_tilt:'Schuin', btn_look:'Beeld', look_title:'Weergave',
-  opt_online:'Online spelen', net_host:'Kamer maken', net_join:'Kamer binnengaan', net_leave:'Kamer verlaten',
-  lobby_title:'Plaatsen in de kamer', seat_online:'online', guest_locked:'De host stelt het spel in, jij kiest alleen een plaats', seat_free:'vrij', seat_you:'jij', seat_bot:'computer',
-  lock_hint:'De host stelt alles in en start het spel, jij kiest alleen een plaats',
-  seat_host:'host', seat_take:'kiezen', lobby_hint:'Tik op een vrije plaats om daarheen te gaan',
-  net_code:'Kamercode', net_seat:'Jij bent {name}', net_wait:'Wachten op vrienden, {n} binnen',
-  net_loading:'Verbindingsmodule laden', net_signal:'Verbinden met de matchmakingserver',
-  net_hosting:'Kamer open, code {code}', net_joined:'Kamer {code} binnengegaan',
-  net_full:'Kamer is vol', net_hostleft:'De host is vertrokken', net_guestleft:'Een speler is vertrokken',
-  net_nolib:'Verbindingsmodule niet geladen, deze pagina moet via https draaien',
-  net_nosignal:'Matchmakingserver niet bereikbaar',
-  net_noroom:'Kamer niet gevonden', net_taken:'Code botst, probeer opnieuw', net_failed:'Verbinden mislukt',
-  net_notyou:'Wacht op je beurt',
   opt_theme:'Bordthema', th_wood:'Notenhout', th_steel:'Staal', th_jungle:'Nachtjungle', th_slate:'Leisteen', th_paper:'Kaartpapier', info_title:'Details van het voorwerp',
   item_kind_now:'direct', item_kind_turn:'deze beurt',
   kind_now:'direct', kind_turn:'deze beurt', items_close:'Sluiten', act_roll:'Gooien', act_cancel:'Annuleren', act_confirm:'Inzetten',
@@ -2915,7 +2506,7 @@ nl:{
   opt_shape:'Bordvorm', shp_ring:'Ring', shp_poly:'{n}-hoek', shp_snake:'Spoorlijn',
   shp_poly_off:'vanaf 3 spelers', adv_title:'Extra instellingen', board_title:'Veldkaart', units_title:'Eenheden in het veld', log_title:'Veldlogboek',
   btn_roll:'Gooien', btn_place:'Mijn leggen', btn_skip:'Niet leggen, beurt beëindigen',
-  btn_reset:'Opnieuw', btn_again:'Nieuw veld openen', btn_quitgame:'Spel verlaten', btn_rejoin:'Terug naar het spel',
+  btn_reset:'Opnieuw', btn_again:'Nieuw veld openen',
   over_kicker:'Missie voorbij', over_win:'{name} heeft het veld geruimd', over_none:'Geen overlevenden',
   st_over:'Missie voorbij', st_turn:'{name} is aan zet', st_sub:'HP {hp} · {mines} mijnen in de hand',
   st_forced:'Dubbel — leg een mijn op veld {tile}', st_forced_sub:'Bij dubbel is leggen verplicht',
@@ -2950,8 +2541,6 @@ nl:{
   log_lifted:'{name} is opgetild, de laagste steen telt deze beurt één meer',
   log_giveAll:'{name} krijgt gratis een mijn, en {n} speler(s) op een depot ook',
   log_teammine:'{name} stopt op een mijn van teamgenoot {owner}, er gebeurt niets',
-  log_netLeave:'{name} heeft de kamer verlaten', log_netJoin:'{name} is de kamer binnengekomen',
-  log_netBot:'De computer neemt {name} over', log_netTakeover:'{name} neemt de eenheid weer over',
   log_winTeam:'Team {team} wint met {n} overlevende(n)',
   log_healTeam:'Het hele team krijgt elk een hart, {n} in totaal',
   log_supplyTeam:'Het hele team krijgt elk een mijn, {n} in totaal',
@@ -2975,219 +2564,6 @@ var cfg={hpStart:Game.C.HP_START, mineStart:Game.C.MINE_START, mineMax:Game.C.MI
          spacing:Game.C.SPACING, caches:Game.C.CACHES};
 var pnames=['','','','','',''], pbots=[false,false,false,false,false,false];
 var botLevel='normal', boardShape='ring', teamMode=false, runId=0;
-/* ---------- ออนไลน์ ----------
-   เจ้าของห้องเป็นกรรมการคนเดียว ผู้เข้าร่วมส่งความตั้งใจแล้วรอสถานะกลับมา
-   ถ้าไม่ได้กดสร้างห้องหรือเข้าห้อง ทุกอย่างทำงานเหมือนเล่นเครื่องเดียวทุกประการ */
-var netMsg='', netMsgKind='';
-function online(){ return typeof Net!=='undefined' && Net.online() }
-function isGuest(){ return typeof Net!=='undefined' && Net.isGuest() }
-function isHost(){ return typeof Net!=='undefined' && Net.isHost() }
-/* ที่นั่งของเราในเกม ใช้ตัดสินว่ากดปุ่มได้ไหม */
-function mySeat(){ return online() ? Net.seat() : (S?S.currentIdx:0) }
-function myTurn(){ return !online() || (S && S.currentIdx===mySeat()) }
-
-function netStatus(kind,key,extra){
-  var map={loading:'net_loading',signalling:'net_signal',hosting:'net_hosting',
-    joined:'net_joined',seated:'net_seated',room_full:'net_full',host_left:'net_hostleft',
-    guest_left:'net_guestleft',guest_open:'net_guestleft',no_lib:'net_nolib',
-    no_signal:'net_nosignal',no_room:'net_noroom',code_taken:'net_taken',failed:'net_failed'};
-  var k=map[key];
-  netMsgKind=(kind==='bad')?'bad':(kind==='ok'?'ok':'');
-  if(key==='guest_open'){ netMsg=t('net_wait',{n:Net.guests()}); }
-  else if(k&&k!=='net_seated'){ netMsg=t(k,extra||{}); }
-  buildNetRow();
-  if(S) sync();
-}
-
-/* ---------- ห้องรอ ----------
-   เจ้าของห้องถือความจริงเรื่องที่นั่ง ผู้เข้าร่วมเห็นรายการเดียวกันและกดเลือกเองได้
-   ในโหมดทีม การเลือกที่นั่งคือการเลือกทีมไปในตัว เพราะทีมผูกกับตำแหน่งฐานสลับกัน */
-var hostSeat=0;                 /* ที่นั่งของเจ้าของห้องเอง */
-var lobbySeats=null;            /* ฝั่งผู้เข้าร่วม เก็บรายการที่ได้รับมา */
-var lobbyTeams=false;
-
-function seatFree(i){
-  if(i<0||i>=playerCount) return false;
-  if(pbots[i]) return false;                        /* ที่นั่งของคอมพิวเตอร์เลือกไม่ได้ */
-  if(i===hostSeat) return false;
-  return Net.takenSeats().indexOf(i)<0;
-}
-
-/* คนเพิ่งเข้ามา ยังไม่ให้ที่นั่ง ส่งรายการไปให้เลือกเอง */
-function onHello(){ pushLobby(); }
-
-/* ตัดสินคำขอย้ายที่นั่ง ใครส่งมาก่อนได้ก่อน */
-function onPickSeat(seat,c){
-  var cur=Net.seatOf(c);
-  if(seat===cur) return cur;
-  if(!seatFree(seat)) return cur;
-  return seat;
-}
-
-/* สร้างรายชื่อผู้เล่นใหม่ทั้งชุดจากความจริงที่ชั้นเชื่อมต่อถืออยู่
-   ทำแบบนี้แทนการไล่แก้ทีละเหตุการณ์ เพราะการย้ายที่นั่งคือการออกจากที่เก่าและเข้าที่ใหม่พร้อมกัน
-   ถ้าแก้ทีละจุดจะลืมล้างที่เดิมเสมอ */
-function refreshSeatNames(){
-  var byName={};
-  Net.seatNames().forEach(function(g){ if(g.seat>=0) byName[g.seat]=g.name; });
-  for(var i=0;i<playerCount;i++){
-    if(i===hostSeat||pbots[i]) continue;
-    pnames[i]= byName[i] ? String(byName[i]).slice(0,14) : '';
-  }
-}
-
-/* ที่นั่งเปลี่ยนแล้ว เจ้าของห้องเห็นทั้งในรายชื่อผู้เล่นและในรายการที่นั่งพร้อมกัน */
-var seenSeats={};
-function onSeatsChanged(seat){
-  /* เขียนบันทึกเฉพาะตอนที่เพิ่งได้ที่นั่งครั้งแรก ไม่ใช่ทุกครั้งที่ย้ายที่ */
-  if(seat>=0 && !seenSeats[seat]){ seenSeats[seat]=true; netLog('netJoin',seat); }
-  if(seat>=0) setSeatBot(seat,false);   /* มีคนมานั่งแล้ว คืนการควบคุมให้เขา */
-  refreshSeatNames();
-  buildRoster();
-  netMsg=t('net_wait',{n:Net.guests()});
-  netMsgKind='';
-  pushLobby();
-}
-/* เติมบรรทัดลงบันทึกของเกม ต้องสร้างสถานะใหม่ ไม่ใช่แก้ตัวเดิม
-   เพราะระบบดูการเปลี่ยนแปลงจากตัวตนของวัตถุก่อนจะส่งต่อให้ผู้เข้าร่วม */
-/* คนออกกลางเกมแล้วตัวละครไม่มีคนคุม พอถึงตาเขาเกมจะค้าง จึงให้คอมพิวเตอร์รับช่วงต่อ
-   และถ้ามีคนมานั่งที่นั่งนั้นทีหลัง ก็คืนการควบคุมให้เขาทันที */
-function setSeatBot(seat,on){
-  if(!S||seat<0||!S.players[seat]) return;
-  var was=!!S.players[seat].bot;
-  if(was===on) return;
-  var next=JSON.parse(JSON.stringify(S));
-  next.players[seat].bot = on ? botLevel : null;
-  var turn = next.log.length ? next.log[0].turn : (next.turnCount||1);
-  next.log.unshift({ turn:turn, kind:'safe', key:on?'netBot':'netTakeover', p:{ p:seat } });
-  S=next;
-}
-
-function netLog(key,seat){
-  if(!S) return;
-  var next=JSON.parse(JSON.stringify(S));
-  /* ใช้เลขเทิร์นเดียวกับบรรทัดล่าสุด จะได้เรียงต่อกันสนิทไม่กระโดดกลับไปศูนย์ */
-  var turn = next.log.length ? next.log[0].turn : (next.turnCount||1);
-  next.log.unshift({ turn:turn, kind:'out', key:key, p:{ p:seat } });
-  S=next;
-}
-
-function onSeatLeave(seat){
-  if(seat>=0){
-    netLog('netLeave',seat);
-    setSeatBot(seat,true);        /* ให้คอมพิวเตอร์เล่นแทน เกมจะได้เดินต่อ */
-  }
-  refreshSeatNames();
-  buildRoster();
-  netMsg=t('net_wait',{n:Net.guests()});
-  pushLobby();
-  if(S){ sync(); maybeBot(); }        /* ถ้าค้างอยู่ที่ตาของคนที่ออกไป คอมพิวเตอร์จะเดินต่อทันที */
-}
-
-function seatList(){
-  var taken=Net.isHost()?Net.takenSeats():[];
-  var out=[];
-  for(var i=0;i<playerCount;i++){
-    out.push({
-      i:i,
-      team: teamMode ? (i%2) : -1,
-      name: pnames[i]||defaultName(i),
-      bot: !!pbots[i],
-      host: i===hostSeat,
-      taken: taken.indexOf(i)>=0
-    });
-  }
-  return out;
-}
-function pushLobby(){
-  if(!Net.isHost()) return;
-  Net.sendLobby(seatList(), teamMode);
-  buildNetRow();
-}
-function onLobby(seats,teams){ lobbySeats=seats; lobbyTeams=teams; buildNetRow(); }
-
-/* ปิดตัวควบคุมทั้งหมดในหน้าตั้งค่าเมื่อเราไปเข้าห้องคนอื่น
-   เรียกท้ายสุดของทุกการวาดใหม่ เพราะตัววาดแต่ละตัวตั้งค่า disabled ของตัวเอง */
-/* ปิดตัวควบคุมในหน้าตั้งค่าเมื่อเราไปเข้าห้องคนอื่น เพราะการตั้งค่าเป็นสิทธิ์ของเจ้าของห้อง
-   ตั้งเป็นปิดอย่างเดียว ไม่เปิดคืนเอง เพราะตัววาดแต่ละตัวมีกฎของตัวเองอยู่แล้ว
-   เช่นโหมดทีมที่ปิดปุ่มจำนวนคนบางปุ่มไว้ ถ้าเปิดคืนตรงนี้จะไปลบกฎนั้นทิ้ง
-   การปลดล็อกจึงทำด้วยการวาดใหม่ทั้งหมดตอนกดออกจากห้อง */
-var lockBusy=false;
-function applyGuestLock(){
-  var root=$('setup'); if(!root||lockBusy) return;
-  var lock=isGuest();
-  root.classList.toggle('guestlock',lock);
-  var keep=$('netrow');
-  var nodes=root.querySelectorAll('button,input,select');
-  Array.prototype.forEach.call(nodes,function(e){
-    if(keep&&keep.contains(e)) return;          /* เลือกที่นั่งและออกจากห้องยังกดได้ */
-    if(e.id==='btnItems') return;               /* ดูรายการไอเท็มได้ตลอด */
-    if(e.id==='btnStart'&&isGuest()&&S&&steppedOut) return;   /* ปุ่มกลับเข้าเกมต้องกดได้ */
-    e.disabled=lock;
-  });
-  var det=root.querySelector('details.adv');
-  if(det&&lock) det.open=false;
-  if(!lock){
-    /* ปลดล็อกแล้วต้องคืนกฎเฉพาะทางที่การเปิดคืนไปลบทิ้ง เช่นโหมดทีมที่ปิดปุ่มจำนวนคนบางปุ่มไว้
-       ตัวกันวนจำเป็น เพราะ buildCountState เรียกฟังก์ชันนี้กลับมาอีกที */
-    lockBusy=true;
-    buildCountState();
-    lockBusy=false;
-  }
-}
-
-/* เข้าห้องคนอื่นแล้วปิดทุกปุ่มที่ไม่ใช่เรื่องของเรา เพราะการตั้งค่าเป็นของเจ้าของห้อง
-   ถ้าปล่อยให้กดได้จะเข้าใจผิดว่าเปลี่ยนได้ ทั้งที่ค่าจริงมาจากอีกเครื่อง */
-
-function buildLobby(){
-  if(!online()) return '';
-  var list = Net.isHost() ? seatList() : lobbySeats;
-  if(!list) return '';
-  var me = Net.isHost() ? hostSeat : Net.seat();
-  var html='<div class="lobby">';
-  list.forEach(function(r){
-    var mine=(r.i===me);
-    var live=(r.taken&&!r.host);
-    var who = r.bot ? t('seat_bot')
-            : r.host ? (r.name+' \u00b7 '+t('seat_host'))
-            : mine ? (r.name+' \u00b7 '+t('seat_you'))
-            : r.taken ? r.name
-            : t('seat_free');
-    var tint = r.team===0?'#F2A0D4':(r.team===1?'#9FE4DC':'');
-    html+='<div class="seatrow'+(mine?' mine':'')+(live?' live':'')+'">'+
-      (r.team>=0?'<span class="tm" style="color:'+tint+'">'+esc(t('team_name',{n:r.team+1}))+'</span>':'')+
-      '<span class="who">'+esc(who)+'</span>';
-    /* กดเลือกได้เฉพาะที่นั่งว่างของคนจริง และเฉพาะฝั่งผู้เข้าร่วม */
-    var canPick = isGuest() && !mine && !r.bot && !r.host && !r.taken;
-    if(canPick) html+='<button type="button" data-seat="'+r.i+'">'+esc(t('seat_take'))+'</button>';
-    else if(r.taken&&!r.host) html+='<span class="tag2 live">'+esc(t('seat_online'))+'</span>';
-    else if(r.bot||r.host) html+='<span class="tag2">'+esc(r.bot?t('seat_bot'):t('seat_host'))+'</span>';
-    html+='</div>';
-  });
-  return html+'</div>'+(isGuest()?'<p class="netmsg">'+esc(t('lobby_hint'))+'</p>'+
-    '<p class="lockmsg">'+esc(t('guest_locked'))+'</p>':'');
-}
-
-/* กรรมการรับคำสั่งจากผู้เข้าร่วม ตรวจว่าถึงตาเขาจริงก่อนเสมอ */
-function onRemoteAct(seat,a){
-  if(!S||S.phase==='GAME_OVER') return;
-  if(S.currentIdx!==seat) return;            /* ไม่ใช่ตาเขา ทิ้งไปเงียบ ๆ */
-  if(a.k==='roll') $('btnRoll').onclick();
-  else if(a.k==='move') pickStep(a.steps);
-  else if(a.k==='place') doPlace();
-  else if(a.k==='skipmine') doSkipMine();
-  else if(a.k==='useitem') doUseItem();
-}
-
-var lastSent=null;
-function netPush(){
-  if(!isHost()||!S) return;
-  if(S===lastSent) return;
-  lastSent=S;
-  Net.broadcast(S);
-}
-
-var VERSION='5.5.0';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
@@ -3284,21 +2660,12 @@ var LANGS=['th','en','de','nl'];
 LANGS.forEach(function(code){
   var b=document.createElement('button');
   b.type='button'; b.textContent=DICT[code].lang; b.setAttribute('aria-pressed',code===lang);
-  b.onclick=function(ev){
-    ev.stopPropagation();
-    lang=code;
+  b.onclick=function(){ lang=code;
     Array.prototype.forEach.call($('langs').children,function(c,i){ c.setAttribute('aria-pressed',LANGS[i]===lang) });
-    $('langs').classList.add('hidden');
     applyLang();
   };
   $('langs').appendChild(b);
 });
-$('btnLang').onclick=function(ev){
-  ev.stopPropagation();
-  var pop=$('langs'), open=!pop.classList.contains('hidden');
-  Array.prototype.forEach.call(document.querySelectorAll('.tokpop'),function(x){ x.classList.add('hidden') });
-  pop.classList.toggle('hidden',open);
-};
 
 function applyLang(){
   document.documentElement.lang=lang;
@@ -3318,16 +2685,7 @@ function applyLang(){
   $('itemsTitle').textContent=t('items_title');
   $('btnItemsClose').textContent=t('btn_close');
   $('btnInfoClose').textContent=t('btn_close');
-  $('ver').textContent='v'+VERSION;
-  /* ปุ่มบนหัวเกมเป็นไอคอนล้วน ข้อความย้ายไปอยู่ใน tooltip กับ aria-label แทน
-     จะได้ไม่กินพื้นที่บนจอแคบ และไม่ต้องแปลความกว้างของปุ่มตามภาษา */
-  $('btnLang').innerHTML=uiIcon('globe');
-  $('btnLang').title=DICT[lang].lang;
-  $('btnLang').setAttribute('aria-label',DICT[lang].lang);
-  $('btnLook').innerHTML=uiIcon('look');
-  $('btnLook').title=t('btn_look');
-  $('btnLook').setAttribute('aria-label',t('btn_look'));
-  refreshRoomButtons();
+  $('btnLook').textContent=t('btn_look');
   $('btnLookClose').textContent=t('btn_close');
   $('lookKicker').textContent=t('look_title');
   $('infoKicker').textContent=t('info_title');
@@ -3343,7 +2701,7 @@ function applyLang(){
   $('footer').textContent=t('footer');
   $('board').setAttribute('aria-label',t('board_title'));
   paintSound();
-  buildRoster(); buildNetRow(); buildTeamRow(); buildThemeRow(); buildViewRow(); buildCountState(); buildShapeRow(); buildBotRow(); renderOpts();
+  buildRoster(); buildTeamRow(); buildThemeRow(); buildViewRow(); buildCountState(); buildShapeRow(); buildBotRow(); renderOpts();
   if(S){ buildBoard(); sync(); } else { $('meta').textContent=t('meta_none'); }
 }
 
@@ -3355,7 +2713,7 @@ COUNTS.forEach(function(n){
   b.setAttribute('aria-pressed',n===playerCount);
   b.onclick=function(){ playerCount=n;
     buildCountState();
-    buildRoster(); buildShapeRow(); pushLobby();
+    buildRoster(); buildShapeRow();
   };
   $('choices').appendChild(b);
 });
@@ -3447,115 +2805,12 @@ function buildRoster(){
         var b=document.createElement('button'); b.type='button';
         b.textContent=t(isBot?'seg_bot':'seg_human');
         b.setAttribute('aria-pressed',pbots[i]===isBot);
-        b.onclick=function(){ pbots[i]=isBot; buildRoster(); buildBotRow(); pushLobby(); };
+        b.onclick=function(){ pbots[i]=isBot; buildRoster(); buildBotRow(); };
         seg.appendChild(b);
       });
       row.appendChild(wrap); row.appendChild(inp); row.appendChild(seg);
       box.appendChild(row);
     })(i);
-  }
-  applyGuestLock();
-}
-
-function buildNetRow(){
-  var box=$('netrow');
-  var st=online()?(isHost()?'host':'guest'):'off';
-  var html='<div class="opt"><span>'+esc(t('opt_online'))+'</span>';
-  if(st==='off'){
-    html+='<button type="button" id="btnHost">'+esc(t('net_host'))+'</button>'+
-          '<input class="netin" id="joinCode" maxlength="6" placeholder="ABC123">'+
-          '<button type="button" id="btnJoin">'+esc(t('net_join'))+'</button>';
-  } else if(st==='host'){
-    html+='<span class="netcode">'+esc(Net.code())+'</span>'+
-          '<button type="button" id="btnLeave">'+esc(t('net_leave'))+'</button>';
-  } else {
-    html+='<span class="netcode">'+esc(Net.code())+'</span>'+
-          '<button type="button" id="btnLeave">'+esc(t('net_leave'))+'</button>';
-  }
-  if(netMsg) html+='<span class="netmsg '+netMsgKind+'">'+esc(netMsg)+'</span>';
-  html+='</div>';
-  if(online()) html+=buildLobby();
-  box.innerHTML=html;
-
-  /* ปุ่มเลือกที่นั่ง ส่งคำขอไปให้กรรมการตัดสิน */
-  Array.prototype.forEach.call(box.querySelectorAll('[data-seat]'),function(b){
-    b.onclick=function(){ Sfx.play('click'); Net.pick(parseInt(b.getAttribute('data-seat'),10)); };
-  });
-  if(isGuest()) box.insertAdjacentHTML('beforeend','<p class="lockmsg">'+esc(t('lock_hint'))+'</p>');
-  applyGuestLock();
-
-  if($('btnHost')) $('btnHost').onclick=function(){
-    Sfx.play('click');
-    Net.host({ onHello:onHello, onPick:onPickSeat, onLeave:onSeatLeave,
-               onSeats:onSeatsChanged, onAct:onRemoteAct, onStatus:netStatus,
-               onState:function(){ return S }, seat:hostSeat });
-  };
-  if($('btnJoin')) $('btnJoin').onclick=function(){
-    Sfx.play('click');
-    var code=($('joinCode').value||'').trim();
-    if(code.length<4){ netMsg=t('net_noroom'); netMsgKind='bad'; buildNetRow(); return; }
-    Net.join(code,{ onStatus:netStatus, onRemoteState:onRemoteState, onLobby:onLobby,
-                    name:pnames[0]||defaultName(0) });
-  };
-  if($('btnLeave')) $('btnLeave').onclick=function(){
-    Sfx.play('click'); Net.leave();
-    lobbySeats=null; netMsg=''; netMsgKind='';
-    /* ตัดขาดจากเกมของห้องนั้นจริง ปุ่มจึงกลับเป็นเริ่มเกมของตัวเอง */
-    if(steppedOut){ steppedOut=false; S=null; $('meta').textContent=t('meta_none'); }
-    seenSeats={};
-    refreshRoomButtons();
-    /* วาดใหม่ทุกส่วนเพื่อปลดล็อกตัวควบคุมที่ถูกปิดไว้ */
-    buildNetRow(); buildRoster(); buildCountState(); buildTeamRow(); buildShapeRow(); buildBotRow();
-    if(S) sync();
-  };
-  applyGuestLock();
-}
-
-/* ผู้เข้าร่วมได้สถานะใหม่มา วาดใหม่ทั้งกระดานเมื่อโครงเปลี่ยน ไม่งั้นแค่รีเฟรช */
-var remoteRolling=false;
-
-/* ลายเซ็นของสิ่งที่ถูกวาดครั้งเดียวตอนสร้างกระดาน แล้วไม่ถูกวาดซ้ำระหว่างเล่น
-   ได้แก่ผังช่อง ตำแหน่งฐาน จุดเก็บทุ่นระเบิด และการพลิกผัง
-   ถ้าอย่างใดอย่างหนึ่งเปลี่ยน ต้องสร้างกระดานใหม่ ไม่งั้นภาพสองฝั่งจะไม่ตรงกัน
-   กรณีที่เจอคือเจ้าของห้องกดเริ่มใหม่ด้วยค่าเดิม แต่จุดเก็บถูกสุ่มใหม่ */
-function boardSig(st){
-  if(!st) return '';
-  return [st.boardSize, st.players.length, st.rules.shape, st.rules.teams,
-          JSON.stringify(st.flip||{}), (st.startTiles||[]).join(','),
-          Object.keys(st.caches||{}).sort(function(a,b){return a-b}).join(',')].join('|');
-}
-
-function onRemoteState(st){
-  var prev=S;
-  var needBoard = !S || boardSig(S)!==boardSig(st);
-
-  /* จับจังหวะที่มีคนเพิ่งทอย โดยดูการเปลี่ยนเข้าสู่ช่วงเลือกก้าว
-     วิธีนี้แม่นกว่าการเทียบแต้ม เพราะทอยได้แต้มเดิมซ้ำกันสองครั้งก็ยังจับได้ */
-  var justRolled = st.phase==='AWAIT_MOVE' && st.lastRoll && prev &&
-    (prev.phase!=='AWAIT_MOVE' || prev.currentIdx!==st.currentIdx || prev.turnCount!==st.turnCount);
-
-  S=st;
-  if(steppedOut){
-    /* ยังดูอยู่ที่หน้าตั้งค่า เก็บสถานะไว้เฉย ๆ ไม่ดึงกลับเข้าเกมเอง */
-    refreshRoomButtons();
-    return;
-  }
-  if(needBoard){
-    $('setup').classList.add('hidden');
-    $('game').classList.remove('hidden');
-    geo=geometry();
-    buildBoard();
-  }
-  sync();
-
-  /* หมุนลูกเต๋าให้ดูหลังวาดเสร็จ จะได้เห็นว่าคนที่กำลังเล่นทอยได้เท่าไร */
-  if(justRolled && !remoteRolling){
-    remoteRolling=true;
-    sync();                                   /* ซ่อนปุ่มเลือกก้าวไว้ก่อนระหว่างลูกเต๋ายังหมุน */
-    tumbleDice(st.lastRoll).then(function(){
-      remoteRolling=false;
-      sync();                                 /* หมุนจบแล้วค่อยให้กดเลือกก้าว */
-    });
   }
 }
 
@@ -3575,7 +2830,6 @@ function buildTeamRow(){
     };
     $('teamseg').appendChild(b);
   });
-  applyGuestLock();
 }
 
 /* ปิดปุ่มจำนวนคนที่ใช้กับโหมดทีมไม่ได้ */
@@ -3587,7 +2841,6 @@ function buildCountState(){
     if(off) b.title=t('teams_hint'); else b.removeAttribute('title');
     b.setAttribute('aria-pressed',n===playerCount);
   });
-  applyGuestLock();
 }
 
 function buildShapeRow(){
@@ -3604,7 +2857,6 @@ function buildShapeRow(){
       else b.onclick=function(){ boardShape=pair[0]; buildShapeRow() };
       $('shapeseg').appendChild(b);
     });
-  applyGuestLock();
 }
 
 function buildViewRow(){
@@ -3644,20 +2896,12 @@ function buildBotRow(){
     b.onclick=function(){ botLevel=lv; buildBotRow() };
     $('botseg').appendChild(b);
   });
-  applyGuestLock();
 }
 
 document.addEventListener('click',function(){
   Array.prototype.forEach.call(document.querySelectorAll('.tokpop'),function(x){ x.classList.add('hidden') });
-  var lp=$('langs'); if(lp) lp.classList.add('hidden');
 });
-$('btnStart').onclick=function(){
-  /* เกณฑ์ตัดสินคือมีเกมของห้องอยู่จริงและตอนนี้ไม่ได้อยู่ในหน้าเกม
-     ไม่พึ่งธงภายในอย่างเดียว เผื่อธงหลุดจากเส้นทางที่คาดไม่ถึง */
-  var away = $('game').classList.contains('hidden');
-  if(isGuest() && S && away) stepBackIntoGame();
-  else start(playerCount);
-};
+$('btnStart').onclick=function(){ start(playerCount) };
 $('btnItems').onclick=function(){ Sfx.play('click'); $('itemList').classList.remove('hidden') };
 $('btnInfoClose').onclick=function(){ Sfx.play('click'); $('itemInfo').classList.add('hidden') };
 $('btnLook').onclick=function(){ Sfx.play('click'); $('lookBox').classList.remove('hidden') };
@@ -3670,14 +2914,12 @@ $('units').addEventListener('click',function(e){
 });
 $('btnItemsClose').onclick=function(){ Sfx.play('click'); $('itemList').classList.add('hidden') };
 $('itemList').onclick=function(e){ if(e.target===$('itemList')) $('itemList').classList.add('hidden') };
-$('btnAgain').onclick=reset;
-$('btnReset').onclick=function(){ if(isGuest()) stepOutOfGame(); else reset(); };
+$('btnAgain').onclick=reset; $('btnReset').onclick=reset;
 
 function paintSound(){
   var b=$('btnSound');
-  b.innerHTML=uiIcon(Sfx.isOn()?'sound':'mute');
+  b.textContent=t('snd');
   b.setAttribute('aria-pressed',Sfx.isOn());
-  b.title=t('snd');
   b.setAttribute('aria-label',t('snd'));
 }
 $('btnSound').onclick=function(){
@@ -3687,43 +2929,10 @@ $('btnSound').onclick=function(){
   if(Sfx.isOn()) Sfx.play('click');
 };
 
-/* ผู้เข้าร่วมออกจากหน้าเกมชั่วคราวโดยยังอยู่ในห้อง สถานะเกมยังอัปเดตอยู่เบื้องหลัง
-   จึงกลับเข้าไปดูต่อได้ทุกเมื่อ ต่างจากการกดออกจากห้องซึ่งตัดขาดจริง */
-var steppedOut=false;
-
 function reset(){
   runId++; busy=false; animTok=null; S=null;
-  steppedOut=false;
   $('game').classList.add('hidden'); $('setup').classList.remove('hidden');
   $('meta').textContent=t('meta_none');
-  refreshRoomButtons();
-}
-
-function stepOutOfGame(){
-  Sfx.play('click');
-  steppedOut=true;
-  $('game').classList.add('hidden'); $('setup').classList.remove('hidden');
-  refreshRoomButtons();
-  buildNetRow();
-}
-
-function stepBackIntoGame(){
-  Sfx.play('click');
-  steppedOut=false;
-  $('setup').classList.add('hidden'); $('game').classList.remove('hidden');
-  geo=geometry(); buildBoard(); sync();
-  refreshRoomButtons();
-}
-
-/* ปุ่มสองตัวนี้เปลี่ยนความหมายตามว่าเราเป็นผู้เข้าร่วมและมีเกมค้างอยู่หรือไม่ */
-function refreshRoomButtons(){
-  var inRoomGame = isGuest() && !!S;
-  var canRejoin = inRoomGame && steppedOut;
-  $('btnReset').textContent = isGuest() ? t('btn_quitgame') : t('btn_reset');
-  $('btnStart').textContent = canRejoin ? t('btn_rejoin') : t('btn_start');
-  /* ต้องปลดทั้งสองชั้น คือ disabled ที่กันแป้นพิมพ์ และ pointer-events ที่กันเมาส์ */
-  if(canRejoin) $('btnStart').disabled=false;
-  var box=$('setup'); if(box) box.classList.toggle('canrejoin',canRejoin);
 }
 
 function start(n){
@@ -3832,10 +3041,7 @@ function buildBoard(){
   var svg=$('board');
   /* หมุดผู้เล่นชี้ออกนอกรางไปราว 1.8 เท่าของรัศมีช่อง และป้ายชื่อฐานอยู่ไกลกว่านั้นอีก
      กรอบเดิมเผื่อไว้แค่รัศมีช่อง หัวหมุดของช่องริมนอกจึงโดนตัด ต้องขยายกรอบออกทุกด้าน */
-  /* จอแคบมีพื้นที่จำกัด ลดขอบเผื่อรอบกระดานลงเพื่อให้ช่องใหญ่ที่สุดเท่าที่ทำได้
-     ยังเหลือพอสำหรับหัวตัวละครที่สูงราว 2 เท่าของรัศมีช่อง */
-  var narrow=(window.innerWidth||1024)<640;
-  var pad=Math.round(geo.tileR*(narrow?1.35:1.9)+(narrow?16:34));
+  var pad=Math.round(geo.tileR*1.9+34);
   /* มุมมองเอียงบีบระนาบตามแนวตั้ง กรอบมองภาพจึงเตี้ยลงตามไปด้วย ไม่งั้นจะเหลือที่ว่างเปล่า */
   var vh=tilted() ? geo.boxH*TILT_K : geo.boxH;
   var vy=tilted() ? geo.cy - vh/2 : 0;
@@ -4013,18 +3219,6 @@ function tokenParts(shape,R){
 
 /* ไอคอนย่อของตัวละคร ใช้พิกัดชุดเดียวกับที่วาดบนกระดาน จึงตรงกันเสมอ
    ต่อให้วันหลังปรับรูปทรง ไอคอนในหน้าตั้งค่าก็เปลี่ยนตามเอง */
-/* ไอคอนของปุ่มบนหัวเกม วาดด้วยเส้นล้วนเพื่อให้คมทุกขนาดและรับสีจากข้อความรอบข้าง */
-function uiIcon(name){
-  var o='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" '+
-        'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
-  if(name==='look')  return o+'<circle cx="12" cy="12" r="3.2"/><path d="M1.8 12S5.5 5 12 5s10.2 7 10.2 7-3.7 7-10.2 7S1.8 12 1.8 12Z"/></svg>';
-  if(name==='sound') return o+'<path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4Z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18.2 6.6a7.7 7.7 0 0 1 0 10.8"/></svg>';
-  if(name==='mute')  return o+'<path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4Z"/><path d="m16 10 5 4M21 10l-5 4"/></svg>';
-  if(name==='globe') return o+'<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8"/>'+
-    '<path d="M12 3.6c2.2 2.4 3.3 5.3 3.3 8.4S14.2 18 12 20.4C9.8 18 8.7 15.1 8.7 12S9.8 6 12 3.6Z"/></svg>';
-  return o+'</svg>';
-}
-
 function tokenIcon(shape,color,px){
   var k=tokenParts(shape,1);
   var out='<svg viewBox="-1.35 -2.2 2.7 2.45" width="'+px+'" height="'+Math.round(px*2.45/2.7)+
@@ -4378,16 +3572,6 @@ function drawLog(){
 }
 
 function sync(){
-  netPush();
-  refreshRoomButtons();      /* ป้ายปุ่มเปลี่ยนตามบทบาท ต้องปรับทุกครั้งที่หน้าจอรีเฟรช */
-  /* ยังไม่ถึงตาเรา ปิดทุกปุ่มที่เปลี่ยนสถานะเกม เหลือไว้แค่ปุ่มเริ่มใหม่กับปุ่มดูข้อมูล
-     ตัวจริงที่บังคับคือชั้นกติกาอยู่แล้ว ตรงนี้ทำให้หน้าจอบอกความจริงตรงกัน */
-  /* ต้องตั้งทั้งสองทาง ไม่ใช่ปิดอย่างเดียว ไม่งั้นพอถึงตาเราแล้วปุ่มจะค้างปิดอยู่
-     ปุ่มทอยกับปุ่มวางมีกฎละเอียดของตัวเองอยู่ข้างล่าง ซึ่งจะเขียนทับค่าตรงนี้อีกที */
-  var lockTurn = !!(S && S.phase!=='GAME_OVER' && !myTurn());
-  ['btnRoll','btnPlace','btnSkip','btnUseItem'].forEach(function(id){
-    var b=$(id); if(b) b.disabled=lockTurn;
-  });
   drawCaches(); drawMines(); drawTokens(); drawPicks(); drawUnits(); drawLog();
   var p=S.players[S.currentIdx], over=S.phase==='GAME_OVER', err=Game.placementError(S);
   var isBot=!over&&!!p.bot;
@@ -4414,13 +3598,13 @@ function sync(){
       : '<b>'+t('st_ask',{tile:p.pos})+'</b><span class="why">'+(err?t(err):t('st_left',{mines:p.mines}))+'</span>';
   }
 
-  var canAct=(!over&&!isBot&&!busy&&myTurn());
+  var canAct=(!over&&!isBot&&!busy);
   $('btnUseItem').classList.toggle('hidden',!(canAct&&S.phase==='AWAIT_ACTION'));
   /* เตือนซ้ำที่แถบสถานะด้วย เพราะเป็นข้อมูลที่เปลี่ยนการตัดสินใจของเทิร์นนี้โดยตรง */
   var note=over?'':stateNote(p);
   if(note) st.innerHTML+='<span class="why warn">'+esc(note)+'</span>';
 
-  $('btnRoll').disabled=!(!over&&(S.phase==='AWAIT_ROLL'||S.phase==='AWAIT_ACTION')&&!busy&&!isBot&&myTurn());
+  $('btnRoll').disabled=!(!over&&(S.phase==='AWAIT_ROLL'||S.phase==='AWAIT_ACTION')&&!busy&&!isBot);
   $('btnRoll').classList.toggle('hidden',
     isBot||(S.phase!=='AWAIT_ROLL'&&S.phase!=='AWAIT_ACTION'));
 
@@ -4428,7 +3612,7 @@ function sync(){
   $('hudHp').innerHTML = over ? '' : hpPips(p.hp);
 
   var sb=$('steps'); sb.innerHTML='';
-  if(!over&&!isBot&&!busy&&!remoteRolling&&myTurn()&&S.phase==='AWAIT_MOVE'){
+  if(!over&&!isBot&&!busy&&S.phase==='AWAIT_MOVE'){
     Game.moveOptions(S).forEach(function(o){
       var b=document.createElement('button');
       b.type='button'; b.className='stepbtn'; b.textContent=o.steps;
@@ -4457,7 +3641,7 @@ function sync(){
     });
   }
   $('btnPlace').classList.toggle('hidden',S.phase!=='AWAIT_MINE'||isBot);
-  $('btnPlace').disabled=!!err||!myTurn();
+  $('btnPlace').disabled=!!err;
   $('btnSkip').classList.toggle('hidden',S.phase!=='AWAIT_MINE'||S.forced||isBot);
 
   if(over){
@@ -4530,12 +3714,15 @@ $('btnItemNo').onclick=function(){ Sfx.play('click'); closeItemCard(); };
 $('btnItemYes').onclick=function(){
   if(!S||S.phase!=='AWAIT_ACTION') return;
   closeItemCard();
-  act({k:'useitem'},doUseItem);
+  var key=S.players[S.currentIdx].item;
+  S=Game.useItem(S);
+  Sfx.play(key==='skipTurn'?'death':'pickup');
+  sync();
+  maybeBot();
 };
 
 $('btnRoll').onclick=async function(){
   if(busy||!S||S.players[S.currentIdx].bot) return;
-  if(isGuest()){ if(myTurn()) Net.send({k:'roll'}); return; }
   if(S.phase==='AWAIT_ACTION') S=Game.skipItem(S);   /* เลือกไม่ใช้ ไปทอยเลย */
   if(S.phase!=='AWAIT_ROLL') return;
   busy=true; sync();
@@ -4551,37 +3738,18 @@ $('btnRoll').onclick=async function(){
 
 function pickStep(steps){
   if(busy||!S||S.phase!=='AWAIT_MOVE'||S.players[S.currentIdx].bot) return;
-  if(isGuest()){ if(myTurn()) Net.send({k:'move',steps:steps}); return; }
   Sfx.play('click');
   busy=true; sync();
   doMove(steps).then(function(){ busy=false; sync(); maybeBot(); });
 }
 
-function doPlace(){ if(busy||!S) return; S=Game.placeMine(S); sync(); maybeBot(); }
-function doSkipMine(){ if(busy||!S) return; S=Game.skipMine(S); sync(); maybeBot(); }
-function doUseItem(){
-  if(!S||S.phase!=='AWAIT_ACTION') return;
-  var key=S.players[S.currentIdx].item;
-  S=Game.useItem(S);
-  Sfx.play(key==='skipTurn'?'death':'pickup');
-  sync(); maybeBot();
-}
-
-/* ผู้เข้าร่วมไม่แตะสถานะเอง ส่งความตั้งใจไปให้กรรมการแล้วรอสถานะใหม่ */
-function act(a,localFn){
-  if(!myTurn()) return;
-  if(isGuest()){ Net.send(a); return; }
-  localFn();
-}
-
-$('btnPlace').onclick=function(){ act({k:'place'},doPlace) };
-$('btnSkip').onclick=function(){ act({k:'skipmine'},doSkipMine) };
+$('btnPlace').onclick=function(){ if(busy||!S) return; S=Game.placeMine(S); sync(); maybeBot(); };
+$('btnSkip').onclick=function(){ if(busy||!S) return; S=Game.skipMine(S); sync(); maybeBot(); };
 
 /* ลูกโซ่เทิร์นของคอมพิวเตอร์
    ทุกขั้นเทียบ runId กับตอนที่เริ่ม ถ้าผู้ใช้กดเริ่มใหม่ระหว่างทาง คิวที่ค้างอยู่จะหยุดเงียบ ๆ
    ไม่ไปแตะ state ของเกมรอบใหม่ */
 function maybeBot(){
-  if(isGuest()) return;                      /* กรรมการรันบอทคนเดียว */
   if(!S||S.phase==='GAME_OVER'||!S.players[S.currentIdx].bot) return;
   if(S.phase!=='AWAIT_ROLL'&&S.phase!=='AWAIT_ACTION') return;
   var my=runId;
