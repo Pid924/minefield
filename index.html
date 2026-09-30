@@ -150,6 +150,8 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
 .adv .opts{margin-bottom:6px}
 .proster{display:grid;gap:7px;margin-bottom:18px}
 .prow{display:flex;align-items:center;gap:9px}
+.optcheck{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13.5px;padding:9px 10px}
+.optcheck input{width:17px;height:17px;accent-color:var(--brass);cursor:pointer}
 .pick{font-family:var(--sans);font-size:13px;padding:6px 10px;color:var(--ink);
   background:var(--ctrl);border:1px solid var(--rule);border-radius:4px;cursor:pointer}
 /* ผู้เข้าร่วมไม่ได้เป็นคนตั้งค่า จึงหรี่ทุกอย่างที่ไม่ใช่เรื่องของเขาลง
@@ -385,7 +387,26 @@ svg#board{width:100%;height:auto;max-width:560px;display:block}
   display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:7px;gap:2px}
 .die i{border-radius:50%;background:transparent}
 .die i.on{background:var(--outline)}
-.dice{display:flex;gap:8px;flex:none}
+.dice{display:flex;gap:8px;flex:none;perspective:340px}
+/* มุมมองเอียง 53 องศาให้ตรงกับกระดาน (TILT_K=0.60 -> arccos คือมุมนี้พอดี)
+   ใบหน้าด้านหน้าคือผนังข้างของลูกเต๋า พับลงมาจากขอบล่างของหน้าบนเพื่อให้เห็นความหนา
+   คลาส rolling ถูกเติมที่ .diecube ด้วยตอนหมุน (ดู tumbleDice) เพื่อปิดผล 3 มิติชั่วคราว
+   ให้ animation การหมุนแบบเดิมทำงานเป็น 2 มิติตามปกติ แล้วค่อยกลับมาตั้งตรงหลังหยุด */
+.dice.tilt3d .diecube:not(.rolling){
+  transform:rotateX(53deg); transform-style:preserve-3d; transition:transform .25s ease;
+}
+.dice.tilt3d .diecube:not(.rolling) .die{ transform:translateZ(7px); }
+.dice.tilt3d .diecube:not(.rolling) .dieside{
+  display:block; position:absolute; left:0; bottom:0; width:100%; height:14px;
+  background:linear-gradient(180deg,var(--die2),var(--outline));
+  border:1.5px solid var(--outline); border-top:none; border-radius:0 0 8px 8px;
+  transform-origin:top; transform:rotateX(-90deg) translateZ(7px);
+}
+.diecube{position:relative}
+.dieside{display:none}
+@media (prefers-reduced-motion: reduce){
+  .dice.tilt3d .diecube:not(.rolling){ transition:none; }
+}
 .hudslot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
 .hud{display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center}
 /* แบบรถไฟกลางกระดานมีช่องอยู่ ลูกเต๋าจึงย้ายลงมาอยู่แถวเดียวกับสถานะแทน */
@@ -421,8 +442,11 @@ svg#board{width:100%;height:auto;max-width:560px;display:block}
 .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
 .steps{display:flex;gap:6px;flex-wrap:wrap}
 .stepbtn{font-family:var(--mono);font-size:16px;font-weight:600;padding:7px 14px;min-width:42px}
-#btnReset{margin-left:auto;font-size:13px;padding:7px 14px;border-color:var(--rule);color:var(--ink-2)}
+/* ปุ่มเริ่มใหม่ย้ายไปอยู่แถวเดียวกับปุ่มภาษาที่หัวเกม แสดงเฉพาะตอนอยู่ในหน้าเกมเท่านั้น */
+#btnReset{font-size:13px;padding:7px 14px;border-color:var(--rule);color:var(--ink-2);
+  border-radius:3px;background:linear-gradient(180deg,#4C3618,#33230F);cursor:pointer}
 #btnReset:hover{border-color:var(--ink);color:var(--ink)}
+body.on-setup #btnReset{display:none}
 .stepbtn{position:relative}
 .stepbtn.danger{border-color:var(--blood);color:var(--blood);border-width:2px}
 .stepbtn.danger2{background:var(--blood);color:var(--paper-2);border-color:var(--blood)}
@@ -502,7 +526,7 @@ button:focus-visible{outline:2px solid var(--hazard);outline-offset:2px}
 footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--ink-3);text-transform:uppercase}
 </style>
 </head>
-<body>
+<body class="on-setup">
 <div class="app">
   <header>
     <div class="top">
@@ -515,6 +539,7 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
         <div class="ver" id="ver"></div>
       </div>
       <div class="tools">
+        <button id="btnReset" type="button"></button>
         <div class="langs"><button id="btnLook" type="button"></button></div>
         <div class="langs"><button id="btnSound" type="button"></button></div>
         <div class="langs langwrap"><button id="btnLang" type="button"></button><div class="langpop hidden" id="langs"></div></div>
@@ -535,6 +560,8 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
       <details class="adv"><summary id="advTitle"></summary>
         <div class="advbody">
           <div class="opts" id="botrow"></div>
+          <div class="opts" id="cacherandomrow"></div>
+          <div class="opts hidden" id="cacheintervalrow"></div>
           <div class="opts" id="opts"></div>
         </div>
       </details>
@@ -553,7 +580,7 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
         <svg id="board" role="img"></svg>
         <div class="hudslot" id="hudBoard">
           <div class="hud" id="hud" aria-hidden="true">
-            <div class="dice"><div class="die" id="dieA"></div><div class="die" id="dieB"></div></div>
+            <div class="dice"><div class="diecube" id="cubeA"><div class="die" id="dieA"></div><div class="dieside"></div></div><div class="diecube" id="cubeB"><div class="die" id="dieB"></div><div class="dieside"></div></div></div>
             <div class="hudname" id="hudName"></div>
             <div class="hudhp pips hp" id="hudHp"></div>
           </div>
@@ -588,7 +615,6 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
           <div class="steps" id="steps"></div>
           <button class="hazard hidden" id="btnPlace"></button>
           <button class="hidden" id="btnSkip"></button>
-          <button id="btnReset"></button>
         </div>
       </div>
     </div>
@@ -1117,6 +1143,14 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
 
   function maxCaches(spacing) { return Math.floor(spacing / C.CACHE_DIV); }
 
+  /* ค่าสูงสุดของระยะห่างจุดเก็บในโหมดไม่สุ่ม ต้องหารด้วย spacing-1 ไม่ใช่ spacing ตรง ๆ
+     เพราะจุดเก็บลูกสุดท้าย (ตำแหน่ง k*interval) ต้องไม่ตกที่ตำแหน่งเดียวกับฐานถัดไป
+     ถ้าหารด้วย spacing เฉย ๆ กรณีหารลงตัวพอดีจะได้ระยะห่างที่ทำให้ลูกสุดท้ายชนฐาน */
+  function maxCacheInterval(spacing, k) {
+    if (k <= 0) return 1;
+    return Math.max(1, Math.floor((spacing - 1) / k));
+  }
+
   function pickOffsets(spacing, k, rng) {
     var pool = [], i, j, t;
     for (i = 1; i < spacing; i++) pool.push(i);
@@ -1137,6 +1171,21 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
     return out;
   }
 
+  /* โหมดไม่สุ่ม: จุดเก็บเรียงห่างกันเท่า ๆ กันทุกเซกเมนต์ ที่ตำแหน่ง interval, 2*interval, ...
+     จำนวนจุดเก็บเท่ากับ k เสมอ เพราะ interval ถูกจำกัดไว้ไม่ให้ตัวสุดท้ายเกินเซกเมนต์แล้ว
+     ไม่ใช้ rng เลย ทุกเซกเมนต์จึงมีลวดลายเดียวกันเป๊ะ ต่างจากโหมดสุ่มที่แต่ละเซกเมนต์ไม่ซ้ำกัน */
+  function buildCachesFixed(count, spacing, k, interval) {
+    var out = {};
+    for (var seg = 0; seg < count; seg++) {
+      for (var i = 1; i <= k; i++) {
+        var off = i * interval;
+        if (off >= spacing) break;      /* กันไว้ เผื่อค่าที่ส่งมาไม่ผ่าน maxCacheInterval */
+        out[seg * spacing + off] = true;
+      }
+    }
+    return out;
+  }
+
   function cleanName(v) {
     if (typeof v !== 'string') return null;
     var t = v.trim().slice(0, 14);
@@ -1148,6 +1197,9 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
     var count = clamp(n | 0, 2, C.MAX_PLAYERS);
     var spacing = clamp(opts.spacing === undefined ? C.SPACING : opts.spacing | 0, C.SPACING_MIN, C.SPACING_MAX);
     var cacheCount = clamp(opts.caches === undefined ? C.CACHES : opts.caches | 0, 0, maxCaches(spacing));
+    var cacheRandom = opts.cacheRandom === undefined ? true : !!opts.cacheRandom;
+    var cacheInterval = clamp(opts.cacheInterval === undefined ? 1 : opts.cacheInterval | 0,
+      1, maxCacheInterval(spacing, cacheCount));
     var mineMax = clamp(opts.mineMax === undefined ? C.MINE_MAX : opts.mineMax | 0, 1, C.MINE_HARD_MAX);
     var mineStart = clamp(opts.mineStart === undefined ? C.MINE_START : opts.mineStart | 0, 0, mineMax);
     /* เพดานหัวใจผูกกับค่าเริ่มต้นเสมอ คือมากกว่าหนึ่งดวง เพื่อให้การกลับฐานยังมีที่ให้ฟื้นเสมอ */
@@ -1203,10 +1255,13 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
       boardSize: boardSize,
       rules: {
         mineStart: mineStart, mineMax: mineMax, spacing: spacing, caches: cacheCount,
+        cacheRandom: cacheRandom, cacheInterval: cacheInterval,
         hpStart: hpStart, hpMax: hpMax, shape: shape, flip: flip, teams: teams
       },
       startTiles: startTiles,
-      caches: buildCaches(count, spacing, cacheCount, rng),
+      caches: cacheRandom
+        ? buildCaches(count, spacing, cacheCount, rng)
+        : buildCachesFixed(count, spacing, cacheCount, cacheInterval),
       players: players,
       currentIdx: 0,
       mines: {},
@@ -1691,6 +1746,7 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
     LIGHT_TEAM_UNITS: LIGHT_TEAM_UNITS,
     ERR: ERR,
     maxCaches: maxCaches,
+    maxCacheInterval: maxCacheInterval,
     stackAt: stackAt,
     createGame: createGame,
     rollDice: rollDice,
@@ -2439,6 +2495,7 @@ th:{
   ],
   opt_hp:'หัวใจเริ่มต้นต่อผู้เล่น', opt_start:'ทุ่นระเบิดตั้งต้นต่อผู้เล่น', opt_max:'ถือได้สูงสุด',
   opt_spacing:'ระยะระหว่างฐาน', opt_caches:'จุดเก็บทุ่นระเบิดต่อเซกเมนต์',
+  opt_cacherandom:'สุ่มจุดเก็บทุ่นระเบิด', opt_cacheinterval:'ระยะห่างจุดเก็บ',
   seg_human:'คน', seg_bot:'คอม', tag_bot:'คอม', tip_bot:'คอมพิวเตอร์เล่นแทน', opt_botlevel:'ระดับคอมพิวเตอร์',
   lvl_easy:'ง่าย', lvl_normal:'ปกติ', lvl_hard:'ยาก', st_thinking:'{name} กำลังคิด',
   btn_start:'เริ่มเกมส์',
@@ -2575,6 +2632,7 @@ en:{
   ],
   opt_hp:'Starting hearts per player', opt_start:'Starting mines per player', opt_max:'Carry limit',
   opt_spacing:'Tiles between bases', opt_caches:'Depots per segment',
+  opt_cacherandom:'Randomise depots', opt_cacheinterval:'Depot spacing',
   seg_human:'Human', seg_bot:'CPU', tag_bot:'CPU', tip_bot:'Played by the computer', opt_botlevel:'Computer skill',
   lvl_easy:'Easy', lvl_normal:'Normal', lvl_hard:'Hard', st_thinking:'{name} is thinking',
   btn_start:'Start game',
@@ -2712,6 +2770,7 @@ de:{
   ],
   opt_hp:'Herzen zu Beginn je Spieler', opt_start:'Minen zu Beginn je Spieler', opt_max:'Höchstzahl in der Hand',
   opt_spacing:'Felder zwischen den Basen', opt_caches:'Depots je Abschnitt',
+  opt_cacherandom:'Depots zufällig verteilen', opt_cacheinterval:'Depotabstand',
   seg_human:'Mensch', seg_bot:'CPU', tag_bot:'CPU', tip_bot:'Wird vom Computer gespielt', opt_botlevel:'Spielstärke',
   lvl_easy:'Leicht', lvl_normal:'Normal', lvl_hard:'Schwer', st_thinking:'{name} überlegt',
   btn_start:'Spiel starten',
@@ -2849,6 +2908,7 @@ nl:{
   ],
   opt_hp:'Harten bij start per speler', opt_start:'Mijnen bij start per speler', opt_max:'Maximaal in de hand',
   opt_spacing:'Velden tussen de bases', opt_caches:'Depots per sector',
+  opt_cacherandom:'Depots willekeurig', opt_cacheinterval:'Depotafstand',
   seg_human:'Mens', seg_bot:'CPU', tag_bot:'CPU', tip_bot:'Wordt door de computer gespeeld', opt_botlevel:'Speelsterkte',
   lvl_easy:'Makkelijk', lvl_normal:'Normaal', lvl_hard:'Moeilijk', st_thinking:'{name} denkt na',
   btn_start:'Spel starten',
@@ -2975,7 +3035,8 @@ nl:{
 var S=null, geo=null, playerCount=3, busy=false, animTok=null, lang='th';
 var cfg={hpStart:Game.C.HP_START, mineStart:Game.C.MINE_START, mineMax:Game.C.MINE_MAX,
          spacing:Game.C.SPACING, caches:Game.C.CACHES};
-var pnames=['','','','','',''], pbots=[false,false,false,false,false,false];
+/* คนแรกเป็นผู้เล่นจริงตามค่าเริ่มต้น ที่เหลือเป็นคอมพิวเตอร์ เพื่อให้กดเริ่มเกมได้ทันทีโดยไม่ต้องตั้งค่าเอง */
+var pnames=['','','','','',''], pbots=[false,true,true,true,true,true];
 var botLevel='normal', boardShape='ring', teamMode=false, runId=0;
 /* ---------- ออนไลน์ ----------
    เจ้าของห้องเป็นกรรมการคนเดียว ผู้เข้าร่วมส่งความตั้งใจแล้วรอสถานะกลับมา
@@ -3189,7 +3250,18 @@ function netPush(){
   Net.broadcast(S);
 }
 
-var VERSION='5.5.1';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
+var VERSION='5.5.9';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
+
+/* ตัวช่วยกลางสำหรับสลับหน้า ทุกจุดที่เคยเขียน classList ของ #setup กับ #game ตรง ๆ
+   เปลี่ยนมาเรียกอันนี้แทน จะได้ไม่มีจุดไหนลืมอัปเดตคลาสของ body ที่คุมการโชว์ปุ่มเริ่มใหม่ */
+function showSetupPage(){
+  $('setup').classList.remove('hidden'); $('game').classList.add('hidden');
+  document.body.classList.add('on-setup');
+}
+function showGamePage(){
+  $('setup').classList.add('hidden'); $('game').classList.remove('hidden');
+  document.body.classList.remove('on-setup');
+}
 var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
@@ -3329,6 +3401,7 @@ function applyLang(){
   $('btnLook').innerHTML=uiIcon('look');
   $('btnLook').title=t('btn_look');
   $('btnLook').setAttribute('aria-label',t('btn_look'));
+  buildCacheRandomRow(); buildCacheIntervalRow(); renderOpts();
   refreshRoomButtons();
   $('btnLookClose').textContent=t('btn_close');
   $('lookKicker').textContent=t('look_title');
@@ -3345,7 +3418,7 @@ function applyLang(){
   $('footer').textContent=t('footer');
   $('board').setAttribute('aria-label',t('board_title'));
   paintSound();
-  buildRoster(); buildNetRow(); buildTeamRow(); buildThemeRow(); buildViewRow(); buildCountState(); buildShapeRow(); buildBotRow(); renderOpts();
+  buildRoster(); buildNetRow(); buildTeamRow(); buildThemeRow(); buildViewRow(); buildCacheRandomRow(); buildCacheIntervalRow(); buildCountState(); buildShapeRow(); buildBotRow(); renderOpts();
   if(S){ buildBoard(); sync(); } else { $('meta').textContent=t('meta_none'); }
 }
 
@@ -3361,6 +3434,43 @@ COUNTS.forEach(function(n){
   };
   $('choices').appendChild(b);
 });
+cfg.cacheRandom = true;
+cfg.cacheInterval = 1;
+
+function buildCacheRandomRow(){
+  var box=$('cacherandomrow');
+  box.innerHTML='<label class="optcheck"><input type="checkbox" id="chkCacheRandom">'+
+    '<span id="lblCacheRandom"></span></label>';
+  $('lblCacheRandom').textContent=t('opt_cacherandom');
+  var cb=$('chkCacheRandom');
+  cb.checked=cfg.cacheRandom;
+  cb.onchange=function(){
+    cfg.cacheRandom=cb.checked;
+    if(!cfg.cacheRandom){
+      /* สลับมาโหมดไม่สุ่มครั้งแรก ตั้งค่าเริ่มต้นเป็นค่าสูงสุดที่ทำได้ตอนนี้ */
+      cfg.cacheInterval=Game.maxCacheInterval(cfg.spacing,cfg.caches);
+    }
+    buildCacheIntervalRow(); renderOpts();
+  };
+}
+
+function buildCacheIntervalRow(){
+  var box=$('cacheintervalrow');
+  box.classList.toggle('hidden', cfg.cacheRandom);
+  if(cfg.cacheRandom) return;
+  var max=Game.maxCacheInterval(cfg.spacing,cfg.caches);
+  if(cfg.cacheInterval>max) cfg.cacheInterval=max;   /* เกินค่าสูงสุดใหม่ ดึงกลับมาที่ค่าสูงสุดเสมอ */
+  box.innerHTML='<div class="opt"><span id="lblCacheInterval"></span><div class="step">'+
+    '<button type="button" aria-label="-">\u2212</button><b id="valCacheInterval"></b>'+
+    '<button type="button" aria-label="+">+</button></div></div>';
+  $('lblCacheInterval').textContent=t('opt_cacheinterval');
+  $('valCacheInterval').textContent=cfg.cacheInterval;
+  var b=box.querySelectorAll('.step button');
+  b[0].onclick=function(){ cfg.cacheInterval=Math.max(1,cfg.cacheInterval-1); buildCacheIntervalRow(); renderOpts(); };
+  b[1].onclick=function(){ cfg.cacheInterval=Math.min(max,cfg.cacheInterval+1); buildCacheIntervalRow(); renderOpts(); };
+  b[0].disabled=cfg.cacheInterval<=1; b[1].disabled=cfg.cacheInterval>=max;
+}
+
 var OPTS=[
   {key:'opt_hp', get:function(){return cfg.hpStart}, set:function(v){cfg.hpStart=v},
    lo:function(){return 1}, hi:function(){return Game.C.HP_HARD_MAX}},
@@ -3369,12 +3479,12 @@ var OPTS=[
   {key:'opt_max', get:function(){return cfg.mineMax}, set:function(v){cfg.mineMax=v; if(cfg.mineStart>v) cfg.mineStart=v},
    lo:function(){return 1}, hi:function(){return Game.C.MINE_HARD_MAX}},
   {key:'opt_spacing', get:function(){return cfg.spacing},
-   set:function(v){ cfg.spacing=v; var m=Game.maxCaches(v); if(cfg.caches>m) cfg.caches=m },
+   set:function(v){ cfg.spacing=v; var m=Game.maxCaches(v); if(cfg.caches>m) cfg.caches=m; buildCacheIntervalRow(); },
    lo:function(){return Game.C.SPACING_MIN}, hi:function(){return Game.C.SPACING_MAX}},
   /* ต่ำสุด 1 ไม่ใช่ 0: ถ้าไม่มีจุดเก็บเลย ทุ่นทั้งเกมมีจำนวนจำกัด
      พอถูกใช้จนหมดจะไม่มีใครฆ่าใครได้อีก เกมค้างถาวร (ยืนยันด้วยการจำลองแล้ว)
      ตัวโมดูลยังรับ 0 ได้ถ้าเรียกตรง ๆ */
-  {key:'opt_caches', get:function(){return cfg.caches}, set:function(v){cfg.caches=v},
+  {key:'opt_caches', get:function(){return cfg.caches}, set:function(v){cfg.caches=v; buildCacheIntervalRow();},
    lo:function(){return 1}, hi:function(){return Game.maxCaches(cfg.spacing)}}
 ];
 OPTS.forEach(function(o,i){
@@ -3543,8 +3653,7 @@ function onRemoteState(st){
     return;
   }
   if(needBoard){
-    $('setup').classList.add('hidden');
-    $('game').classList.remove('hidden');
+    showGamePage();
     geo=geometry();
     buildBoard();
   }
@@ -3616,9 +3725,17 @@ function buildViewRow(){
     var b=document.createElement('button'); b.type='button';
     b.textContent=pair[1];
     b.setAttribute('aria-pressed',pair[0]===view);
-    b.onclick=function(){ view=pair[0]; buildViewRow(); if(S) buildBoard(); };
+    b.onclick=function(){ view=pair[0]; buildViewRow(); applyDiceTilt(); if(S) buildBoard(); };
     $('vwseg').appendChild(b);
   });
+  applyDiceTilt();
+}
+
+/* ลูกเต๋าเป็น HTML ธรรมดา จึงใช้ CSS 3D จริงได้ ต่างจากกระดานที่เป็น SVG
+   สลับตามมุมมองปัจจุบันเดียวกับที่คุมกระดาน จะได้ไม่ต้องมีตัวเลือกซ้ำซ้อน */
+function applyDiceTilt(){
+  var el=document.querySelector('.dice');
+  if(el) el.classList.toggle('tilt3d', tilted());
 }
 
 function buildThemeRow(){
@@ -3696,7 +3813,7 @@ var steppedOut=false;
 function reset(){
   runId++; busy=false; animTok=null; S=null;
   steppedOut=false;
-  $('game').classList.add('hidden'); $('setup').classList.remove('hidden');
+  showSetupPage();
   $('meta').textContent=t('meta_none');
   refreshRoomButtons();
 }
@@ -3704,7 +3821,7 @@ function reset(){
 function stepOutOfGame(){
   Sfx.play('click');
   steppedOut=true;
-  $('game').classList.add('hidden'); $('setup').classList.remove('hidden');
+  showSetupPage();
   refreshRoomButtons();
   buildNetRow();
 }
@@ -3712,7 +3829,7 @@ function stepOutOfGame(){
 function stepBackIntoGame(){
   Sfx.play('click');
   steppedOut=false;
-  $('setup').classList.add('hidden'); $('game').classList.remove('hidden');
+  showGamePage();
   geo=geometry(); buildBoard(); sync();
   refreshRoomButtons();
 }
@@ -3734,13 +3851,13 @@ function start(n){
   runId++; busy=false; animTok=null;
   S=Game.createGame(n,{
     mineStart:cfg.mineStart, mineMax:cfg.mineMax, spacing:cfg.spacing, caches:cfg.caches,
+    cacheRandom:cfg.cacheRandom, cacheInterval:cfg.cacheInterval,
     hpStart:cfg.hpStart, shape:boardShape, teams:teamMode,
     names:pnames.slice(0,n),
     bots:pbots.slice(0,n).map(function(isBot){ return isBot?botLevel:null })
   });
   geo=geometry();
-  $('setup').classList.add('hidden');
-  $('game').classList.remove('hidden');
+  showGamePage();
   $('over').classList.add('hidden');
   $('itemCard').classList.add('hidden');
   $('itemInfo').classList.add('hidden');
@@ -4180,10 +4297,11 @@ var SFX={boom:'blast', boomstack:'blast2', heal:'heal', supply:'pickup',
          place:'plant', stack:'plant2', forced:'alert', out:'death', win:'fanfare'};
 
 function tumbleDice(roll){
-  var A=$('dieA'), Bd=$('dieB');
+  var A=$('dieA'), Bd=$('dieB'), cA=$('cubeA'), cB=$('cubeB');
   if(reduced){ drawDie('dieA',roll.a); drawDie('dieB',roll.b); return Promise.resolve() }
   var delays=[40,44,52,64,80,100,126,158,196];
   A.classList.add('rolling'); Bd.classList.add('rolling');
+  cA.classList.add('rolling'); cB.classList.add('rolling');
   return delays.reduce(function(chain,ms){
     return chain.then(function(){
       drawDie('dieA',1+Math.floor(Math.random()*6));
@@ -4193,6 +4311,7 @@ function tumbleDice(roll){
     });
   }, Promise.resolve()).then(function(){
     A.classList.remove('rolling'); Bd.classList.remove('rolling');
+    cA.classList.remove('rolling'); cB.classList.remove('rolling');
     drawDie('dieA',roll.a); drawDie('dieB',roll.b);
     Sfx.play('settle');
     A.classList.add('settle'); Bd.classList.add('settle');
