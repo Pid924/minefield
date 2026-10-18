@@ -193,6 +193,23 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
 .netmsg{font-size:12.5px;color:var(--ink-2)}
 .netmsg.bad{color:var(--blood)}
 .netmsg.ok{color:var(--heal)}
+/* ชวนเพื่อน (v6.1) ลิงก์ QR และปุ่มคัดลอก */
+.invite{display:grid;grid-template-columns:auto 1fr;gap:12px 16px;align-items:center;margin-top:10px;
+  padding:12px;border:1px dashed var(--brass);border-radius:6px;background:rgba(216,167,43,.07)}
+.invite .qr{width:148px;height:148px;background:#fff;border-radius:4px;padding:6px;box-sizing:border-box;line-height:0}
+.invite .qr svg{width:100%;height:100%;display:block}
+.invite .qr.none{display:none}
+.invite .ib{display:grid;gap:8px;min-width:0}
+.invite .it{font-size:13px;color:var(--ink)}
+.invite .il{font-family:var(--mono);font-size:12px;width:100%;box-sizing:border-box;padding:7px 9px;color:var(--ink);
+  background:var(--ctrl);border:1px solid var(--rule);border-radius:4px;min-width:0}
+.invite .ibtns{display:flex;gap:8px;flex-wrap:wrap}
+.invite .ih{font-size:12px;color:var(--ink-2)}
+.invite .ih.warn{color:var(--blood)}
+@media(max-width:640px){.invite{grid-template-columns:1fr;justify-items:center}.invite .ib{width:100%}}
+.netbanner{margin:0 0 10px;padding:8px 12px;border-radius:4px;font-size:13px;background:rgba(216,167,43,.14);
+  border:1px solid var(--brass);color:var(--ink)}
+.netbanner.bad{background:rgba(180,40,30,.12);border-color:var(--blood)}
 .langs button{display:flex;align-items:center;justify-content:center;min-width:34px;height:30px;padding:0 8px}
 .langwrap{position:relative}
 .langpop{position:absolute;right:0;top:calc(100% + 5px);z-index:30;display:flex;flex-direction:column;
@@ -350,6 +367,15 @@ h1{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:.22em;m
     repeating-linear-gradient(88deg,var(--stage-line) 0 1px,transparent 1px 19px);
   border-bottom:1px solid var(--rule)}
 svg#board{width:100%;height:auto;max-width:560px;display:block}
+/* กระดาน 3 มิติ (v6) กล่องกว้างเต็มการ์ด สูงตามสัดส่วน จอแคบเปลี่ยนเป็นเกือบจัตุรัส */
+.board3d{position:relative;width:100%;aspect-ratio:16/10;max-width:100%;border-radius:8px;overflow:hidden;background:var(--wood-dark)}
+.b3canvas{display:block;width:100%!important;height:100%!important}
+.b3reset{position:absolute;top:8px;right:8px;z-index:2;padding:6px 8px;line-height:0;min-height:0}
+.b3hint{position:absolute;left:8px;top:8px;right:56px;z-index:1;font-family:var(--mono);font-size:11px;color:#F2E7D2;
+  background:rgba(20,13,7,.72);padding:4px 8px;border-radius:4px;pointer-events:none;width:max-content;max-width:calc(100% - 64px);transition:opacity .4s}
+.b3hint.gone{opacity:0}
+.hud.nodice .dice{display:none}
+@media(max-width:640px){.board3d{aspect-ratio:1/1.12}}
 .tile{fill:var(--tile);stroke:var(--tile-line);stroke-width:1}
 .tile.start{stroke-width:2.5}
 .tile.cache{fill:var(--cache);stroke:var(--brass);stroke-dasharray:3 2.5}
@@ -576,8 +602,10 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
   <section class="game hidden" id="game">
     <div class="card">
       <h2 id="boardTitle"></h2>
+      <div class="netbanner hidden" id="netBanner" role="status"></div>
       <div class="stage">
         <svg id="board" role="img"></svg>
+        <div class="board3d hidden" id="board3d"><button type="button" class="b3reset" id="btn3dReset"></button><span class="b3hint" id="b3hint"></span></div>
         <div class="hudslot" id="hudBoard">
           <div class="hud" id="hud" aria-hidden="true">
             <div class="dice"><div class="diecube" id="cubeA"><div class="die" id="dieA"></div><div class="dieside"></div></div><div class="diecube" id="cubeB"><div class="die" id="dieB"></div><div class="dieside"></div></div></div>
@@ -2316,6 +2344,7 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
         c.on('open', function () { say('info', 'guest_open'); });
         c.on('data', function (msg) { onHostMessage(c, msg); });
         c.on('close', function () {
+          if (c._dropped) return;            /* ถูกตัดไปแล้วโดยการต่อกลับ แจ้งไปแล้วรอบหนึ่ง */
           var seat = seatOf(c);
           conns = conns.filter(function (x) { return x !== c; });
           if (hooks.onLeave) hooks.onLeave(seat);
@@ -2330,7 +2359,12 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
     if (!msg || !msg.k) return;
     if (msg.k === 'hello') {
       /* ยังไม่แจกที่นั่ง ส่งรายการที่นั่งไปให้เลือกเองก่อน */
-      c.metadata = { seat: -1, name: msg.name || '' };
+      c.metadata = { seat: -1, name: msg.name || '', id: msg.id || '' };
+      /* เครื่องเดิมต่อกลับมาใหม่หลังเน็ตหลุด แต่ช่องทางเก่ายังไม่ถูกปิด (มือถือพักจอมักเป็นแบบนี้)
+         ตัดช่องทางเก่าทิ้งทันที ที่นั่งเดิมจะได้ว่างให้คนเดิมกลับไปนั่ง */
+      if (msg.id) conns.slice().forEach(function (o) {
+        if (o !== c && o.metadata && o.metadata.id === msg.id) drop(o);
+      });
       if (hooks.onHello) hooks.onHello(c);
       if (hooks.onSeats) hooks.onSeats(-1, c.metadata.name || '');
       return;
@@ -2353,6 +2387,14 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
       if (seat < 0) return;
       if (hooks.onAct) hooks.onAct(seat, msg.a);   /* ให้ชั้นบนตรวจว่าถึงตาเขาจริงไหม */
     }
+  }
+
+  function drop(o) {
+    var seat = seatOf(o);
+    o._dropped = true;
+    conns = conns.filter(function (x) { return x !== o; });
+    try { o.close(); } catch (e) {}
+    if (hooks.onLeave) hooks.onLeave(seat);
   }
 
   /* ส่งรายการที่นั่งให้ทุกคนที่ต่ออยู่ เรียกทุกครั้งที่ผังที่นั่งเปลี่ยน */
@@ -2393,6 +2435,10 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
     opts = opts || {};
     hooks = opts;
     var wanted = String(codeText || '').trim().toUpperCase();
+    /* ต่อกลับหลังหลุด ตัวเชื่อมเก่ายังค้างอยู่ ทิ้งก่อนสร้างใหม่ */
+    try { if (peer) peer.destroy(); } catch (e) {}
+    peer = null; conn = null;
+    var bye = false;
     say('busy', 'loading');
     return loadLib().then(function () {
       say('busy', 'signalling');
@@ -2404,7 +2450,7 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
         var opened = false;
         c.on('open', function () {
           opened = true; conn = c; mode = 'joined'; roomCode = wanted;
-          c.send({ k: 'hello', name: opts.name || '' });
+          c.send({ k: 'hello', name: opts.name || '', id: opts.id || '' });
           say('ok', 'joined', { code: wanted });
           res(wanted);
         });
@@ -2418,9 +2464,14 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
             hooks.onLobby(msg.seats, msg.teams);
           } else if (msg.k === 'state' && hooks.onRemoteState) {
             hooks.onRemoteState(msg.s);
+          } else if (msg.k === 'bye') {
+            bye = true;                       /* เจ้าของห้องปิดห้องเอง ไม่ใช่เน็ตหลุด */
           }
         });
-        c.on('close', function () { mode = 'off'; conn = null; say('warn', 'host_left'); });
+        c.on('close', function () {
+          if (conn !== c) return;             /* ช่องทางเก่าที่เราทิ้งไปแล้ว */
+          mode = 'off'; conn = null; say('warn', 'host_left', { bye: bye });
+        });
         c.on('error', function (e) { if (!opened) rej(e); });
         setTimeout(function () { if (!opened) rej(new Error('CONNECT')); }, 15000);
       });
@@ -2451,10 +2502,17 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
   }
 
   function leave() {
-    try { conns.forEach(function (c) { c.close(); }); } catch (e) {}
-    try { if (conn) conn.close(); } catch (e) {}
-    try { if (peer) peer.destroy(); } catch (e) {}
+    var oldConns = conns, oldConn = conn, oldPeer = peer, wasHost = mode === 'hosting';
     conns = []; conn = null; peer = null; mode = 'off'; roomCode = ''; mySeat = 0;
+    /* เจ้าของห้องบอกลาก่อนปิด ผู้เข้าร่วมจะได้รู้ว่าไม่ต้องพยายามต่อกลับ
+       รอสักครู่ให้ข้อความออกไปก่อน แล้วค่อยปิดช่องทาง */
+    if (wasHost) oldConns.forEach(function (c) { try { if (c.open) c.send({ k: 'bye' }); } catch (e) {} });
+    function close() {
+      try { oldConns.forEach(function (c) { c.close(); }); } catch (e) {}
+      try { if (oldConn) oldConn.close(); } catch (e) {}
+      try { if (oldPeer) oldPeer.destroy(); } catch (e) {}
+    }
+    if (wasHost && oldConns.length) setTimeout(close, 250); else close();
   }
 
   root.Net = {
@@ -2470,6 +2528,686 @@ footer{margin-top:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.
     guests: function () { return conns.filter(function (c) { return c.open; }).length; }
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.Net;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* สนามทุ่นระเบิด - กระดาน 3 มิติ (v6)
+   ชั้นวาดอีกชุดหนึ่งที่ใช้แทน SVG ได้ ไม่รู้จักกติกาเลย อ่าน state แล้ววาดอย่างเดียว
+   ตำแหน่งช่องมาจาก Geom.layout ตัวเดียวกับ SVG จึงตรงกันทุกรูปทรง
+   Three.js โหลดตอนต้องใช้เท่านั้น (เหมือน PeerJS) ไฟล์จึงยังเปิดแบบออฟไลน์ได้ด้วยมุมมอง SVG
+   หน่วยในฉาก: 50 px ของผัง = 1 หน่วย */
+(function (root) {
+  'use strict';
+
+  var LIB = ['https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js',
+             'https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js'];
+  var SC = 50;
+  var T = null;                 /* THREE หลังโหลดเสร็จ */
+  var loading = null, failed = false;
+
+  /* ---------- ความพร้อมของเครื่อง ---------- */
+  var supportCache = null;
+  function supported() {
+    if (supportCache !== null) return supportCache;
+    /* เช็กชื่อคลาสก่อน เครื่องที่ไม่มี WebGL เลย (รวมถึง jsdom) จะไม่ถูกสร้าง canvas ทดลอง */
+    if (typeof root.WebGLRenderingContext === 'undefined' || typeof document === 'undefined') return (supportCache = false);
+    try {
+      var c = document.createElement('canvas');
+      supportCache = !!(c.getContext('webgl2') || c.getContext('webgl'));
+    } catch (e) { supportCache = false; }
+    return supportCache;
+  }
+  function ready() { return !!(T && T.OrbitControls); }
+
+  function addScript(src) {
+    return new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = src; s.async = false;
+      s.onload = function () { res(); };
+      s.onerror = function () { rej(new Error('LIB')); };
+      document.head.appendChild(s);
+    });
+  }
+  function load() {
+    if (ready()) return Promise.resolve();
+    if (failed) return Promise.reject(new Error('LIB'));
+    if (loading) return loading;
+    if (!supported()) { failed = true; return Promise.reject(new Error('NOGL')); }
+    var timer;
+    loading = Promise.race([
+      (root.THREE ? Promise.resolve() : addScript(LIB[0]))
+        .then(function () { return root.THREE.OrbitControls ? null : addScript(LIB[1]); })
+        .then(function () { T = root.THREE; if (!T || !T.OrbitControls) throw new Error('LIB'); }),
+      new Promise(function (res, rej) { timer = setTimeout(function () { rej(new Error('LIB')); }, 15000); })
+    ]).then(function () { clearTimeout(timer); }, function (e) { clearTimeout(timer); failed = true; loading = null; throw e; });
+    return loading;
+  }
+
+  /* ---------- สถานะของฉาก ---------- */
+  var host = null, renderer = null, scene, camera, controls, raycaster, pointer;
+  var boardG, dynG, tokG, pickG, fxG, dice = [];
+  var ctx = null, S = null, L = null, tileR = 0.5;
+  var tokens = {}, pickHits = [], anims = [], shake = 0, camMode = 'tilt';
+  var running = false, engaged = false;
+  var onPick = null;
+
+  function col(c) { return new T.Color(c); }
+  function cssv(name, fb) { var v = ctx && ctx.css ? ctx.css(name) : ''; return v || fb; }
+
+  function mount(el) {
+    if (!ready()) return false;
+    if (renderer && host === el) return true;
+    host = el;
+    if (T.ColorManagement) T.ColorManagement.legacyMode = false;
+    renderer = new T.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(root.devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = T.PCFSoftShadowMap;
+    renderer.outputEncoding = T.sRGBEncoding;
+    renderer.toneMapping = T.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.domElement.className = 'b3canvas';
+    el.insertBefore(renderer.domElement, el.firstChild);
+
+    scene = new T.Scene();
+    camera = new T.PerspectiveCamera(38, 1, 0.1, 200);
+    controls = new T.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.08;
+    controls.maxPolarAngle = 1.38; controls.minDistance = 5; controls.maxDistance = 70;
+    controls.enablePan = false;
+    /* นิ้วเดียวเลื่อนหน้าเว็บตามปกติ ต้องสองนิ้วถึงจะหมุนและซูม ไม่งั้นกระดานกินพื้นที่จอจนเลื่อนหน้าไม่ได้ */
+    controls.touches = { ONE: -1, TWO: T.TOUCH.DOLLY_ROTATE };
+    renderer.domElement.style.touchAction = 'pan-y';
+    /* ล้อเมาส์ซูมเฉพาะหลังคลิกที่กระดานแล้ว ก่อนหน้านั้นปล่อยให้เลื่อนหน้าเว็บ */
+    el.addEventListener('wheel', function (e) { if (!engaged && !e.ctrlKey) e.stopPropagation(); }, true);
+    el.addEventListener('pointerleave', function () { engaged = false; });
+
+    scene.add(new T.HemisphereLight(0xffe9c4, 0x2a1a0c, 0.6));
+    var sun = new T.DirectionalLight(0xfff1d6, 1.1);
+    sun.position.set(-8, 20, 10); sun.castShadow = true;
+    var big = (root.innerWidth || 1024) >= 700;   /* มือถือใช้เงาความละเอียดต่ำลง ประหยัดแรงเครื่อง */
+    sun.shadow.mapSize.set(big ? 2048 : 1024, big ? 2048 : 1024);
+    var sc = sun.shadow.camera; sc.left = -18; sc.right = 18; sc.top = 15; sc.bottom = -15; sc.near = 1; sc.far = 60;
+    sun.shadow.bias = -0.0006;
+    scene.add(sun);
+    var lamp = new T.PointLight(0xffb45a, 0.45, 40); lamp.position.set(9, 7, -6); scene.add(lamp);
+
+    boardG = new T.Group(); dynG = new T.Group(); tokG = new T.Group(); pickG = new T.Group(); fxG = new T.Group();
+    scene.add(boardG, dynG, tokG, pickG, fxG);
+    raycaster = new T.Raycaster(); pointer = new T.Vector2();
+    buildDice();
+
+    /* แตะเพื่อเลือกช่องปลายทาง แยกจากการลากหมุนด้วยระยะที่นิ้วขยับ */
+    var down = null;
+    renderer.domElement.addEventListener('pointerdown', function (e) { engaged = true; down = { x: e.clientX, y: e.clientY }; });
+    renderer.domElement.addEventListener('pointerup', function (e) {
+      if (!down) return;
+      var moved = Math.hypot(e.clientX - down.x, e.clientY - down.y); down = null;
+      if (moved > 8) return;
+      var hit = pickAt(e.clientX, e.clientY);
+      if (hit && onPick) onPick(hit.steps);
+    });
+    renderer.domElement.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      renderer.domElement.style.cursor = pickAt(e.clientX, e.clientY) ? 'pointer' : '';
+    });
+    if (root.ResizeObserver) new root.ResizeObserver(function () { resize(); }).observe(el);
+    else root.addEventListener('resize', resize);
+    if (!running) {
+      running = true; requestAnimationFrame(frame);
+      setInterval(function () { var now = performance.now(); if (now - lastFrame > 150) tick(now); }, 100);
+    }
+    return true;
+  }
+
+  function pickAt(cx, cy) {
+    if (!pickHits.length) return null;
+    var r = renderer.domElement.getBoundingClientRect();
+    pointer.set((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+    /* ช่องที่เพิ่งสร้างยังไม่มีเมทริกซ์โลกจนกว่าจะถึงเฟรมถัดไป อัปเดตเองก่อนยิงเรย์ */
+    pickG.updateMatrixWorld(true); camera.updateMatrixWorld();
+    raycaster.setFromCamera(pointer, camera);
+    var hits = raycaster.intersectObjects(pickHits, false);
+    return hits.length ? hits[0].object.userData : null;
+  }
+
+  function disposeTree(g) {
+    while (g.children.length) {
+      var o = g.children.pop();
+      o.traverse(function (m) {
+        if (m.geometry && !m.isSprite && !m.geometry.userData.keep) m.geometry.dispose();
+        if (m.material) [].concat(m.material).forEach(function (mt) {
+          if (mt.userData.keep) return;
+          if (mt.map && !(mt.map.userData && mt.map.userData.keep)) mt.map.dispose();
+          mt.dispose();
+        });
+      });
+    }
+  }
+
+  /* ---------- พิกัด ---------- */
+  function tilePos(i, off) {
+    var pts = L.pts, n = pts.length;
+    var f = ((i % n) + n) % n, i0 = Math.floor(f), u = f - i0;
+    var a = pts[i0], b = pts[(i0 + 1) % n];
+    var x = a.x + (b.x - a.x) * u, y = a.y + (b.y - a.y) * u;
+    if (off) {
+      var nx = a.nx + (b.nx - a.nx) * u, ny = a.ny + (b.ny - a.ny) * u, m = Math.hypot(nx, ny) || 1;
+      if (S.rules.shape === 'snake' && ny > 0) { nx = -nx; ny = -ny; }
+      x += nx / m * off; y += ny / m * off;
+    }
+    return new T.Vector3((x - L.W / 2) / SC, 0, (y - L.H / 2) / SC);
+  }
+
+  /* ---------- พื้นผิววาดเอง ไม่มีไฟล์รูปให้โหลด ---------- */
+  function woodTex(base, w, h, rep) {
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var g = c.getContext('2d'); g.fillStyle = base; g.fillRect(0, 0, w, h);
+    for (var i = 0; i < 150; i++) {
+      var y = Math.random() * h;
+      g.strokeStyle = 'rgba(0,0,0,' + (0.04 + Math.random() * 0.09) + ')'; g.lineWidth = 0.6 + Math.random() * 2.2;
+      g.beginPath(); g.moveTo(0, y);
+      for (var x = 0; x <= w; x += 32) g.lineTo(x, y + Math.sin(x / 90 + i) * 3 + (Math.random() - 0.5) * 2);
+      g.stroke();
+    }
+    var t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping;
+    if (rep) t.repeat.set(rep[0], rep[1]);
+    t.encoding = T.sRGBEncoding; t.anisotropy = 4;
+    return t;
+  }
+  function textTex(text, o) {
+    o = o || {};
+    var w = o.w || 128, h = o.h || 128;
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var g = c.getContext('2d');
+    if (o.bg) {
+      g.fillStyle = o.bg; g.beginPath(); g.arc(w / 2, h / 2, Math.min(w, h) / 2 - 6, 0, Math.PI * 2); g.fill();
+      g.lineWidth = 7; g.strokeStyle = 'rgba(0,0,0,.45)'; g.stroke();
+    }
+    g.font = (o.weight || 600) + ' ' + (o.size || 72) + 'px ' + (o.font || '"IBM Plex Mono", ui-monospace, monospace');
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    if (o.stroke) { g.lineWidth = o.strokeW || 8; g.strokeStyle = o.stroke; g.strokeText(text, w / 2, h / 2 + 3); }
+    g.fillStyle = o.fg || '#1F1409'; g.fillText(text, w / 2, h / 2 + 3);
+    var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; return t;
+  }
+  /* ป้ายตัวอักษรที่ใช้ซ้ำ (อักษรประจำหน่วย เลขก้าว) สร้างครั้งเดียวแล้วเก็บไว้ ไม่สร้างใหม่ทุกครั้งที่วาด */
+  var texCache = {};
+  function cachedTex(key, text, o) {
+    var t = texCache[key];
+    if (!t) { t = textTex(text, o); t.userData = { keep: true }; texCache[key] = t; }
+    return t;
+  }
+  function sprite(tex, sx, sy) {
+    var s = new T.Sprite(new T.SpriteMaterial({ map: tex, depthWrite: false, transparent: true }));
+    s.scale.set(sx, sy || sx, 1); return s;
+  }
+
+  /* ---------- สร้างกระดาน ---------- */
+  function build(c) {
+    ctx = c; S = c.S;
+    var boxW = 1000, boxH = Math.round(boxW * (S.rules.shape === 'snake' ? 0.62 : 0.78));
+    L = root.Geom.layout({ shape: S.rules.shape, sides: S.players.length, tiles: S.boardSize, W: boxW, H: boxH, maxTile: 34, flip: S.rules.flip });
+    tileR = L.tileR / SC;
+    disposeTree(boardG); disposeTree(dynG); disposeTree(tokG); disposeTree(pickG); disposeTree(fxG);
+    tokens = {}; pickHits = []; anims = []; dynSig = ''; pickSig = '';
+
+    var bg = cssv('--wood-dark', '#1F1409');
+    scene.background = col(bg);
+    scene.fog = new T.Fog(col(bg), 45, 95);
+
+    var table = new T.Mesh(new T.PlaneGeometry(160, 160),
+      new T.MeshStandardMaterial({ map: woodTex(cssv('--wood-dark', '#1F1409'), 512, 512, [9, 9]), roughness: 0.9 }));
+    table.rotation.x = -Math.PI / 2; table.position.y = -0.4; table.receiveShadow = true; boardG.add(table);
+
+    var sw = L.W / SC + 1.4, sh = L.H / SC + 1.4;
+    var slab = new T.Mesh(new T.BoxGeometry(sw, 0.5, sh),
+      new T.MeshStandardMaterial({ map: woodTex(cssv('--wood', '#5A3E22'), 1024, 512), roughness: 0.75 }));
+    slab.position.y = -0.3; slab.receiveShadow = true; slab.castShadow = true; boardG.add(slab);
+    var trim = new T.Mesh(new T.BoxGeometry(sw + 0.24, 0.32, sh + 0.24),
+      new T.MeshStandardMaterial({ color: col(cssv('--outline', '#1F1409')), roughness: 0.6 }));
+    trim.position.y = -0.4; boardG.add(trim);
+
+    /* รางสองเส้นตามเส้นทางจริง */
+    var railM = new T.MeshStandardMaterial({ color: col(cssv('--rail', '#9AA3AB')), metalness: 0.7, roughness: 0.35 });
+    [-1, 1].forEach(function (side) {
+      var pts = L.samples.map(function (q) {
+        return new T.Vector3((q.x + q.nx * L.tileR * 0.92 * side - L.W / 2) / SC, -0.02, (q.y + q.ny * L.tileR * 0.92 * side - L.H / 2) / SC);
+      });
+      var tube = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts, true), pts.length * 2, 0.035, 6, true), railM);
+      tube.receiveShadow = true; boardG.add(tube);
+    });
+
+    /* ช่อง: แผ่นกลมนูน เลขช่องพิมพ์ลงบนหน้าช่อง */
+    var tg = new T.CylinderGeometry(tileR * 0.86, tileR * 0.92, 0.16, 28);
+    var tileCol = cssv('--tile', '#523A1E'), lineCol = cssv('--tile-line', '#8A6B41');
+    var tm = new T.MeshStandardMaterial({ color: col(tileCol), roughness: 0.7 });
+    var rimG = new T.TorusGeometry(tileR * 0.86, 0.025, 6, 28);
+    var rimM = new T.MeshStandardMaterial({ color: col(lineCol), roughness: 0.5, metalness: 0.2 });
+    var numG = new T.PlaneGeometry(tileR * 1.1, tileR * 1.1);
+    var showAll = L.tileR >= 13;
+    for (var i = 0; i < S.boardSize; i++) {
+      var p = tilePos(i);
+      var tm2 = tm;
+      if (S.caches[i]) tm2 = new T.MeshStandardMaterial({ color: col(cssv('--cache', '#5C4620')), roughness: 0.7 });
+      var t = new T.Mesh(tg, tm2); t.position.set(p.x, 0.03, p.z); t.receiveShadow = true; t.castShadow = true;
+      t.userData.tile = i; boardG.add(t);
+      var r = new T.Mesh(rimG, rimM); r.rotation.x = Math.PI / 2; r.position.set(p.x, 0.115, p.z); boardG.add(r);
+      if (showAll || i % 6 === 0 || S.startTiles.indexOf(i) >= 0) {
+        var nm = new T.Mesh(numG, new T.MeshBasicMaterial({ map: textTex(String(i), { size: 54, fg: cssv('--ink-3', '#9A8460') }), transparent: true, depthWrite: false }));
+        nm.rotation.x = -Math.PI / 2; nm.position.set(p.x, 0.116, p.z); boardG.add(nm);
+      }
+    }
+
+    /* ฐาน: วงแหวนสีบนช่อง และบ้านพร้อมชื่อเจ้าของตั้งนอกเส้นทาง */
+    S.startTiles.forEach(function (tile, id) {
+      var pl = S.players[id], c3 = col(ctx.colOf(pl));
+      var ring = new T.Mesh(new T.TorusGeometry(tileR * 0.72, 0.06, 8, 32),
+        new T.MeshStandardMaterial({ color: c3, emissive: c3, emissiveIntensity: 0.35, roughness: 0.4 }));
+      var p = tilePos(tile); ring.rotation.x = Math.PI / 2; ring.position.set(p.x, 0.13, p.z); boardG.add(ring);
+      var hp = tilePos(tile, L.tileR * 2.4);
+      var house = new T.Group();
+      var body = new T.Mesh(new T.BoxGeometry(0.5, 0.42, 0.5), new T.MeshStandardMaterial({ color: c3, roughness: 0.55 }));
+      body.position.y = 0.21; body.castShadow = true;
+      var roof = new T.Mesh(new T.ConeGeometry(0.46, 0.34, 4), new T.MeshStandardMaterial({ color: col(cssv('--outline', '#2A1B0E')), roughness: 0.8 }));
+      roof.position.y = 0.59; roof.rotation.y = Math.PI / 4; roof.castShadow = true;
+      var label = sprite(textTex(String(ctx.name(id)).slice(0, 14), { w: 512, h: 112, size: 68, font: '"IBM Plex Sans Thai", system-ui, sans-serif', fg: ctx.colOf(pl), stroke: 'rgba(15,10,5,.9)', strokeW: 12 }), 2.3, 0.5);
+      label.position.y = 1.15;
+      house.add(body, roof, label); house.position.set(hp.x, -0.05, hp.z);
+      boardG.add(house);
+    });
+
+    fitCamera(camMode);
+    restDice(S.lastRoll && S.lastRoll.a, S.lastRoll && S.lastRoll.b);
+    resize();
+  }
+
+  /* ---------- ทุ่นระเบิดและคลังเสบียง ---------- */
+  var mineGeo = null, spikeGeo = null;
+  function makeMine(owner, count, dim) {
+    if (!mineGeo) {
+      mineGeo = new T.CylinderGeometry(0.22, 0.26, 0.12, 20); mineGeo.userData.keep = true;
+      spikeGeo = new T.ConeGeometry(0.035, 0.12, 6); spikeGeo.userData.keep = true;
+    }
+    var g = new T.Group(), c3 = col(ctx.colOf(owner));
+    var mat = new T.MeshStandardMaterial({ color: 0x2a2622, metalness: 0.6, roughness: 0.4, transparent: dim, opacity: dim ? 0.7 : 1 });
+    for (var k = 0; k < count; k++) {
+      var d = new T.Mesh(mineGeo, mat); d.position.y = 0.06 + k * 0.13; d.castShadow = true; g.add(d);
+      var nsp = count > 1 ? 8 : 6;
+      for (var s = 0; s < nsp; s++) {
+        var sp = new T.Mesh(spikeGeo, mat), a = s / nsp * Math.PI * 2;
+        sp.position.set(Math.cos(a) * 0.25, 0.06 + k * 0.13, Math.sin(a) * 0.25);
+        sp.rotation.z = -Math.cos(a) * Math.PI / 2; sp.rotation.x = Math.sin(a) * Math.PI / 2; g.add(sp);
+      }
+    }
+    var top = 0.06 + (count - 1) * 0.13;
+    var band = new T.Mesh(new T.TorusGeometry(0.24, 0.03, 6, 20), new T.MeshStandardMaterial({ color: c3, emissive: c3, emissiveIntensity: 0.5 }));
+    band.rotation.x = Math.PI / 2; band.position.y = top; g.add(band);
+    var led = new T.Mesh(new T.SphereGeometry(0.05, 10, 8), new T.MeshBasicMaterial({ color: 0xd9503f }));
+    led.position.y = top + 0.08; led.userData.blink = true; g.add(led);
+    var lb = sprite(cachedTex('m' + owner.letter + ctx.colOf(owner), owner.letter, { bg: ctx.colOf(owner), size: 70 }), 0.3);
+    lb.position.y = top + 0.36; g.add(lb);
+    return g;
+  }
+  function makeCache() {
+    var g = new T.Group();
+    var box = new T.Mesh(new T.BoxGeometry(0.42, 0.3, 0.42), new T.MeshStandardMaterial({ color: col(cssv('--brass-dark', '#8A6512')), roughness: 0.6 }));
+    box.position.y = 0.26; box.castShadow = true; g.add(box);
+    var e = new T.LineSegments(new T.EdgesGeometry(box.geometry), new T.LineBasicMaterial({ color: col(cssv('--brass', '#D8A72B')) }));
+    e.position.copy(box.position); g.add(e);
+    var band = new T.Mesh(new T.BoxGeometry(0.44, 0.05, 0.1), new T.MeshStandardMaterial({ color: col(cssv('--brass', '#D8A72B')), metalness: 0.8, roughness: 0.3 }));
+    band.position.y = 0.41; g.add(band);
+    return g;
+  }
+
+  /* ---------- ตัวละคร 6 รูปทรงตามที่ผู้เล่นเลือก ---------- */
+  function shapeGeo(kind) {
+    var s = new T.Shape(), i;
+    if (kind === 'star') {
+      for (i = 0; i < 10; i++) { var a = Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? 0.17 : 0.38; var x = Math.cos(a) * rr, y = 0.5 + Math.sin(a) * rr; if (i) s.lineTo(x, y); else s.moveTo(x, y); }
+    } else if (kind === 'shield') {
+      s.moveTo(0, 0.12); s.lineTo(-0.3, 0.42); s.lineTo(-0.3, 0.8); s.lineTo(0.3, 0.8); s.lineTo(0.3, 0.42); s.closePath();
+    } else if (kind === 'kite') {
+      s.moveTo(0, 0.1); s.lineTo(-0.27, 0.48); s.lineTo(0, 0.92); s.lineTo(0.27, 0.48); s.closePath();
+    } else { /* ธง */
+      s.moveTo(0.02, 0.92); s.lineTo(0.48, 0.76); s.lineTo(0.02, 0.6); s.closePath();
+    }
+    return new T.ExtrudeGeometry(s, { depth: 0.1, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 2 });
+  }
+  function makeToken(p) {
+    var c3 = col(ctx.colOf(p)), kind = (ctx.shapes && ctx.shapes[p.id]) || 'pin';
+    var mat = new T.MeshStandardMaterial({ color: c3, roughness: 0.38, metalness: 0.08 });
+    var g = new T.Group(), body = new T.Group(), face = new T.Group(), m, labelY = 1.08;
+    if (kind === 'pawn') {
+      m = new T.Mesh(new T.LatheGeometry([[0, 0], [0.26, 0], [0.27, 0.05], [0.2, 0.1], [0.13, 0.26], [0.1, 0.42], [0.16, 0.47], [0.1, 0.52], [0.15, 0.62], [0.15, 0.7], [0.1, 0.78], [0, 0.8]]
+        .map(function (q) { return new T.Vector2(q[0], q[1]); }), 32), mat);
+      body.add(m);
+    } else if (kind === 'pin') {
+      m = new T.Mesh(new T.ConeGeometry(0.14, 0.55, 20), mat); m.rotation.x = Math.PI; m.position.y = 0.28; body.add(m);
+      var head = new T.Mesh(new T.SphereGeometry(0.24, 24, 16), mat); head.position.y = 0.66; body.add(head);
+    } else {
+      /* รูปทรงแบนหันหาผู้เล่นตลอด อ่านออกจากทุกมุมกล้อง */
+      var base = new T.Mesh(new T.CylinderGeometry(0.2, 0.24, 0.08, 20), mat); base.position.y = 0.04; body.add(base);
+      if (kind === 'flag') {
+        var pole = new T.Mesh(new T.CylinderGeometry(0.025, 0.025, 0.95, 8), mat); pole.position.y = 0.5; body.add(pole);
+      } else {
+        var stem = new T.Mesh(new T.CylinderGeometry(0.04, 0.05, 0.2, 8), mat); stem.position.y = 0.1; body.add(stem);
+      }
+      m = new T.Mesh(shapeGeo(kind), mat); m.position.z = -0.05; face.add(m);
+      body.add(face);
+    }
+    body.traverse(function (o) { if (o.isMesh) o.castShadow = true; });
+    g.add(body);
+    if (S.rules.teams) {
+      var tint = ctx.tint[p.team] || '#ffffff';
+      var band = new T.Mesh(new T.TorusGeometry(0.27, 0.04, 6, 24), new T.MeshStandardMaterial({ color: col(tint), emissive: col(tint), emissiveIntensity: 0.3 }));
+      band.rotation.x = Math.PI / 2; band.position.y = 0.04; g.add(band);
+    }
+    var lb = sprite(textTex(p.letter, { bg: ctx.colOf(p) }), 0.36); lb.position.y = labelY; g.add(lb);
+    var halo = new T.Mesh(new T.RingGeometry(0.3, 0.38, 32), new T.MeshBasicMaterial({ color: c3, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false }));
+    halo.rotation.x = -Math.PI / 2; halo.position.y = 0.02; g.add(halo);
+    g.scale.setScalar(Math.max(0.9, Math.min(1.35, tileR * 2.4)));
+    g.userData = { id: p.id, halo: halo, body: body, face: face, kind: kind, color: ctx.colOf(p) };
+    return g;
+  }
+
+  /* ---------- วาดตาม state ---------- */
+  var animId = -1;
+  function sync(c, o) {
+    ctx = c; S = c.S; o = o || {};
+    onPick = o.onPick || null;
+    if (!L) return;
+    var occupied = {};
+    S.players.forEach(function (p) { if (p.hp > 0) occupied[p.pos] = true; });
+    var dsig = JSON.stringify([S.mines, Object.keys(S.caches), occupied, S.players.map(function (p) { return ctx.colOf(p); })]);
+    if (dsig !== dynSig) { dynSig = dsig; drawDyn(occupied); }
+    syncTokens();
+    var psig = JSON.stringify(o.picks || []);
+    if (psig !== pickSig) { pickSig = psig; drawPicks(o.picks || []); }
+  }
+
+  var dynSig = '', pickSig = '';
+  function drawDyn(occupied) {
+    disposeTree(dynG);
+    Object.keys(S.caches).forEach(function (k) {
+      if (S.mines[k]) return;
+      var p = tilePos(+k), cg = makeCache(); cg.position.set(p.x, 0, p.z); dynG.add(cg);
+    });
+    Object.keys(S.mines).forEach(function (k) {
+      var m = S.mines[k], p = tilePos(+k), g = makeMine(S.players[m.ownerId], m.count || 1, !!occupied[k]);
+      g.position.set(p.x, 0.11, p.z); g.userData.tile = +k; dynG.add(g);
+    });
+  }
+
+  function syncTokens() {
+    /* ตัวละคร: สร้างใหม่เฉพาะเมื่อสี รูปทรง หรือทีมเปลี่ยน ไม่งั้นแค่ย้ายตำแหน่ง */
+    S.players.forEach(function (p) {
+      var g = tokens[p.id];
+      var kind = (ctx.shapes && ctx.shapes[p.id]) || 'pin';
+      if (g && (g.userData.kind !== kind || g.userData.color !== ctx.colOf(p))) { tokG.remove(g); disposeTree(g); g = null; }
+      if (!g) { g = makeToken(p); tokens[p.id] = g; tokG.add(g); }
+    });
+    placeTokens();
+  }
+
+  /* ช่องที่เลือกเดินได้: วงแสงบนช่องพร้อมเลขก้าว แตะเพื่อเดิน */
+  function drawPicks(picks) {
+    disposeTree(pickG); pickHits = [];
+    picks.forEach(function (pk) {
+      var p = tilePos(pk.tile), c3 = col(pk.color);
+      var ring = new T.Mesh(new T.TorusGeometry(tileR * 0.98, 0.05, 8, 36), new T.MeshBasicMaterial({ color: c3 }));
+      ring.rotation.x = Math.PI / 2; ring.position.set(p.x, 0.16, p.z); ring.userData.pulse = true; pickG.add(ring);
+      var b = sprite(cachedTex('s' + pk.steps + pk.color, String(pk.steps), { bg: pk.color, size: 70 }), 0.42);
+      var bp = tilePos(pk.tile, -(L.tileR + 14)); b.position.set(bp.x, 0.55, bp.z); pickG.add(b);
+      var hit = new T.Mesh(new T.CylinderGeometry(tileR * 1.15, tileR * 1.15, 0.9, 16), new T.MeshBasicMaterial({ visible: false }));
+      hit.position.set(p.x, 0.4, p.z); hit.userData = { steps: pk.steps, tile: pk.tile }; pickG.add(hit); pickHits.push(hit);
+      b.userData = hit.userData; pickHits.push(b);
+    });
+  }
+
+  function placeTokens() {
+    var by = {};
+    S.players.forEach(function (p) { if (p.hp > 0 && p.id !== animId) (by[p.pos] = by[p.pos] || []).push(p.id); });
+    S.players.forEach(function (p) {
+      var g = tokens[p.id]; if (!g) return;
+      g.visible = p.hp > 0;
+      if (!g.visible || p.id === animId) return;
+      var list = by[p.pos], n = list.length, k = list.indexOf(p.id);
+      /* หลายคนช่องเดียวกันเลื่อนไปตามแนวรางเหมือน SVG จะได้ยังเห็นว่าอยู่ช่องเดียวกัน */
+      var spread = n > 1 ? (k - (n - 1) / 2) * 0.34 : 0;
+      var pos = tilePos(p.pos + spread);
+      g.position.set(pos.x, 0.11, pos.z);
+      g.userData.halo.material.opacity = (p.id === S.currentIdx && S.phase !== 'GAME_OVER') ? 0.9 : 0;
+    });
+  }
+
+  /* ---------- การเคลื่อนไหว ---------- */
+  function animateMove(id, from, steps, dir, onStep) {
+    var g = tokens[id];
+    if (!g || !steps) return Promise.resolve();
+    animId = id;
+    var per = steps > 8 ? 115 : (steps > 6 ? 150 : 185), t0 = null, last = -1;
+    g.userData.halo.material.opacity = 0.9;
+    return new Promise(function (done) {
+      anims.push(function (now) {
+        if (t0 === null) t0 = now;
+        var raw = Math.min(steps, (now - t0) / per), i = Math.min(steps - 1, Math.floor(raw)), u = raw - i;
+        if (raw >= steps) { i = steps - 1; u = 1; }
+        if (i !== last) { last = i; if (onStep) onStep(i); }
+        var e = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+        var p = tilePos(from + dir * (i + e));
+        g.position.set(p.x, 0.11 + Math.sin(u * Math.PI) * 0.55, p.z);
+        g.userData.body.scale.set(1, 1 + Math.sin(u * Math.PI) * 0.08, 1);
+        if (raw >= steps) { g.userData.body.scale.set(1, 1, 1); animId = -1; done(); return true; }
+      });
+    });
+  }
+
+  function fxAt(tile) { var p = tilePos(tile); return p; }
+  function pulse(tile, color, scale) {
+    if (!L) return;
+    var p = fxAt(tile);
+    var ring = new T.Mesh(new T.RingGeometry(0.9, 1, 40), new T.MeshBasicMaterial({ color: col(color), transparent: true, opacity: 0.8, side: T.DoubleSide, depthWrite: false }));
+    ring.rotation.x = -Math.PI / 2; ring.position.set(p.x, 0.15, p.z); fxG.add(ring);
+    var t0 = null, grow = tileR * (scale || 1.5);
+    anims.push(function (now) {
+      if (t0 === null) t0 = now;
+      var k = Math.min(1, (now - t0) / 440);
+      ring.scale.setScalar(tileR * 0.6 + grow * k); ring.material.opacity = (1 - k) * 0.75;
+      if (k >= 1) { fxG.remove(ring); ring.geometry.dispose(); ring.material.dispose(); return true; }
+    });
+  }
+  function floatText(tile, text, color) {
+    if (!L) return;
+    var p = fxAt(tile), tex = textTex(text, { w: 192, h: 96, size: 60, fg: color, stroke: '#1F1409' });
+    var sp = sprite(tex, 1.0, 0.5); sp.material.depthTest = false; sp.position.set(p.x, 1.3, p.z); fxG.add(sp);
+    var t0 = null;
+    anims.push(function (now) {
+      if (t0 === null) t0 = now;
+      var k = Math.min(1, (now - t0) / 1000);
+      sp.position.y = 1.3 + k * 1.1; sp.material.opacity = k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85;
+      if (k >= 1) { fxG.remove(sp); tex.dispose(); sp.material.dispose(); return true; }
+    });
+  }
+  function blast(tile, big) {
+    if (!L) return;
+    var p = fxAt(tile);
+    var light = new T.PointLight(0xff7a3a, 4, 8); light.position.set(p.x, 1, p.z); fxG.add(light);
+    var ball = new T.Mesh(new T.SphereGeometry(0.3, 20, 14), new T.MeshBasicMaterial({ color: 0xffb057, transparent: true, opacity: 0.9 }));
+    ball.position.set(p.x, 0.3, p.z); fxG.add(ball);
+    var bits = [], bitG = new T.BoxGeometry(0.06, 0.06, 0.06);
+    for (var i = 0; i < 26; i++) {
+      var b = new T.Mesh(bitG, new T.MeshBasicMaterial({ color: i % 3 ? 0xd9503f : 0xd8a72b }));
+      b.position.set(p.x, 0.3, p.z);
+      b.userData.v = new T.Vector3(Math.random() - 0.5, Math.random() * 1.2 + 0.4, Math.random() - 0.5).multiplyScalar(big ? 7 : 5);
+      fxG.add(b); bits.push(b);
+    }
+    shake = big ? 0.35 : 0.22;
+    var t0 = null, prev = null;
+    anims.push(function (now) {
+      if (t0 === null) { t0 = now; prev = now; }
+      var k = (now - t0) / 700, dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+      ball.scale.setScalar(1 + k * (big ? 6 : 4)); ball.material.opacity = Math.max(0, 0.9 - k);
+      light.intensity = Math.max(0, 4 * (1 - k * 1.4));
+      bits.forEach(function (b) { b.userData.v.y -= 14 * dt; b.position.addScaledVector(b.userData.v, dt); b.rotation.x += 0.2; });
+      if (k >= 1) {
+        fxG.remove(light); fxG.remove(ball); ball.geometry.dispose(); ball.material.dispose();
+        bits.forEach(function (b) { fxG.remove(b); b.material.dispose(); }); bitG.dispose();
+        return true;
+      }
+    });
+  }
+
+  /* ---------- ลูกเต๋า ---------- */
+  var FACES = [3, 4, 1, 6, 2, 5];     /* ลำดับหน้าของ BoxGeometry: +x -x +y -y +z -z */
+  function dieFace(v) {
+    var c = document.createElement('canvas'); c.width = c.height = 128;
+    var g = c.getContext('2d');
+    var gr = g.createLinearGradient(0, 0, 128, 128); gr.addColorStop(0, '#F0E6D2'); gr.addColorStop(1, '#C9B896');
+    g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+    var P = { 1: [[64, 64]], 2: [[34, 34], [94, 94]], 3: [[30, 30], [64, 64], [98, 98]], 4: [[34, 34], [94, 34], [34, 94], [94, 94]],
+              5: [[32, 32], [96, 32], [64, 64], [32, 96], [96, 96]], 6: [[34, 28], [94, 28], [34, 64], [94, 64], [34, 100], [94, 100]] }[v];
+    g.fillStyle = v === 1 ? '#B8352A' : '#2A1B0E';
+    P.forEach(function (q) { g.beginPath(); g.arc(q[0], q[1], v === 1 ? 15 : 11, 0, Math.PI * 2); g.fill(); });
+    var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; return t;
+  }
+  function buildDice() {
+    var mats = FACES.map(function (v) { return new T.MeshStandardMaterial({ map: dieFace(v), roughness: 0.45 }); });
+    var geo = new T.BoxGeometry(0.62, 0.62, 0.62);
+    dice = [0, 1].map(function () { var d = new T.Mesh(geo, mats); d.castShadow = true; scene.add(d); return d; });
+  }
+  function topQuat(v, yaw) {
+    var e = { 1: [0, 0, 0], 6: [Math.PI, 0, 0], 2: [-Math.PI / 2, 0, 0], 5: [Math.PI / 2, 0, 0], 3: [0, 0, Math.PI / 2], 4: [0, 0, -Math.PI / 2] }[v] || [0, 0, 0];
+    var q = new T.Quaternion().setFromEuler(new T.Euler(e[0], e[1], e[2]));
+    return new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), yaw).multiply(q);
+  }
+  /* วงแหวนกับหลายเหลี่ยมมีที่ว่างกลางกระดาน ทอยลงตรงนั้น แบบรถไฟทอยลงขอบหน้ากระดาน */
+  function diceHome() {
+    if (S.rules.shape === 'snake') {
+      var z = L.H / SC / 2 + 1.05;
+      return [new T.Vector3(-0.5, -0.09, z), new T.Vector3(0.5, -0.09, z + 0.12)];
+    }
+    return [new T.Vector3(-0.5, 0.26, 0.3), new T.Vector3(0.5, 0.26, 0.5)];
+  }
+  function restDice(a, b) {
+    if (!L) return;
+    var h = diceHome();
+    [a, b].forEach(function (v, i) { dice[i].position.copy(h[i]); dice[i].quaternion.copy(topQuat(v || (i ? 5 : 2), i * 0.6 + 0.3)); });
+  }
+  function rollDice(roll, reduced, onBounce) {
+    if (!L) return Promise.resolve();
+    var h = diceHome();
+    if (reduced) { restDice(roll.a, roll.b); return Promise.resolve(); }
+    var dur = 950, t0 = null, bounces = 0;
+    var start = dice.map(function (d, i) {
+      return { p: new T.Vector3(h[i].x - 2.6, 2.4, h[i].z + 2.2 - i * 0.5), spin: new T.Vector3(Math.random() * 9 + 6, Math.random() * 6, Math.random() * 9 + 6) };
+    });
+    var end = [roll.a, roll.b].map(function (v) { return topQuat(v, Math.random() * 1.2 - 0.6); });
+    return new Promise(function (res) {
+      anims.push(function (now) {
+        if (t0 === null) t0 = now;
+        var k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        var hop = Math.abs(Math.cos(k * Math.PI * 2.5));
+        var b = Math.floor(k * 2.5 + 0.5); if (b > bounces) { bounces = b; if (onBounce) onBounce(); }
+        dice.forEach(function (d, i) {
+          var p = start[i].p.clone().lerp(h[i], e);
+          p.y = h[i].y + hop * (1 - k) * 2.2;
+          d.position.copy(p);
+          var r = 1 - e;
+          d.quaternion.copy(end[i]).multiply(new T.Quaternion().setFromEuler(new T.Euler(start[i].spin.x * r, start[i].spin.y * r, start[i].spin.z * r)));
+        });
+        if (k >= 1) { dice.forEach(function (d, i) { d.position.copy(h[i]); d.quaternion.copy(end[i]); }); res(); return true; }
+      });
+    });
+  }
+
+  /* ---------- กล้อง ---------- */
+  var DIRS = { tilt: [0, 1.05, 1], top: [0, 1, 0.001] };
+  /* หาระยะที่ใกล้ที่สุดที่มุมกระดานทั้งหมดยังอยู่ในจอ แล้วเลือกจุดเล็งที่ให้กระดานใหญ่ที่สุด
+     จอแนวตั้งหมุนกล้อง 90 องศาให้ด้านยาวของกระดานวิ่งตามความสูงจอ */
+  function fitCamera(mode) {
+    if (!L || !host) return;
+    camMode = mode || camMode;
+    var w = host.clientWidth || 1, h = host.clientHeight || 1;
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+    /* เล็งให้พอดีกับของที่ต้องเห็นจริง (ช่อง บ้าน ลูกเต๋า) ไม่ใช่ขอบแผ่นไม้ ขอบไม้จึงล้นจอได้ */
+    var pts = [], step = Math.max(1, Math.floor(L.pts.length / 48));
+    function add(v, hgt) { pts.push(new T.Vector3(v.x, 0, v.z)); pts.push(new T.Vector3(v.x, hgt, v.z)); }
+    for (var i = 0; i < L.pts.length; i += step) add(tilePos(i), 1.0);
+    S.startTiles.forEach(function (tile) { add(tilePos(tile, L.tileR * 2.4), 1.35); });
+    diceHome().forEach(function (v) { add(v, 0.5); });
+    var d0 = DIRS[camMode] || DIRS.tilt, dir = new T.Vector3(d0[0], d0[1], d0[2]);
+    if (camera.aspect < 1.05) { dir.applyAxisAngle(new T.Vector3(0, 1, 0), Math.PI / 2); if (camMode !== 'top') dir.y *= 1.45; }
+    dir.normalize();
+    var target = new T.Vector3();
+    function fits(d) {
+      camera.position.copy(dir).multiplyScalar(d).add(target); camera.lookAt(target); camera.updateMatrixWorld();
+      return pts.every(function (p) { var q = p.clone().project(camera); return Math.abs(q.x) < 0.93 && q.y < 0.9 && q.y > -0.92; });
+    }
+    function best() { var lo = 3, hi = 120; for (var i = 0; i < 26; i++) { var mid = (lo + hi) / 2; if (fits(mid)) hi = mid; else lo = mid; } return hi; }
+    var flat = new T.Vector3(dir.x, 0, dir.z), bestD = 1e9, bestT = new T.Vector3();
+    if (flat.lengthSq() > 1e-6) flat.normalize();
+    for (var k = -3; k <= 3; k += 0.25) { target.copy(flat).multiplyScalar(k); var d = best(); if (d < bestD) { bestD = d; bestT.copy(target); } }
+    camera.position.copy(dir).multiplyScalar(bestD).add(bestT);
+    controls.target.copy(bestT);
+    controls.update();
+  }
+  var lastW = 0, lastH = 0;
+  function resize() {
+    if (!renderer || !host) return;
+    var w = host.clientWidth, h = host.clientHeight;
+    if (!w || !h) return;
+    if (w === lastW && h === lastH) return;
+    lastW = w; lastH = h;
+    renderer.setSize(w, h, false);
+    fitCamera(camMode);
+  }
+
+  /* ---------- ลูปวาด: หยุดเองเมื่อมองไม่เห็นกระดาน ---------- */
+  /* แอนิเมชันต้องเดินต่อแม้มองไม่เห็นกระดาน (แท็บอยู่เบื้องหลังหรืออยู่หน้าตั้งค่า)
+     เพราะเกมรอให้ลูกเต๋าหรือการเดินจบก่อนจะไปต่อ ถ้า rAF ถูกพักไว้ ตัวจับเวลานี้จะเดินแทน */
+  var lastFrame = 0;
+  function tick(now) { if (anims.length) anims = anims.filter(function (fn) { return !fn(now); }); }
+  function frame(now) {
+    requestAnimationFrame(frame);
+    lastFrame = now;
+    tick(now);
+    if (!host || !host.offsetParent || document.hidden) return;
+    if (host.clientWidth !== lastW || host.clientHeight !== lastH) resize();
+    var blink = (Math.sin(now / 260) + 1) / 2;
+    dynG.traverse(function (o) { if (o.userData.blink) o.material.color.setRGB(0.55 + blink * 0.45, 0.2 + blink * 0.12, 0.15); });
+    pickG.children.forEach(function (o) { if (o.userData.pulse) o.scale.setScalar(1 + blink * 0.08); });
+    var yaw = Math.atan2(camera.position.x - controls.target.x, camera.position.z - controls.target.z);
+    Object.keys(tokens).forEach(function (k) {
+      var g = tokens[k], h = g.userData.halo;
+      if (h.material.opacity > 0) h.scale.setScalar(1 + blink * 0.18);
+      if (g.userData.face) g.userData.face.rotation.y = yaw;
+    });
+    controls.update();
+    var saved = null;
+    if (shake > 0) {
+      saved = camera.position.clone();
+      camera.position.x += (Math.random() - 0.5) * shake; camera.position.y += (Math.random() - 0.5) * shake;
+      shake *= 0.86; if (shake < 0.01) shake = 0;
+    }
+    renderer.render(scene, camera);
+    if (saved) camera.position.copy(saved);
+  }
+
+  root.Board3D = {
+    supported: supported, load: load, ready: ready, failed: function () { return failed; },
+    mount: mount, build: build, sync: sync, animateMove: animateMove,
+    rollDice: rollDice, restDice: restDice, pulse: pulse, floatText: floatText, blast: blast,
+    resetCamera: function () { fitCamera(camMode); }, setCamera: function (m) { fitCamera(m); },
+    camera: function () { return camMode; },
+    /* ใช้ในเทสต์: เลขก้าวที่จุดบนจอนี้จะเลือก (null ถ้าไม่โดนช่องไหน) */
+    hitTest: function (x, y) { var h = pickAt(x, y); return h ? h.steps : null; },
+    /* ใช้ในเทสต์: ตำแหน่งบนจอของช่อง เพื่อจำลองการแตะจริง */
+    screenOf: function (tile) {
+      if (!L) return null;
+      var p = tilePos(tile); p.y = 0.12; p.project(camera);
+      var r = renderer.domElement.getBoundingClientRect();
+      return { x: r.left + (p.x + 1) / 2 * r.width, y: r.top + (1 - p.y) / 2 * r.height };
+    }
+  };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 
 </script>
@@ -2510,8 +3248,8 @@ th:{
   tip_ownmine:'ทุ่นระเบิดของคุณเอง หยุดได้อย่างปลอดภัย', tip_teammine:'ทุ่นระเบิดของ {name} เพื่อนร่วมทีม หยุดได้อย่างปลอดภัย',
   tip_ban:'วางทุ่นระเบิดไม่ได้จนกว่าเทิร์นจะวนกลับไปถึงคนที่ใช้ไอเท็ม',
   tip_slow:'การทอยอีก {n} ครั้งถัดไปจะได้แต้มหารสองปัดขึ้นทั้งสองลูก',
-  tip_lift:'การทอยอีก {n} ครั้งถัดไปจะถูกบวก 1 ที่แต้มน้อยที่สุด ช่วงเดินจึงแคบลงจากด้านล่าง', btn_items:'ดูไอเท็มทั้งหมด', items_title:'ไอเท็มทั้งหมด', btn_close:'ปิด', opt_view:'มุมมอง', view_flat:'มองจากบน', view_tilt:'มองเอียง', btn_look:'ภาพ', look_title:'การแสดงผล',
-  opt_online:'เล่นออนไลน์', net_host:'สร้างห้อง', net_join:'เข้าร่วมห้อง', net_leave:'ออกจากห้อง',
+  tip_lift:'การทอยอีก {n} ครั้งถัดไปจะถูกบวก 1 ที่แต้มน้อยที่สุด ช่วงเดินจึงแคบลงจากด้านล่าง', btn_items:'ดูไอเท็มทั้งหมด', items_title:'ไอเท็มทั้งหมด', btn_close:'ปิด', opt_view:'มุมมอง', view_flat:'มองจากบน', view_tilt:'มองเอียง', view_3d:'3 มิติ', view3d_off:'เครื่องนี้ไม่รองรับ WebGL', view3d_fail:'โหลดกระดาน 3 มิติไม่สำเร็จ จึงใช้มุมมองแบบเดิมแทน (ต้องต่ออินเทอร์เน็ต)', cam_reset:'จัดมุมกล้องใหม่', hint3d:'ลากเพื่อหมุน · สองนิ้วหรือล้อเมาส์เพื่อซูม · แตะช่องที่มีวงแสงเพื่อเดิน', btn_look:'ภาพ', look_title:'การแสดงผล',
+  opt_online:'เล่นออนไลน์', net_host:'สร้างห้อง', net_join:'เข้าร่วมห้อง', net_leave:'ออกจากห้อง', net_invite:'ชวนเพื่อน', invite_title:'ส่งลิงก์นี้ให้เพื่อน หรือให้สแกน QR', invite_copy:'คัดลอกลิงก์', invite_copied:'คัดลอกแล้ว', invite_share:'แชร์', invite_hint:'เพื่อนเปิดลิงก์แล้วเข้าห้องและได้ที่นั่งเอง ไม่ต้องพิมพ์รหัส', invite_local:'เกมนี้เปิดจากไฟล์ในเครื่อง ลิงก์จะใช้ได้เมื่อวางเกมไว้บนเว็บ ตอนนี้ให้เพื่อนพิมพ์รหัส {code} แทน', net_rejoin:'การเชื่อมต่อหลุด กำลังต่อกลับ (ครั้งที่ {n})', net_back:'ต่อกลับเข้าห้องแล้ว',
   lobby_title:'ที่นั่งในห้อง', seat_online:'เข้าห้องแล้ว', guest_locked:'เจ้าของห้องเป็นคนตั้งค่าเกม คุณเลือกได้แค่ที่นั่ง', seat_free:'ว่าง', seat_you:'คุณ', seat_bot:'คอมพิวเตอร์',
   lock_hint:'เจ้าของห้องเป็นคนตั้งค่าและกดเริ่มเกม คุณเลือกได้แค่ที่นั่ง',
   seat_host:'เจ้าของห้อง', seat_take:'เลือก', lobby_hint:'กดที่นั่งที่ว่างเพื่อย้ายไปนั่ง',
@@ -2647,8 +3385,8 @@ en:{
   tip_ownmine:'Your own mine, safe to stop on', tip_teammine:'A mine laid by your team-mate {name}, safe to stop on',
   tip_ban:'Cannot lay mines until the turn comes back round to whoever used the item',
   tip_slow:'For your next {n} roll(s) both dice are halved, rounded up',
-  tip_lift:'For your next {n} roll(s) the lower die counts one more, shrinking your range from below', btn_items:'See all items', items_title:'All items', btn_close:'Close', opt_view:'View', view_flat:'Top down', view_tilt:'Tilted', btn_look:'View', look_title:'Display',
-  opt_online:'Play online', net_host:'Create room', net_join:'Join room', net_leave:'Leave room',
+  tip_lift:'For your next {n} roll(s) the lower die counts one more, shrinking your range from below', btn_items:'See all items', items_title:'All items', btn_close:'Close', opt_view:'View', view_flat:'Top down', view_tilt:'Tilted', view_3d:'3D', view3d_off:'This device has no WebGL', view3d_fail:'Could not load the 3D board, using the classic view instead (needs internet)', cam_reset:'Reset camera', hint3d:'Drag to rotate · two fingers or wheel to zoom · tap a glowing tile to move', btn_look:'View', look_title:'Display',
+  opt_online:'Play online', net_host:'Create room', net_join:'Join room', net_leave:'Leave room', net_invite:'Invite friends', invite_title:'Send this link to friends, or let them scan the QR', invite_copy:'Copy link', invite_copied:'Copied', invite_share:'Share', invite_hint:'Opening the link joins the room and takes a seat automatically, no code to type', invite_local:'This game was opened from a local file, so the link only works once the game is on the web. For now friends can type the code {code}', net_rejoin:'Connection lost, reconnecting (try {n})', net_back:'Reconnected to the room',
   lobby_title:'Seats in the room', seat_online:'online', guest_locked:'The host sets up the game, you only choose a seat', seat_free:'open', seat_you:'you', seat_bot:'computer',
   lock_hint:'The host sets everything up and starts the game, you only pick a seat',
   seat_host:'host', seat_take:'take', lobby_hint:'Tap an open seat to move there',
@@ -2785,8 +3523,8 @@ de:{
   tip_ownmine:'Deine eigene Mine, sicher zum Halten', tip_teammine:'Eine Mine deines Teamkollegen {name}, sicher zum Halten',
   tip_ban:'Kann keine Minen legen, bis der Zug wieder bei dem ist, der den Gegenstand eingesetzt hat',
   tip_slow:'Bei den nächsten {n} Würfen zählen beide Würfel halb, aufgerundet',
-  tip_lift:'Bei den nächsten {n} Würfen zählt die niedrigere Augenzahl eins mehr, die Spanne schrumpft von unten', btn_items:'Alle Gegenstände', items_title:'Alle Gegenstände', btn_close:'Schließen', opt_view:'Ansicht', view_flat:'Von oben', view_tilt:'Schräg', btn_look:'Optik', look_title:'Darstellung',
-  opt_online:'Online spielen', net_host:'Raum öffnen', net_join:'Raum betreten', net_leave:'Raum verlassen',
+  tip_lift:'Bei den nächsten {n} Würfen zählt die niedrigere Augenzahl eins mehr, die Spanne schrumpft von unten', btn_items:'Alle Gegenstände', items_title:'Alle Gegenstände', btn_close:'Schließen', opt_view:'Ansicht', view_flat:'Von oben', view_tilt:'Schräg', view_3d:'3D', view3d_off:'Dieses Gerät unterstützt kein WebGL', view3d_fail:'3D-Brett konnte nicht geladen werden, klassische Ansicht aktiv (Internet nötig)', cam_reset:'Kamera zurücksetzen', hint3d:'Ziehen zum Drehen · zwei Finger oder Mausrad zum Zoomen · leuchtendes Feld antippen zum Ziehen', btn_look:'Optik', look_title:'Darstellung',
+  opt_online:'Online spielen', net_host:'Raum öffnen', net_join:'Raum betreten', net_leave:'Raum verlassen', net_invite:'Freunde einladen', invite_title:'Schick diesen Link an Freunde oder lass sie den QR-Code scannen', invite_copy:'Link kopieren', invite_copied:'Kopiert', invite_share:'Teilen', invite_hint:'Wer den Link öffnet, betritt den Raum und bekommt automatisch einen Platz, ohne Code', invite_local:'Das Spiel läuft aus einer lokalen Datei, der Link funktioniert erst, wenn das Spiel im Web liegt. Bis dahin können Freunde den Code {code} eingeben', net_rejoin:'Verbindung verloren, verbinde neu (Versuch {n})', net_back:'Wieder mit dem Raum verbunden',
   lobby_title:'Plätze im Raum', seat_online:'online', guest_locked:'Der Gastgeber stellt das Spiel ein, du wählst nur den Platz', seat_free:'frei', seat_you:'du', seat_bot:'Computer',
   lock_hint:'Der Gastgeber stellt alles ein und startet, du wählst nur den Platz',
   seat_host:'Gastgeber', seat_take:'wählen', lobby_hint:'Freien Platz antippen, um dorthin zu wechseln',
@@ -2923,8 +3661,8 @@ nl:{
   tip_ownmine:'Je eigen mijn, veilig om op te stoppen', tip_teammine:'Een mijn van teamgenoot {name}, veilig om op te stoppen',
   tip_ban:'Kan geen mijnen leggen tot de beurt weer bij degene is die het voorwerp inzette',
   tip_slow:'Bij je volgende {n} worp(en) tellen beide stenen half, naar boven afgerond',
-  tip_lift:'Bij je volgende {n} worp(en) telt je laagste steen één meer, je bereik krimpt van onderen', btn_items:'Alle voorwerpen', items_title:'Alle voorwerpen', btn_close:'Sluiten', opt_view:'Aanzicht', view_flat:'Bovenaanzicht', view_tilt:'Schuin', btn_look:'Beeld', look_title:'Weergave',
-  opt_online:'Online spelen', net_host:'Kamer maken', net_join:'Kamer binnengaan', net_leave:'Kamer verlaten',
+  tip_lift:'Bij je volgende {n} worp(en) telt je laagste steen één meer, je bereik krimpt van onderen', btn_items:'Alle voorwerpen', items_title:'Alle voorwerpen', btn_close:'Sluiten', opt_view:'Aanzicht', view_flat:'Bovenaanzicht', view_tilt:'Schuin', view_3d:'3D', view3d_off:'Dit apparaat ondersteunt geen WebGL', view3d_fail:'3D-bord kon niet laden, klassieke weergave actief (internet nodig)', cam_reset:'Camera herstellen', hint3d:'Sleep om te draaien · twee vingers of muiswiel om te zoomen · tik een oplichtend vak om te zetten', btn_look:'Beeld', look_title:'Weergave',
+  opt_online:'Online spelen', net_host:'Kamer maken', net_join:'Kamer binnengaan', net_leave:'Kamer verlaten', net_invite:'Vrienden uitnodigen', invite_title:'Stuur deze link naar vrienden of laat ze de QR-code scannen', invite_copy:'Link kopiëren', invite_copied:'Gekopieerd', invite_share:'Delen', invite_hint:'Wie de link opent, komt in de kamer en krijgt vanzelf een plaats, zonder code', invite_local:'Het spel is geopend vanuit een lokaal bestand, de link werkt pas als het spel op het web staat. Tot dan kunnen vrienden de code {code} intypen', net_rejoin:'Verbinding verbroken, opnieuw verbinden (poging {n})', net_back:'Weer verbonden met de kamer',
   lobby_title:'Plaatsen in de kamer', seat_online:'online', guest_locked:'De host stelt het spel in, jij kiest alleen een plaats', seat_free:'vrij', seat_you:'jij', seat_bot:'computer',
   lock_hint:'De host stelt alles in en start het spel, jij kiest alleen een plaats',
   seat_host:'host', seat_take:'kiezen', lobby_hint:'Tik op een vrije plaats om daarheen te gaan',
@@ -3042,8 +3780,8 @@ var botLevel='normal', boardShape='ring', teamMode=false, runId=0;
    เจ้าของห้องเป็นกรรมการคนเดียว ผู้เข้าร่วมส่งความตั้งใจแล้วรอสถานะกลับมา
    ถ้าไม่ได้กดสร้างห้องหรือเข้าห้อง ทุกอย่างทำงานเหมือนเล่นเครื่องเดียวทุกประการ */
 var netMsg='', netMsgKind='';
-function online(){ return typeof Net!=='undefined' && Net.online() }
-function isGuest(){ return typeof Net!=='undefined' && Net.isGuest() }
+function online(){ return rejoining || (typeof Net!=='undefined' && Net.online()) }
+function isGuest(){ return rejoining || (typeof Net!=='undefined' && Net.isGuest()) }
 function isHost(){ return typeof Net!=='undefined' && Net.isHost() }
 /* ที่นั่งของเราในเกม ใช้ตัดสินว่ากดปุ่มได้ไหม */
 function mySeat(){ return online() ? Net.seat() : (S?S.currentIdx:0) }
@@ -3055,11 +3793,152 @@ function netStatus(kind,key,extra){
     guest_left:'net_guestleft',guest_open:'net_guestleft',no_lib:'net_nolib',
     no_signal:'net_nosignal',no_room:'net_noroom',code_taken:'net_taken',failed:'net_failed'};
   var k=map[key];
+  if(key==='seated'){ rememberRoom(Net.code(),extra&&extra.seat); autoTries=0; }
+  if(key==='room_full' && autoTries<3){ autoTries++; autoPick=true; return; }   /* โดนแย่งที่ รอรายการใหม่แล้วเลือกอีกที่ */
+  if(rejoining && key!=='joined' && key!=='host_left') return;   /* ระหว่างต่อกลับ คงข้อความต่อกลับไว้ */
+  if(key==='host_left' && !(extra&&extra.bye) && startRejoin()) return;
+  if(key==='host_left') forgetRoom();
+  if(key==='joined' && rejoinCode){ rejoining=false; rejoinCode=''; rejoinTry=0; netMsg=t('net_back'); netMsgKind='ok'; paintBanner(); buildNetRow();
+    setTimeout(function(){ if(netMsg===t('net_back')){ netMsg=''; paintBanner(); buildNetRow(); } },2500);
+    return; }
   netMsgKind=(kind==='bad')?'bad':(kind==='ok'?'ok':'');
   if(key==='guest_open'){ netMsg=t('net_wait',{n:Net.guests()}); }
   else if(k&&k!=='net_seated'){ netMsg=t(k,extra||{}); }
+  if(key==='hosting') inviteOpen=true;   /* เปิดห้องแล้วโชว์ลิงก์เชิญทันที ไม่ต้องหาปุ่ม */
   buildNetRow();
+  paintBanner();
   if(S) sync();
+}
+
+/* ---------- เข้าห้องง่าย (v6.1) ----------
+   ลิงก์เชิญ: หน้าเว็บเดิมต่อท้ายด้วย #room-รหัส เปิดแล้วเข้าห้องเอง
+   นั่งอัตโนมัติ: ผู้เข้าร่วมเลือกที่นั่งเดิมถ้ายังว่าง ไม่งั้นที่ว่างแรก ยังกดย้ายเองได้เหมือนเดิม
+   ต่อกลับ: เน็ตหลุดแล้วลองเข้าห้องเดิมใหม่ไม่กี่ครั้ง เจ้าของห้องรู้จักเครื่องเดิมจากรหัสประจำแท็บ */
+var autoPick=false, autoTries=0;
+var rejoining=false, rejoinCode='', rejoinTry=0, rejoinTimer=null;
+var REJOIN_MAX=5, REJOIN_WAIT=2000;
+var inviteOpen=false;
+
+function store(){ try{ return window.sessionStorage }catch(e){ return null } }
+function clientId(){
+  var ss=store(), id='';
+  try{ id=ss&&ss.getItem('mf_cid')||''; }catch(e){}
+  if(!id){ id=Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+    try{ if(ss) ss.setItem('mf_cid',id); }catch(e){} }
+  return id;
+}
+function rememberRoom(code,seat){
+  try{ var ss=store(); if(ss&&code) ss.setItem('mf_room',JSON.stringify({code:code,seat:seat})); }catch(e){}
+  setRoomHash(code);
+}
+function rememberedSeat(code){
+  try{ var r=JSON.parse(store().getItem('mf_room')||'null'); if(r&&r.code===code) return r.seat; }catch(e){}
+  return -1;
+}
+function forgetRoom(){
+  try{ var ss=store(); if(ss) ss.removeItem('mf_room'); }catch(e){}
+  setRoomHash('');
+}
+/* ใส่รหัสห้องไว้ในที่อยู่ของหน้า กดรีเฟรชแล้วจะกลับเข้าห้องเดิม */
+function setRoomHash(code){
+  try{
+    var want=code?'#room-'+code:'';
+    if((location.hash||'')===want) return;
+    history.replaceState(null,'',location.pathname+location.search+want);
+  }catch(e){}
+}
+function inviteUrl(){
+  return location.href.split('#')[0]+'#room-'+Net.code();
+}
+function hashRoom(){
+  var m=/^#room-([A-Za-z0-9]{4,8})$/.exec(location.hash||'');
+  return m?m[1].toUpperCase():'';
+}
+
+function joinRoom(code,retry){
+  code=String(code||'').trim().toUpperCase();
+  if(!retry){ rejoinTry=0; rejoining=false; rejoinCode=''; }
+  autoPick=true; autoTries=0;
+  return Net.join(code,{ onStatus:netStatus, onRemoteState:onRemoteState, onLobby:onLobby,
+                         name:pnames[0]||defaultName(0), id:clientId() })
+    .catch(function(){
+      /* netStatus แสดงข้อความผิดพลาดให้แล้ว ถ้ากำลังต่อกลับก็ลองใหม่อีกรอบ */
+      if(rejoining) startRejoin();
+    });
+}
+
+function startRejoin(){
+  var code=rejoinCode||Net.code();
+  if(!code) return false;
+  if(rejoinTry>=REJOIN_MAX){
+    rejoining=false; rejoinCode=''; rejoinTry=0; forgetRoom();
+    netMsg=t('net_hostleft'); netMsgKind='bad'; buildNetRow(); paintBanner(); refreshRoomButtons();
+    return true;
+  }
+  rejoining=true; rejoinCode=code; rejoinTry++;
+  netMsg=t('net_rejoin',{n:rejoinTry}); netMsgKind='';
+  buildNetRow(); paintBanner();
+  clearTimeout(rejoinTimer);
+  rejoinTimer=setTimeout(function(){ if(rejoining) joinRoom(code,true); },REJOIN_WAIT);
+  return true;
+}
+function stopRejoin(){
+  clearTimeout(rejoinTimer); rejoinTimer=null;
+  rejoining=false; rejoinCode=''; rejoinTry=0;
+}
+
+/* แถบบนหน้าเกม ผู้เข้าร่วมที่อยู่ในเกมจะไม่เห็นข้อความในหน้าตั้งค่า */
+function paintBanner(){
+  var b=$('netBanner'); if(!b) return;
+  var show = !!S && !!netMsg && (rejoining || netMsgKind==='bad' || (netMsgKind==='ok'&&isGuest()&&netMsg===t('net_back')));
+  b.classList.toggle('hidden',!show);
+  b.classList.toggle('bad',netMsgKind==='bad');
+  b.textContent=show?netMsg:'';
+}
+
+/* เจ้าของห้องสร้าง QR แบบโหลดทีหลัง ถ้าโหลดไม่ได้ก็ยังมีลิงก์กับปุ่มคัดลอกให้ใช้ */
+var QR_SRC='https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
+var qrLoading=null;
+function loadQR(){
+  if(window.qrcode) return Promise.resolve();
+  if(qrLoading) return qrLoading;
+  qrLoading=new Promise(function(res,rej){
+    var sc=document.createElement('script'); sc.src=QR_SRC;
+    sc.onload=function(){ window.qrcode?res():rej(new Error('QR')); };
+    sc.onerror=function(){ qrLoading=null; rej(new Error('QR')); };
+    document.head.appendChild(sc);
+  });
+  return qrLoading;
+}
+function paintQR(){
+  var box=$('inviteQR'); if(!box) return;
+  var url=inviteUrl();
+  loadQR().then(function(){
+    var cur=$('inviteQR'); if(!cur) return;
+    var qr=window.qrcode(0,'M'); qr.addData(url); qr.make();
+    cur.innerHTML=qr.createSvgTag(4,0);
+    cur.classList.remove('none');
+  }).catch(function(){ var cur=$('inviteQR'); if(cur) cur.classList.add('none'); });
+}
+function buildInvite(){
+  var local=location.protocol==='file:';
+  var url=inviteUrl();
+  return '<div class="invite" id="invite">'+
+    '<div class="qr none" id="inviteQR" aria-hidden="true"></div>'+
+    '<div class="ib"><span class="it">'+esc(t('invite_title'))+'</span>'+
+    '<input class="il" id="inviteLink" readonly value="'+esc(url)+'">'+
+    '<div class="ibtns"><button type="button" id="btnCopyLink">'+esc(t('invite_copy'))+'</button>'+
+    (navigator.share?'<button type="button" id="btnShareLink">'+esc(t('invite_share'))+'</button>':'')+'</div>'+
+    '<span class="ih'+(local?' warn':'')+'">'+esc(local?t('invite_local',{code:Net.code()}):t('invite_hint'))+'</span>'+
+    '</div></div>';
+}
+function copyLink(){
+  var inp=$('inviteLink'), url=inviteUrl();
+  function done(){ var b=$('btnCopyLink'); if(b){ b.textContent=t('invite_copied');
+    setTimeout(function(){ var b2=$('btnCopyLink'); if(b2) b2.textContent=t('invite_copy'); },1600); } }
+  function fallback(){ try{ inp.focus(); inp.select(); document.execCommand('copy'); }catch(e){} done(); }
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done,fallback);
+  else fallback();
 }
 
 /* ---------- ห้องรอ ----------
@@ -3077,7 +3956,18 @@ function seatFree(i){
 }
 
 /* คนเพิ่งเข้ามา ยังไม่ให้ที่นั่ง ส่งรายการไปให้เลือกเอง */
-function onHello(){ pushLobby(); }
+function onHello(){
+  if(!S){
+    var waiting=Net.seatNames().filter(function(g){ return g.seat<0; }).length;
+    var free=0, i;
+    for(i=0;i<playerCount;i++) if(seatFree(i)) free++;
+    for(i=0;i<playerCount&&free<waiting;i++){
+      if(i!==hostSeat&&pbots[i]){ pbots[i]=false; free++; }
+    }
+    buildRoster(); buildBotRow();
+  }
+  pushLobby();
+}
 
 /* ตัดสินคำขอย้ายที่นั่ง ใครส่งมาก่อนได้ก่อน */
 function onPickSeat(seat,c){
@@ -3167,7 +4057,17 @@ function pushLobby(){
   Net.sendLobby(seatList(), teamMode);
   buildNetRow();
 }
-function onLobby(seats,teams){ lobbySeats=seats; lobbyTeams=teams; buildNetRow(); }
+function onLobby(seats,teams){
+  lobbySeats=seats; lobbyTeams=teams;
+  if(autoPick){
+    autoPick=false;
+    var want=rememberedSeat(Net.code()), pick=-1;
+    var free=(seats||[]).filter(function(r){ return !r.bot&&!r.host&&!r.taken; }).map(function(r){ return r.i; });
+    if(free.indexOf(want)>=0) pick=want; else if(free.length) pick=free[0];
+    if(pick>=0) Net.pick(pick);
+  }
+  buildNetRow();
+}
 
 /* ปิดตัวควบคุมทั้งหมดในหน้าตั้งค่าเมื่อเราไปเข้าห้องคนอื่น
    เรียกท้ายสุดของทุกการวาดใหม่ เพราะตัววาดแต่ละตัวตั้งค่า disabled ของตัวเอง */
@@ -3250,7 +4150,7 @@ function netPush(){
   Net.broadcast(S);
 }
 
-var VERSION='5.5.9';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
+var VERSION='6.1.0';        /* เลขเวอร์ชัน ใช้ยืนยันว่ากำลังเปิดไฟล์ตัวไหนอยู่ */
 
 /* ตัวช่วยกลางสำหรับสลับหน้า ทุกจุดที่เคยเขียน classList ของ #setup กับ #game ตรง ๆ
    เปลี่ยนมาเรียกอันนี้แทน จะได้ไม่มีจุดไหนลืมอัปเดตคลาสของ body ที่คุมการโชว์ปุ่มเริ่มใหม่ */
@@ -3266,7 +4166,34 @@ var THEMES=['wood','steel','jungle','slate','paper'];
 /* มุมมองเอียง: บีบระนาบกระดานตามแนวตั้งด้วยอัตราส่วนนี้ เท่ากับ cos ของมุมเอียงราว 53 องศา
    วิธีนี้ทำทั้งหมดในพิกัด SVG จึงไม่ต้องพึ่ง CSS 3D ที่ลูกในของ SVG เข้าไม่ถึง */
 var TILT_K=0.60;
-var view='flat';
+var view=(typeof Board3D!=='undefined'&&Board3D.supported())?'3d':'flat';
+/* กระดาน 3 มิติใช้ได้จริงเมื่อเลือกไว้และโหลด Three.js เสร็จแล้ว ระหว่างโหลดยังวาดแบบ SVG ให้ก่อน */
+function is3d(){ return view==='3d' && typeof Board3D!=='undefined' && Board3D.ready() }
+var load3dBusy=false, hintTimer=0;
+function ensure3d(){
+  if(view!=='3d'||typeof Board3D==='undefined'||Board3D.ready()||load3dBusy) return;
+  load3dBusy=true;
+  Board3D.load().then(function(){
+    load3dBusy=false;
+    if(view==='3d'&&S){ buildBoard(); sync(); }
+  },function(){
+    load3dBusy=false;
+    /* ออฟไลน์หรือโหลดไม่ได้ ถอยกลับไปมุมมองเดิม ข้อความเตือนอยู่ในหน้าการแสดงผล */
+    if(view==='3d'){ view='flat'; buildViewRow(); if(S){ buildBoard(); sync(); } }
+  });
+}
+function ctx3d(){
+  var cs=getComputedStyle(document.documentElement);
+  return { S:S, colOf:colOf, name:uname, shapes:tokenShapes, tint:TEAM_TINT,
+           css:function(n){ return cs.getPropertyValue(n).trim(); } };
+}
+function sync3d(){
+  var picks=[], me=S.players[S.currentIdx];
+  if(S.phase==='AWAIT_MOVE'&&!me.bot&&!busy&&!remoteRolling&&myTurn()){
+    Game.moveOptions(S).forEach(function(o){ picks.push({tile:o.tile,steps:o.steps,color:colOf(me)}); });
+  }
+  Board3D.sync(ctx3d(),{picks:picks,onPick:function(steps){ pickStep(steps); }});
+}
 function tilted(){ return view==='tilt' }
 function projY(y){ return tilted() ? geo.cy + (y-geo.cy)*TILT_K : y }
 /* พิกัดสำหรับของที่ต้องตั้งขึ้น เช่นตัวละคร ทุ่นระเบิด และตัวหนังสือ */
@@ -3417,6 +4344,10 @@ function applyLang(){
   $('overKicker').textContent=t('over_kicker');
   $('footer').textContent=t('footer');
   $('board').setAttribute('aria-label',t('board_title'));
+  $('btn3dReset').innerHTML=uiIcon('recenter');
+  $('btn3dReset').title=t('cam_reset');
+  $('btn3dReset').setAttribute('aria-label',t('cam_reset'));
+  $('b3hint').textContent=t('hint3d');
   paintSound();
   buildRoster(); buildNetRow(); buildTeamRow(); buildThemeRow(); buildViewRow(); buildCacheRandomRow(); buildCacheIntervalRow(); buildCountState(); buildShapeRow(); buildBotRow(); renderOpts();
   if(S){ buildBoard(); sync(); } else { $('meta').textContent=t('meta_none'); }
@@ -3575,19 +4506,22 @@ function buildNetRow(){
   var html='<div class="opt"><span>'+esc(t('opt_online'))+'</span>';
   if(st==='off'){
     html+='<button type="button" id="btnHost">'+esc(t('net_host'))+'</button>'+
-          '<input class="netin" id="joinCode" maxlength="6" placeholder="ABC123">'+
+          '<input class="netin" id="joinCode" maxlength="6" placeholder="ABC123" autocapitalize="characters" autocomplete="off">'+
           '<button type="button" id="btnJoin">'+esc(t('net_join'))+'</button>';
   } else if(st==='host'){
     html+='<span class="netcode">'+esc(Net.code())+'</span>'+
+          '<button type="button" id="btnInvite" aria-pressed="'+inviteOpen+'">'+esc(t('net_invite'))+'</button>'+
           '<button type="button" id="btnLeave">'+esc(t('net_leave'))+'</button>';
   } else {
-    html+='<span class="netcode">'+esc(Net.code())+'</span>'+
+    html+='<span class="netcode">'+esc(Net.code()||rejoinCode)+'</span>'+
           '<button type="button" id="btnLeave">'+esc(t('net_leave'))+'</button>';
   }
   if(netMsg) html+='<span class="netmsg '+netMsgKind+'">'+esc(netMsg)+'</span>';
   html+='</div>';
+  if(st==='host'&&inviteOpen) html+=buildInvite();
   if(online()) html+=buildLobby();
   box.innerHTML=html;
+  if($('invite')) paintQR();
 
   /* ปุ่มเลือกที่นั่ง ส่งคำขอไปให้กรรมการตัดสิน */
   Array.prototype.forEach.call(box.querySelectorAll('[data-seat]'),function(b){
@@ -3600,17 +4534,25 @@ function buildNetRow(){
     Sfx.play('click');
     Net.host({ onHello:onHello, onPick:onPickSeat, onLeave:onSeatLeave,
                onSeats:onSeatsChanged, onAct:onRemoteAct, onStatus:netStatus,
-               onState:function(){ return S }, seat:hostSeat });
+               onState:function(){ return S }, seat:hostSeat })
+      .catch(function(){ /* netStatus แสดงข้อความผิดพลาดให้แล้ว */ });
   };
   if($('btnJoin')) $('btnJoin').onclick=function(){
     Sfx.play('click');
     var code=($('joinCode').value||'').trim();
     if(code.length<4){ netMsg=t('net_noroom'); netMsgKind='bad'; buildNetRow(); return; }
-    Net.join(code,{ onStatus:netStatus, onRemoteState:onRemoteState, onLobby:onLobby,
-                    name:pnames[0]||defaultName(0) });
+    joinRoom(code);
+  };
+  /* กด Enter ในช่องรหัสก็เข้าห้องได้ */
+  if($('joinCode')) $('joinCode').onkeydown=function(e){ if(e.key==='Enter'&&$('btnJoin')) $('btnJoin').onclick(); };
+  if($('btnInvite')) $('btnInvite').onclick=function(){ Sfx.play('click'); inviteOpen=!inviteOpen; buildNetRow(); };
+  if($('btnCopyLink')) $('btnCopyLink').onclick=function(){ Sfx.play('click'); copyLink(); };
+  if($('btnShareLink')) $('btnShareLink').onclick=function(){
+    Sfx.play('click');
+    navigator.share({ title:document.title, text:t('invite_title'), url:inviteUrl() }).catch(function(){});
   };
   if($('btnLeave')) $('btnLeave').onclick=function(){
-    Sfx.play('click'); Net.leave();
+    Sfx.play('click'); stopRejoin(); forgetRoom(); inviteOpen=false; Net.leave(); paintBanner();
     lobbySeats=null; netMsg=''; netMsgKind='';
     /* ตัดขาดจากเกมของห้องนั้นจริง ปุ่มจึงกลับเป็นเริ่มเกมของตัวเอง */
     if(steppedOut){ steppedOut=false; S=null; $('meta').textContent=t('meta_none'); }
@@ -3721,13 +4663,18 @@ function buildShapeRow(){
 function buildViewRow(){
   $('viewrow').innerHTML='<div class="opt"><span id="vwlbl"></span><div class="seg" id="vwseg"></div></div>';
   $('vwlbl').textContent=t('opt_view');
-  [['flat',t('view_flat')],['tilt',t('view_tilt')]].forEach(function(pair){
+  var can3d=(typeof Board3D!=='undefined'&&Board3D.supported());
+  [['flat',t('view_flat')],['tilt',t('view_tilt')],['3d',t('view_3d')]].forEach(function(pair){
     var b=document.createElement('button'); b.type='button';
     b.textContent=pair[1];
     b.setAttribute('aria-pressed',pair[0]===view);
-    b.onclick=function(){ view=pair[0]; buildViewRow(); applyDiceTilt(); if(S) buildBoard(); };
+    var off=(pair[0]==='3d'&&(!can3d||Board3D.failed()));
+    b.disabled=off;
+    if(off) b.title=can3d?t('view3d_fail'):t('view3d_off'); else b.removeAttribute('title');
+    b.onclick=function(){ view=pair[0]; buildViewRow(); applyDiceTilt(); ensure3d(); if(S){ buildBoard(); sync(); } };
     $('vwseg').appendChild(b);
   });
+  if(can3d&&Board3D.failed()) $('viewrow').insertAdjacentHTML('beforeend','<p class="netmsg bad">'+esc(t('view3d_fail'))+'</p>');
   applyDiceTilt();
 }
 
@@ -3790,6 +4737,9 @@ $('units').addEventListener('click',function(e){
 $('btnItemsClose').onclick=function(){ Sfx.play('click'); $('itemList').classList.add('hidden') };
 $('itemList').onclick=function(e){ if(e.target===$('itemList')) $('itemList').classList.add('hidden') };
 $('btnAgain').onclick=reset;
+$('btn3dReset').onclick=function(){ Sfx.play('click'); if(is3d()) Board3D.resetCamera(); };
+/* คำแนะนำการหมุนกระดานจางหายไปหลังแตะกระดานครั้งแรก */
+$('board3d').addEventListener('pointerdown',function(){ $('b3hint').classList.add('gone'); });
 $('btnReset').onclick=function(){ if(isGuest()) stepOutOfGame(); else reset(); };
 
 function paintSound(){
@@ -3943,6 +4893,20 @@ function drawTrack(svg){
 }
 
 function buildBoard(){
+  ensure3d();
+  var use3d=is3d();
+  $('board').classList.toggle('hidden',use3d);
+  $('board3d').classList.toggle('hidden',!use3d);
+  $('hud').classList.toggle('nodice',use3d);
+  if(use3d){
+    /* ลูกเต๋าอยู่ในฉาก 3 มิติแล้ว แถบล่างเหลือแค่ชื่อกับหัวใจ */
+    $('hudBar').appendChild($('hud')); $('hud').classList.add('bar');
+    Board3D.mount($('board3d'));
+    Board3D.build(ctx3d());
+    /* คำแนะนำบังกระดานบนจอเล็ก ให้จางไปเองหลังเห็นสักครู่ */
+    if(!hintTimer) hintTimer=setTimeout(function(){ $('b3hint').classList.add('gone'); },9000);
+    return;
+  }
   /* กลางกระดานว่างเฉพาะแบบวงกลมกับ n เหลี่ยม แบบรถไฟมีช่องอยู่ตรงนั้น ต้องย้ายลูกเต๋าออกมา */
   var onBoard=(S.rules.shape!=='snake');
   (onBoard?$('hudBoard'):$('hudBar')).appendChild($('hud'));
@@ -4139,6 +5103,7 @@ function uiIcon(name){
   if(name==='look')  return o+'<circle cx="12" cy="12" r="3.2"/><path d="M1.8 12S5.5 5 12 5s10.2 7 10.2 7-3.7 7-10.2 7S1.8 12 1.8 12Z"/></svg>';
   if(name==='sound') return o+'<path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4Z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18.2 6.6a7.7 7.7 0 0 1 0 10.8"/></svg>';
   if(name==='mute')  return o+'<path d="M4 9.5v5h3.5L12 18V6L7.5 9.5H4Z"/><path d="m16 10 5 4M21 10l-5 4"/></svg>';
+  if(name==='recenter') return o+'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><circle cx="12" cy="12" r="2.6"/></svg>';
   if(name==='globe') return o+'<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8"/>'+
     '<path d="M12 3.6c2.2 2.4 3.3 5.3 3.3 8.4S14.2 18 12 20.4C9.8 18 8.7 15.1 8.7 12S9.8 6 12 3.6Z"/></svg>';
   return o+'</svg>';
@@ -4217,6 +5182,7 @@ function drawTokens(){
 
 /* วงกระเพื่อมสำหรับเน้นเหตุการณ์บนช่อง วาดด้วย rAF เพราะ CSS animate r ไม่ได้ทุกเบราว์เซอร์ */
 function pulseAt(tile,color,scale){
+  if(is3d()){ Board3D.pulse(tile,color,scale); return; }
   var layer=$('fx'); if(!layer) return;
   var p=pxy(tile);
   /* วงกระเพื่อมแผ่ไปบนพื้นกระดาน จึงเป็นวงรีเมื่อมองเอียง */
@@ -4239,6 +5205,7 @@ function pulseAt(tile,color,scale){
 
 /* ตัวเลขลอยขึ้นจากช่อง บอกทันทีว่าได้หรือเสียอะไรไปเท่าไร */
 function floatText(tile,text,color){
+  if(is3d()){ Board3D.floatText(tile,text,color); return; }
   var layer=$('fx'); if(!layer) return;
   var p=pxy(tile);
   var t=el('text',{x:p.x,y:p.y,'class':'floater',fill:color,
@@ -4257,6 +5224,7 @@ function floatText(tile,text,color){
 }
 
 function blastAt(tile){
+  if(is3d()){ Board3D.blast(tile); return; }
   var t=$('tile'+tile);
   if(t){ t.classList.add('blast'); setTimeout(function(){t.classList.remove('blast')},700); }
   pulseAt(tile,'#9E2B24',2.2);
@@ -4271,6 +5239,7 @@ function blastAt(tile){
    แล้วค่อยโผล่ที่ปลายทาง ส่วนไอเท็มเร่งเครื่องทำให้ก้าวเยอะขึ้น จึงต้องเร่งจังหวะตามด้วย */
 function animateMove(id,from,steps,dir){
   var d=(dir<0)?-1:1;
+  if(is3d()) return Board3D.animateMove(id,from,steps,d,function(i){ Sfx.play('step',i); });
   return new Promise(function(done){
     var per=steps>8?115:(steps>6?150:185);
     var t0=null, total=steps*per, lastStep=-1;
@@ -4297,6 +5266,11 @@ var SFX={boom:'blast', boomstack:'blast2', heal:'heal', supply:'pickup',
          place:'plant', stack:'plant2', forced:'alert', out:'death', win:'fanfare'};
 
 function tumbleDice(roll){
+  if(is3d()){
+    return Board3D.rollDice(roll,reduced,function(){ Sfx.play('dice'); }).then(function(){
+      drawDie('dieA',roll.a); drawDie('dieB',roll.b); Sfx.play('settle');
+    });
+  }
   var A=$('dieA'), Bd=$('dieB'), cA=$('cubeA'), cB=$('cubeB');
   if(reduced){ drawDie('dieA',roll.a); drawDie('dieB',roll.b); return Promise.resolve() }
   var delays=[40,44,52,64,80,100,126,158,196];
@@ -4509,7 +5483,8 @@ function sync(){
   ['btnRoll','btnPlace','btnSkip','btnUseItem'].forEach(function(id){
     var b=$(id); if(b) b.disabled=lockTurn;
   });
-  drawCaches(); drawMines(); drawTokens(); drawPicks(); drawUnits(); drawLog();
+  if(is3d()) sync3d(); else { drawCaches(); drawMines(); drawTokens(); drawPicks(); }
+  drawUnits(); drawLog();
   var p=S.players[S.currentIdx], over=S.phase==='GAME_OVER', err=Game.placementError(S);
   var isBot=!over&&!!p.bot;
   $('meta').textContent=t('meta',{n:S.players.length,tiles:S.boardSize,turn:S.turnCount+1,mines:Object.keys(S.mines).length});
@@ -4757,7 +5732,9 @@ async function botTurn(my){
   maybeBot();
 }
 
+ensure3d();
 applyLang();
+if(hashRoom()) joinRoom(hashRoom());
 })();
 </script>
 </body>
